@@ -938,5 +938,5 @@ Declaramos que todos os integrantes listados na capa participaram da elaboraçã
 | Augusto do Amarante | |
 | Cristofer Dvorecky Oliveira | Cristofer D. Oliveira |
 | Guilherme Perpétuo | GuiP |
-| Henrique Augusto | |
+| Henrique Augusto | Henrique A.|
 | Mateus Valenga | MvSa |
