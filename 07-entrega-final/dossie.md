@@ -908,7 +908,7 @@ O sistema ainda tem limitações. Não há criptografia de ponta a ponta, então
 
 **Ferramentas:** Git e GitHub (versões e integração contínua), Mermaid (diagramas), [preencher: editor do documento e ferramenta usada para gerar o PDF].
 
-**Uso de inteligência artificial.** Usamos o Claude (Anthropic) no desenvolvimento do Jay-C e neste documento. As seções 4.1 a 4.5 e 4.8 foram redigidas com ajuda dele a partir do código, da documentação do projeto e da tabela de requisitos do Cristofer, e ele também conferiu contra o código os números e comportamentos citados. As seções 4.6 e 4.7 são do Henrique, com ajustes pontuais. A equipe revisou todo o conteúdo e corrigiu o que não correspondia ao sistema. [A equipe deve confirmar este parágrafo.]
+**Uso de inteligência artificial.** Usamos o Claude (Anthropic) para auxiliar o desenvolvimento do Jay-C e neste documento. As seções 4.5 e 4.8 foram corrigidas com ajuda dele a partir do código redigido por Mateus Valenga, com a confirmação do mesmo, da documentação do projeto e da tabela de requisitos do Cristofer, e ele também conferiu contra o código os números e comportamentos citados. As seções 4.6 e 4.7 são do Henrique, com ajustes pontuais. A equipe revisou todo o conteúdo e corrigiu o que não correspondia ao sistema. [A equipe deve confirmar este parágrafo.]
 
 ## 35. Quadro de contribuição individual
 
@@ -918,7 +918,7 @@ O sistema ainda tem limitações. Não há criptografia de ponta a ponta, então
 | Cristofer Dvorecky Oliveira (GitHub: @CristoferDOliveira) | Tabela de requisitos: requisitos funcionais, não funcionais e regras de negócio (seções 9 a 11) | `TabelaRequisitos.xlsx` |
 | Guilherme Perpétuo (GitHub: @Gui135-dev) | Modelagem: casos de uso, descrições e diagrama de classes (seções 13 a 16) | [preencher: diagramas entregues] |
 | Henrique Augusto (GitHub: @Henrique_Dutr4) | Testes e manutenção: atributos de qualidade, CT01–CT08, matriz de rastreabilidade (base da seção 4.6); tipos de manutenção, análise de impacto e riscos (base da seção 4.7) | Documentos "Testes do Sistema — JAY-C" e "Manutenção do Sistema e Mudanças Futuras" |
-| Mateus Valenga (GitHub: @TyxMatty) | Desenvolvimento do Jay-C (aplicativo e servidor); verificação final de todos os artefatos contra o sistema real | Histórico de commits e versões publicadas no repositório |
+| Mateus Valenga (GitHub: @TyxMatty) | Desenvolvimento do Jay-C (aplicativo e servidor); verificação final de todos os artefatos contra o sistema real | Histórico de commits e versões publicadas no repositório e desenvolvimento de todo produto "Jay-C" |
 
 ## 36. Declaração de participação
 
@@ -930,4 +930,4 @@ Declaramos que todos os integrantes listados na capa participaram da elaboraçã
 | Cristofer Dvorecky Oliveira | |
 | Guilherme Perpétuo | |
 | Henrique Augusto | |
-| Mateus Valenga | |
+| Mateus Valenga | MvSa |
