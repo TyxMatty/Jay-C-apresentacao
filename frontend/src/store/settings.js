@@ -1,0 +1,114 @@
+import { DEFAULT_STREAM_QUALITY, DEFAULT_MIC_PROCESSING } from '../core/media.js';
+import { DEFAULT_APPEARANCE } from '../core/appearance.js';
+import { DEFAULT_CALL_BAR } from '../core/call-bar.js';
+import { savedServers } from '../core/servers.js';
+
+// User preferences persisted in localStorage. public/theme-init.js reads the same key.
+const STORAGE_KEY = 'jayc.settings';
+
+export const DEFAULT_SETTINGS = Object.freeze({
+  displayName: '',
+  /** Profile picture as a small data URL (core/avatar.js), or null. */
+  avatar: null,
+  /** Profile color others see behind us: { from, to?, angle? }, or null = picked from the name. */
+  profileColor: null,
+  serverAddress: '',
+  /** 'system' | 'light' | 'dark' */
+  theme: 'system',
+  lastRoom: '',
+  /** Rooms joined lately, newest first (core/recent-rooms.js), for one-click rejoining. */
+  recentRooms: [],
+  /** Last screen-share choices: 'screen' | 'window', and { resolution, fps, optimizeFor }. */
+  shareMode: 'screen',
+  streamQuality: DEFAULT_STREAM_QUALITY,
+  /** { echoCancellation, noiseSuppression, autoGainControl } for the call microphone. */
+  micProcessing: DEFAULT_MIC_PROCESSING,
+  /** { accent: '#rrggbb' | '', gradient: { from, to, angle } | null }: '' / null = the theme's. */
+  appearance: DEFAULT_APPEARANCE,
+  /** Call controls: { position: 'bottom' | 'right' | 'top' | 'left', order: control keys }. */
+  callBar: DEFAULT_CALL_BAR,
+  /**
+   * Servers in the left column (ui/server-rail.js), in order: { address, name? } (name: what the
+   * server calls itself, once seen). The one on screen is `serverAddress`.
+   */
+  servers: [],
+  /** Admin keys given to servers (ui/server-settings-modal.js), by WebSocket URL: entered once each. */
+  adminKeys: {},
+  /** The last message seen in each text channel, by server URL then channel: { [url]: { [name]: id } }. */
+  channelsRead: {},
+  /** The newest message that mentioned us in each channel (T14.B, the @ in the list), by server URL then channel: { [url]: { [name]: id } }. */
+  channelMentions: {},
+  /** The GIFs sent on each server, newest first (core/recent-gifs.js): { [http base]: [{ id, mime, size, ... }] }. */
+  recentGifs: {},
+  /** The mic and deafen as the last call was left (core/call-audio.js): the next one starts so. */
+  callAudio: { muted: false, deafened: false },
+  /** Interface language: 'system' (the OS language), 'en' or 'pt-BR' (core/i18n.js). */
+  language: 'system',
+  /** The look: 'calm', 'neon' or 'soft' (core/style.js, styles/theme.css). */
+  style: 'calm',
+  /** Animations: 'on' or 'off' (core/motion.js). */
+  motion: 'on',
+  /** Executables left out of the entire-screen share's sound, e.g. ['Discord.exe']. */
+  excludedApps: [],
+  /** Native mic (Windows) endpoint id, or null = the Windows default. */
+  micDevice: null,
+  /** Mic volume (1 = 100%, up to core/mic-shape.js MAX_MIC_GAIN) and sensitivity: the gate
+   * threshold in dBFS, or null = always send. Native mic only. */
+  micGain: 1,
+  micGate: null,
+  /** Whose processing the call hears (Windows): 'jay-c' (its own) or 'jay-a' (Jay-A's, with
+   * Jay-C's own as the reserve; docs/JAY-A.md). */
+  micFilter: 'jay-c',
+  /** Speakers for the call's sound: a deviceId from enumerateDevices, or '' = the default. */
+  outputDevice: '',
+  /** The "Welcome!" tour (core/welcome.js) already opened by itself once; Settings › Help reopens it. */
+  welcomeSeen: false,
+  /** Discord status during calls (Windows, core/discord-presence.js), and whether it names the room. */
+  discordPresence: true,
+  discordShowRoom: false,
+  /** Short sounds for mute, deafen, joins, leaves, streams and chat (core/sounds.js). */
+  alertSounds: true,
+});
+
+function load() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}');
+    return {
+      ...DEFAULT_SETTINGS,
+      ...saved,
+      streamQuality: { ...DEFAULT_STREAM_QUALITY, ...saved.streamQuality },
+      micProcessing: { ...DEFAULT_MIC_PROCESSING, ...saved.micProcessing },
+      appearance: { ...DEFAULT_APPEARANCE, ...saved.appearance },
+      callBar: { ...DEFAULT_CALL_BAR, ...saved.callBar },
+      servers: savedServers(saved),
+    };
+  } catch {
+    return { ...DEFAULT_SETTINGS };
+  }
+}
+
+let state = load();
+const listeners = new Set();
+
+export const settings = {
+  get() {
+    return state;
+  },
+
+  update(patch) {
+    const prev = state;
+    state = { ...state, ...patch };
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch {
+      // Storage unavailable (private mode / quota): keep working in memory.
+    }
+    for (const listener of listeners) listener(state, prev);
+  },
+
+  /** Calls `listener(next, prev)` on every update. Returns an unsubscribe function. */
+  subscribe(listener) {
+    listeners.add(listener);
+    return () => listeners.delete(listener);
+  },
+};

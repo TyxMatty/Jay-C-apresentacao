@@ -1,0 +1,55 @@
+# Jay-C server (signaling + media SFU)
+#
+# Users: put this file in an empty folder and run `docker compose up -d`.
+# Developers (inside the repo): `docker compose up -d --build` builds from source.
+#
+# Open these ports in your firewall: 3000/tcp (signaling) and 40000/udp + 40000/tcp (media).
+name: jay-c
+
+services:
+  signaling:
+    image: ghcr.io/tyxmatty/jay-c-signaling:latest
+    build:
+      context: ..
+      dockerfile: signaling-server/Dockerfile
+    container_name: jay-c-signaling
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+      - "40000:40000/udp"
+      - "40000:40000/tcp"
+    environment:
+      PORT: 3000
+      RTC_PORT: 40000
+      MAX_PEERS_PER_ROOM: 16
+      # Media goes to the address each client used to reach this server (e.g. 192.168.1.50).
+      # Set this only if that doesn't work for you, e.g. behind a reverse proxy:
+      # ANNOUNCED_ADDRESS: "192.168.1.50"
+      # Restrict which apps may connect (Windows/Android use http://tauri.localhost,
+      # macOS/iOS/Linux use tauri://localhost). Empty = accept any origin.
+      # ALLOWED_ORIGINS: "http://tauri.localhost,tauri://localhost"
+      # STUN/TURN servers handed to clients on join (only needed outside LAN/VPN).
+      # ICE_SERVERS: '[{"urls":"stun:stun.l.google.com:19302"}]'
+      # The server's data in ./data next to this file (Jay-C 0.5): the fixed rooms (rooms.json), the
+      # text channels (channels.json), their history and the chats' files (media/). On Linux, let the
+      # container write it once: mkdir -p data && sudo chown 1000:1000 data
+      DATA_DIR: /data
+      # Whoever has this key manages the rooms from the app (the gear next to the server's name).
+      # ADMIN_KEY: "a-long-secret"
+      # The name the app shows for this server (empty = its address).
+      # SERVER_NAME: "My server"
+      # Images, GIFs and videos in the chats, kept in ./data/media. "off" turns them off.
+      # MEDIA: "off"
+      # Size limits per file (MB), and for all the files together (past it, new ones are refused).
+      # MAX_IMAGE_MB: "8"
+      # MAX_VIDEO_MB: "50"
+      # MEDIA_DISK_MB: "2048"
+    volumes:
+      - ./data:/data
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true

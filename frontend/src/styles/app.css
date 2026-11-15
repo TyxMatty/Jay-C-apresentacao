@@ -1,0 +1,4228 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+
+/* Components set `display`; make the `hidden` attribute always win. */
+[hidden] {
+  display: none !important;
+}
+
+body {
+  /* --app-background: the user's gradient (Settings › Appearance), if any. */
+  background: var(--app-background, var(--bg));
+  color: var(--text);
+  font: 15px/1.5 var(--font);
+  font-feature-settings: 'cv11', 'ss03'; /* Inter: single-storey a, rounder quotes */
+  letter-spacing: -0.006em;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  /* An app, not a page: dragging doesn't select labels and buttons. */
+  user-select: none;
+}
+
+/* Dialogs and popovers sit in the top layer and don't get the body's `none` (measured in the
+   WebView: a <dialog> under a `none` parent computes `text`, so on a phone a long press in
+   Settings selected tabs and buttons). */
+dialog,
+[popover] {
+  user-select: none;
+}
+
+/* Text meant to be copied stays selectable. */
+input,
+textarea,
+.chat-text,
+.markdown {
+  user-select: text;
+}
+
+img {
+  -webkit-user-drag: none;
+}
+
+h1,
+h2,
+h3 {
+  letter-spacing: -0.015em;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+/* Fixed to the window: the call fills it exactly; the lobby scrolls inside .view if needed. */
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+button,
+input,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/* Thin scrollbars that follow the theme. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+
+/* ---------- Header ---------- */
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  backdrop-filter: blur(var(--overlay-blur));
+}
+
+/* With a background gradient, the bar lets it through; 75% surface keeps its text readable. */
+:root[data-background='gradient'] .topbar {
+  border-bottom-color: transparent;
+  background: color-mix(in srgb, var(--surface) 75%, transparent);
+  backdrop-filter: blur(12px);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 750;
+  font-size: 18px;
+  letter-spacing: -0.03em;
+  margin-right: auto;
+}
+
+/* The Jay-C wolf (assets/brand, from scripts/wolf-icon.ps1): two masks in the theme's colors, the
+   head in the accent contrast and the lines in the accent, so it follows style, theme and color. */
+.wolf-mark {
+  position: relative;
+  flex: none;
+}
+
+.wolf-mark::before,
+.wolf-mark::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--accent-contrast);
+  mask: url('../assets/brand/wolf-fill.png') center / contain no-repeat;
+}
+
+.wolf-mark::after {
+  background: var(--accent);
+  mask-image: url('../assets/brand/wolf-lines.png');
+}
+
+.brand-mark {
+  width: 32px;
+  height: 32px;
+}
+
+.brand-name {
+  white-space: nowrap;
+}
+
+.brand-name > span {
+  color: var(--accent-text, var(--accent));
+}
+
+/* A phone's top bar also has the drawer buttons: the wolf alone is the brand there. */
+@media (max-width: 420px) {
+  .brand-name {
+    display: none;
+  }
+}
+
+/* ---------- Buttons ---------- */
+
+/* Pressing anything clickable (finger or mouse) shows it: a darker layer over the background (under
+   the text, so the label stays put), and with motion on a slight shrink. It replaces Android's blue
+   tap highlight. The call bar keeps its own bounce. Darkening, not a layer of the text color: that
+   pulled the background toward the text and took the Soft style's muted labels under 4.5:1
+   (measured 4.09). On dark themes darkening raises the contrast of light labels, so it can be
+   stronger; on light themes it lowers it, so it stays faint. */
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
+:root {
+  --press-overlay: rgb(0 0 0 / 0.05);
+}
+
+:root[data-theme='dark'] {
+  --press-overlay: rgb(0 0 0 / 0.18);
+}
+
+:is(button, [role='tab'], [role='button'], .segmented label, a[href]):active:not(:disabled, [aria-disabled='true']) {
+  background-image: linear-gradient(var(--press-overlay), var(--press-overlay));
+}
+
+:root[data-motion='full'] :is(button, [role='tab'], [role='button'], .segmented label):not(.control-btn):active:not(:disabled, [aria-disabled='true']) {
+  scale: 0.97;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 18px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  background: var(--accent);
+  color: var(--accent-contrast);
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-fast),
+    border-color var(--dur-fast),
+    box-shadow var(--dur),
+    transform var(--dur-fast);
+}
+
+.btn:not(.btn-secondary, .btn-danger) {
+  box-shadow: var(--shadow-sm);
+}
+
+.btn:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.btn:not(.btn-secondary, .btn-danger):hover:not(:disabled) {
+  box-shadow: var(--glow), var(--shadow-sm);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: var(--surface-2);
+  color: var(--text);
+  border-color: var(--border);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--border);
+  border-color: var(--border-strong);
+}
+
+.btn-danger {
+  background: var(--danger-fill);
+  color: #fff;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: var(--danger-fill-hover);
+}
+
+.icon-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  background: var(--surface-2);
+  cursor: pointer;
+  transition: background-color var(--dur-fast), border-color var(--dur-fast);
+}
+
+.icon-btn:hover {
+  background: var(--border);
+  border-color: var(--border-strong);
+}
+
+.icon-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* ---------- Server status pill ---------- */
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius-control) + 4px);
+  background: var(--surface-2);
+  color: var(--text-muted);
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.status-pill::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-muted);
+}
+
+.status-pill[data-state='online']::before {
+  background: var(--success);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--success) 25%, transparent);
+}
+
+.status-pill[data-state='offline']::before {
+  background: var(--danger);
+}
+
+.status-pill[data-state='checking']::before {
+  background: var(--warning);
+}
+
+/* ---------- Lobby ---------- */
+
+/* One centered row: the hero stretches to the card's height (grid rows fit the tallest item). */
+.lobby {
+  position: relative;
+  flex: 1;
+  display: grid;
+  grid-auto-flow: column;
+  place-content: center;
+  gap: clamp(32px, 6vw, 88px);
+  padding: 20px 16px;
+  isolation: isolate;
+}
+
+/* A soft glow in the accent color behind the lobby (not over a custom gradient background). */
+:root:not([data-background='gradient']) .lobby::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(40% 50% at 30% 40%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 70%),
+    radial-gradient(35% 45% at 75% 70%, color-mix(in srgb, var(--accent-2, var(--accent)) 10%, transparent), transparent 70%);
+  pointer-events: none;
+}
+
+.lobby-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 380px;
+}
+
+/* The wolf takes whatever height the text leaves, so the hero's top and bottom line up with the card's. */
+.lobby-hero-mark {
+  flex: 1;
+  min-height: 110px;
+  margin-bottom: 6px;
+}
+
+/* Big enough here for the original thin-line drawing: just the lines, no filled head. */
+.lobby-hero-mark::before {
+  content: none;
+}
+
+.lobby-hero-mark::after {
+  mask-image: url('../assets/brand/wolf-lineart.png');
+}
+
+.lobby-hero h2 {
+  margin: 6px 0 0;
+  font-size: clamp(28px, 3.4vw, 38px);
+  font-weight: 750;
+  line-height: 1.1;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+.lobby-hero > p {
+  margin: 0;
+  font-size: 16px;
+  color: var(--text-muted);
+}
+
+.lobby-features {
+  display: grid;
+  gap: 10px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lobby-features li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.lobby-feature-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  background: var(--accent-soft);
+  color: var(--accent-text, var(--accent));
+}
+
+.lobby-feature-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* A narrow main area: just the card (the version stays in Settings › Help). */
+@container (max-width: 899px) {
+  .lobby-hero,
+  .lobby-version {
+    display: none;
+  }
+}
+
+.lobby-version {
+  position: absolute;
+  left: 16px;
+  bottom: 12px;
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* On a gradient background the hero text sits on its own surface, to stay readable. */
+:root[data-background='gradient'] .lobby-hero {
+  padding: 24px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--overlay);
+  backdrop-filter: blur(var(--overlay-blur));
+}
+
+.card {
+  width: 100%;
+  max-width: 420px;
+  padding: 24px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Lobby: your profile card on top (banner in your profile color, avatar overlapping it). */
+.lobby-card {
+  overflow: hidden;
+}
+
+/* A newer Jay-C is out (core/update.js). */
+.lobby-update {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin: 0 0 16px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  background: var(--surface-2);
+}
+
+.lobby-update-text {
+  flex: 1 1 200px;
+  margin: 0;
+  font-size: 14px;
+}
+
+.lobby-update-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.lobby-profile {
+  margin: -24px -24px 20px;
+}
+
+.lobby-profile-banner {
+  height: 76px;
+  background: var(--tile-bg, var(--surface-2));
+}
+
+.lobby-profile-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  margin-top: -32px;
+  padding: 0 24px;
+}
+
+.lobby-profile-avatar {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 76px;
+  height: 76px;
+  overflow: hidden;
+  border: 4px solid var(--surface);
+  border-radius: 50%;
+  background: var(--surface-2);
+  color: var(--accent-text, var(--accent));
+  font-size: 30px;
+  font-weight: 700;
+  box-shadow: var(--shadow-sm);
+}
+
+.lobby-profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.lobby-profile-name {
+  flex: 1;
+  min-width: 0;
+  padding-bottom: 6px;
+  overflow: hidden;
+  font-size: 17px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.btn.btn-small {
+  margin-bottom: 4px;
+  padding: 6px 12px;
+  font-size: 14px;
+}
+
+.recent-rooms {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.room-chip-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius-control) + 2px);
+  background: var(--surface-2);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color var(--dur-fast), border-color var(--dur-fast), color var(--dur-fast);
+}
+
+.room-chip-btn:hover {
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--border));
+  background: var(--accent-soft);
+}
+
+.room-chip-hash {
+  color: var(--text-muted);
+}
+
+/* The server's rooms (Jay-C 0.5): one per line, with who is in each below it. */
+.server-admin-tag {
+  padding: 1px 6px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Text channels (Jay-C 0.5): "#" instead of an icon, a dot when there are new messages. */
+.server-channel-hash {
+  width: 16px;
+  justify-content: center;
+  font-weight: 700;
+}
+
+.server-room-name.unread {
+  font-weight: 800;
+}
+
+.channel-unread {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+/* Someone mentioned you in this channel (T14.B): an @ instead of the dot. */
+.channel-mention {
+  flex: none;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 9px;
+  background: var(--danger-fill);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+}
+
+.text-channel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+}
+
+.text-channel .chat-empty {
+  flex: 1;
+}
+
+.server-admin-heading {
+  margin: 20px 0 8px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.server-admin-heading:first-child {
+  margin-top: 0;
+}
+
+/* Server settings (ui/server-settings-modal.js). */
+.server-admin-rooms {
+  display: grid;
+  gap: 6px;
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+}
+
+.server-admin-room {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius-control) + 2px);
+  background: var(--surface-2);
+}
+
+.server-admin-room .btn-small {
+  margin-bottom: 0;
+}
+
+.server-room-form,
+.server-admin-key {
+  display: grid;
+  gap: 12px;
+}
+
+/* The admin key field inside the server setup guide (ui/admin-key-field.js). */
+.admin-key-field {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  background: var(--surface-2);
+}
+
+.admin-key-field p {
+  margin: 0;
+}
+
+.admin-key-field-row {
+  display: flex;
+  gap: 8px;
+}
+
+.admin-key-field-row .input {
+  flex: 1;
+  min-width: 0;
+}
+
+.server-room-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.server-rooms,
+.server-room-peers {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.server-rooms {
+  display: grid;
+  gap: 4px;
+}
+
+.server-room-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius-control) + 2px);
+  background: var(--surface-2);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color var(--dur-fast), border-color var(--dur-fast);
+}
+
+.server-room-btn:hover {
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--border));
+  background: var(--accent-soft);
+}
+
+.server-room-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.server-room-icon,
+.server-room-muted {
+  display: inline-grid;
+  color: var(--text-muted);
+}
+
+.server-room-icon svg,
+.server-room-muted svg {
+  width: 16px;
+  height: 16px;
+}
+
+.server-room-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.server-room-count {
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.server-room-peers {
+  display: grid;
+  gap: 2px;
+  padding: 4px 0 2px 34px;
+}
+
+.server-room-peer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 26px;
+  font-size: 14px;
+}
+
+/* The person's color as a ring; the initial in the theme's text color (any color stays readable). */
+.server-room-avatar {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 22px;
+  height: 22px;
+  overflow: hidden;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  background: linear-gradient(var(--surface-2), var(--surface-2)) padding-box, var(--tile-bg) border-box;
+  color: var(--text);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.server-room-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.server-room-peer-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.server-room-live {
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--danger-fill);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+/* "#" inside the room field. */
+.input-prefix {
+  position: relative;
+}
+
+.input-prefix > span {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-weight: 600;
+  pointer-events: none;
+}
+
+.input.input-with-prefix {
+  padding-left: 30px;
+}
+
+.btn.btn-large {
+  width: 100%;
+  min-height: 46px;
+  font-size: 15px;
+}
+
+.btn-icon-end {
+  display: inline-grid;
+  transition: transform var(--dur) var(--ease-out);
+}
+
+.btn-icon-end svg {
+  width: 18px;
+  height: 18px;
+}
+
+:root[data-motion='full'] .btn:hover:not(:disabled) .btn-icon-end {
+  transform: translateX(3px);
+}
+
+.room-chip-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.card h1 {
+  margin: 0 0 4px;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+.card > p {
+  margin: 0 0 20px;
+  color: var(--text-muted);
+}
+
+.card > .field:last-child {
+  margin-bottom: 0;
+}
+
+.lobby-card .hint:empty {
+  display: none;
+}
+
+/* ---------- Forms ---------- */
+
+.field {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.field > label,
+.field-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.input {
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  background: var(--bg);
+  transition: border-color var(--dur-fast), box-shadow var(--dur-fast);
+}
+
+.input:hover {
+  border-color: var(--border-strong);
+}
+
+.input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+  outline: none;
+}
+
+.input-row {
+  display: flex;
+  gap: 8px;
+}
+
+.input-row .input {
+  flex: 1;
+  min-width: 0;
+}
+
+.hint {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.hint[data-tone='success'] {
+  color: var(--success);
+}
+
+.hint[data-tone='error'] {
+  color: var(--danger);
+}
+
+.segmented {
+  display: grid;
+  grid-auto-flow: column;
+  /* minmax(0, …): equal widths whatever the labels' lengths (plain 1fr let a long one take more). */
+  grid-auto-columns: minmax(0, 1fr);
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  background: var(--bg);
+}
+
+.segmented label {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 34px;
+  padding: 0 6px;
+  text-align: center;
+  border-radius: calc(var(--radius-control) - 3px);
+  transition: background-color var(--dur-fast), color var(--dur-fast);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.segmented input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.segmented label:hover {
+  color: var(--text);
+}
+
+.segmented label:has(input:checked) {
+  background: var(--surface-3);
+  color: var(--text);
+  box-shadow: var(--shadow-sm), inset 0 0 0 1px var(--border);
+}
+
+/* Settings › Appearance › Style: three small previews, each drawn with its own style's tokens. */
+.style-picker {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.style-option {
+  position: relative;
+  display: grid;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.style-option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.style-preview {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  gap: 6px;
+  height: 92px;
+  padding: 8px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  transition: border-color var(--dur-fast), box-shadow var(--dur-fast);
+}
+
+.style-option:hover .style-preview {
+  border-color: var(--border-strong);
+}
+
+.style-option:has(input:checked) .style-preview {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.style-option:has(input:focus-visible) .style-preview {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.style-preview-tile {
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-tile);
+  background: var(--surface-2);
+}
+
+.style-preview-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: var(--glow);
+}
+
+.style-preview-bar {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+}
+
+.style-preview-bar > span {
+  width: 14px;
+  height: 14px;
+  border-radius: min(var(--radius-call), 50%);
+  background: var(--surface-3);
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+
+.style-preview-bar > .is-danger {
+  background: var(--danger-fill);
+  box-shadow: none;
+}
+
+.style-option-name {
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.style-option:has(input:checked) .style-option-name {
+  color: var(--text);
+}
+
+.segmented label:has(input:focus-visible) {
+  outline: 3px solid var(--focus-ring);
+}
+
+fieldset {
+  margin: 0 0 8px;
+  padding: 0;
+  border: 0;
+}
+
+fieldset > h3 {
+  margin: 0 0 12px;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+/* Switch + label + one-line explanation (Settings › Microphone). */
+.toggle-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+  cursor: pointer;
+}
+
+.toggle-row input[type='checkbox'] {
+  appearance: none;
+  flex: 0 0 auto;
+  position: relative;
+  width: 36px;
+  height: 20px;
+  margin: 2px 0 0;
+  border-radius: 999px;
+  background: var(--border);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.toggle-row input[type='checkbox']::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.3);
+  transition: transform 0.15s;
+}
+
+.toggle-row input[type='checkbox']:checked {
+  background: var(--accent);
+}
+
+.toggle-row input[type='checkbox']:checked::after {
+  transform: translateX(16px);
+}
+
+.toggle-text {
+  display: grid;
+  gap: 2px;
+}
+
+.toggle-title {
+  font-weight: 600;
+}
+
+/* Reorderable list (Settings › Call controls). */
+.order-list {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.order-list li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 4px 4px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+}
+
+.order-list li span {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* The server on screen (Settings › Server). */
+.order-list li[aria-current='true'] {
+  border-color: var(--accent);
+}
+
+.icon-btn-small {
+  width: 32px;
+  height: 32px;
+}
+
+.icon-btn-small svg {
+  width: 16px;
+  height: 16px;
+}
+
+.icon-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* Native color pickers (Settings › Appearance). */
+.color-input {
+  flex: 0 0 auto;
+  width: 56px;
+  height: 40px;
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  cursor: pointer;
+}
+
+.gradient-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.gradient-controls input[type='range'] {
+  flex: 1;
+  min-width: 0;
+  accent-color: var(--accent);
+}
+
+.gradient-controls output {
+  width: 3.5em;
+  text-align: right;
+}
+
+/* Removable / addable app names (Settings › Streaming). */
+.chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 30px;
+  padding: 4px 6px 4px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-2);
+  font-size: 13px;
+}
+
+.chip-add {
+  padding-right: 12px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.chip-add:hover {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.chip-remove {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 3px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.chip-remove:hover {
+  background: var(--border);
+  color: var(--text);
+}
+
+/* ---------- Modal (<dialog>) ---------- */
+
+.modal {
+  width: min(480px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+
+.modal::backdrop {
+  background: var(--backdrop);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.modal-body {
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 20px;
+  border-top: 1px solid var(--border);
+}
+
+/* Settings › profile picture: zoom and crop before saving. */
+.avatar-editor {
+  width: min(340px, calc(100vw - 32px));
+}
+
+.avatar-editor-stage {
+  position: relative;
+  width: 240px;
+  height: 240px;
+  margin: 0 auto 16px;
+  overflow: hidden;
+  border-radius: var(--radius);
+  background: #000;
+  cursor: grab;
+  touch-action: none;
+}
+
+.avatar-editor-stage:active {
+  cursor: grabbing;
+}
+
+.avatar-editor-stage:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.avatar-editor-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Darken what falls outside the circle others see. */
+.avatar-editor-stage::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 2px solid rgb(255 255 255 / 0.85);
+  border-radius: 50%;
+  box-shadow: 0 0 0 200px rgb(0 0 0 / 0.55);
+  pointer-events: none;
+}
+
+.avatar-editor-zoom input[type='range'] {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+.modal-wide {
+  width: min(720px, calc(100vw - 32px));
+}
+
+/* Long content: header and footer stay put, the body scrolls. */
+.modal-wide[open] > form {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - 34px);
+}
+
+.modal-wide .modal-body {
+  flex: 1;
+  min-height: 0;
+}
+
+/* Welcome tour (ui/welcome-modal.js): one centered card per step. */
+.welcome-modal {
+  width: min(520px, calc(100vw - 32px));
+}
+
+.welcome-modal[open] > form {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - 34px);
+}
+
+.welcome-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 20px 20px 16px;
+  overflow-y: auto;
+  text-align: center;
+}
+
+.welcome-art {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 168px;
+  flex-shrink: 0;
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+  color: var(--accent-text, var(--accent));
+}
+
+.welcome-art svg {
+  width: min(100%, 240px);
+  height: 140px;
+}
+
+/* Welcome art (ui/welcome-art.js): theme colors; the accent is currentColor. */
+.wa-card { fill: var(--surface); stroke: var(--border); stroke-width: 1.5; }
+.wa-fill-accent { fill: currentColor; }
+.wa-fill-surface { fill: var(--surface); }
+.wa-fill-muted { fill: var(--surface-2); stroke: var(--border); }
+.wa-fill-green { fill: #16a34a; }
+.wa-fill-red { fill: #dc2626; }
+.wa-stroke-accent { stroke: currentColor; stroke-width: 4; }
+.wa-stroke-muted { stroke: var(--text-muted); stroke-width: 4; opacity: 0.5; }
+.wa-stroke-text { stroke: var(--text); stroke-width: 5; }
+.wa-stroke-surface { stroke: var(--surface); stroke-width: 5; }
+.wa-link { stroke: var(--text-muted); stroke-width: 2.5; stroke-dasharray: 6 6; opacity: 0.6; }
+.wa-ring,
+.wa-speaking { stroke: #16a34a; stroke-width: 3; }
+.wa-dim { opacity: 0.35; }
+.wa-faded { opacity: 0.55; }
+
+.welcome-content {
+  display: grid;
+  align-content: start; /* the extra min-height (welcome-modal.js fitHeight) goes below the text */
+  gap: 6px;
+}
+
+.welcome-counter {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.welcome-title {
+  margin: 0;
+  font-size: 22px;
+}
+
+.welcome-text {
+  margin: 0;
+  max-width: 42ch;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.welcome-dots {
+  display: flex;
+  gap: 4px;
+}
+
+/* 24px hit area around an 8px dot; the current step stretches into a pill. */
+.welcome-dot {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.welcome-dot::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--border);
+}
+
+.welcome-dot[aria-current='step']::before {
+  width: 20px;
+  background: var(--accent);
+}
+
+.welcome-dot:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+  border-radius: 999px;
+}
+
+.welcome-footer {
+  align-items: center;
+}
+
+.welcome-spacer {
+  flex: 1;
+}
+
+/* Settings: tabs on the left, the chosen panel scrolls on the right (a row of tabs on narrow screens). */
+.modal-settings {
+  width: min(820px, calc(100vw - 32px));
+  height: min(680px, calc(100dvh - 32px));
+}
+
+.modal-settings[open] > form {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.settings-body {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  padding: 0;
+  overflow: hidden;
+}
+
+.settings-tabs {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px;
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+}
+
+.settings-tabs [role='tab'] {
+  position: relative;
+  padding: 9px 12px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color var(--dur-fast), color var(--dur-fast);
+}
+
+.tab-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tab-icon {
+  display: inline-grid;
+}
+
+.tab-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.settings-tabs [role='tab']:hover {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.settings-tabs [role='tab'][aria-selected='true'] {
+  background: var(--accent-soft);
+  color: var(--text);
+}
+
+.settings-tabs [role='tab'][aria-selected='true'] .tab-icon {
+  color: var(--accent-text, var(--accent));
+}
+
+/* A small bar on the chosen tab's edge. */
+.settings-tabs [role='tab'][aria-selected='true']::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 9px;
+  bottom: 9px;
+  width: 3px;
+  border-radius: 3px;
+  background: var(--accent);
+}
+
+.settings-tabs [role='tab']:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.settings-panels {
+  min-height: 0;
+  padding: 20px;
+  overflow-y: auto;
+  background: color-mix(in srgb, var(--surface-2) 40%, var(--surface));
+}
+
+/* Each section is a card over the panel's background. */
+.settings-panel > fieldset,
+.settings-panel > * > fieldset {
+  margin: 0 0 14px;
+  padding: 16px 18px 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.settings-panel fieldset > h3 {
+  margin: 0 0 14px;
+  font-size: 15px;
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+@media (max-width: 600px) {
+  .settings-body {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .settings-tabs {
+    flex-direction: row;
+    overflow-x: auto;
+    scrollbar-width: thin;
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .settings-tabs [role='tab'] {
+    white-space: nowrap;
+  }
+}
+
+/* Setup guide: Connecting / Hosting. Pinned while the guide scrolls. */
+.guide-tabs {
+  position: sticky;
+  top: -20px; /* the body's padding: stick to its very top edge */
+  z-index: 1;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  margin: -20px -20px 20px;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.guide-tabs [role='tab'] {
+  min-height: 38px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-muted);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.guide-tabs [role='tab']:first-child {
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+}
+
+.guide-tabs [role='tab']:last-child {
+  border-left: 0;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+.guide-tabs [role='tab'][aria-selected='true'] {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-contrast);
+}
+
+/* Rendered Markdown (setup guide). */
+.markdown {
+  line-height: 1.6;
+}
+
+.markdown > :first-child {
+  margin-top: 0;
+}
+
+.markdown h2 {
+  margin: 0 0 8px;
+  font-size: 22px;
+}
+
+.markdown h3 {
+  margin: 28px 0 8px;
+  font-size: 17px;
+}
+
+.markdown p,
+.markdown ul,
+.markdown ol {
+  margin: 0 0 12px;
+}
+
+.markdown ul,
+.markdown ol {
+  padding-left: 22px;
+}
+
+.markdown code {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--surface-2);
+  font-family: ui-monospace, 'Cascadia Code', Consolas, monospace;
+  font-size: 0.9em;
+}
+
+.markdown pre {
+  margin: 0 0 12px;
+  padding: 12px 14px;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+
+.markdown .code-block {
+  position: relative;
+}
+
+.markdown .code-block pre {
+  padding-right: 96px; /* room for the copy pill */
+}
+
+.code-copy {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px 3px 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.code-copy:hover {
+  border-color: var(--accent);
+}
+
+.code-copy:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.code-copy svg {
+  width: 14px;
+  height: 14px;
+}
+
+.markdown pre code {
+  padding: 0;
+  background: none;
+  white-space: pre;
+}
+
+.markdown img {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 4px 0 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+/* App screenshots are captured at 2x: show them at their real size, not stretched. */
+.markdown img[src$='.png'] {
+  width: min(100%, 440px);
+}
+
+/* ---------- Views ---------- */
+
+.view {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* ---------- Shell (Jay-C 0.5): saved servers | the server's channels | the main area | members ---------- */
+
+.shell {
+  position: relative;
+  flex: 1;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-rows: minmax(0, 1fr);
+  min-height: 0;
+}
+
+/* The server column and the channel list: a drawer on phones. */
+.shell-nav {
+  display: flex;
+  min-height: 0;
+}
+
+/* The phone drawers' buttons and the dark area behind an open drawer. */
+.topbar-drawer,
+.shell-scrim {
+  display: none;
+}
+
+.server-rail,
+.server-rail-list {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.server-rail {
+  padding: 12px 10px;
+  overflow-y: auto;
+  border-right: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 70%, transparent);
+}
+
+.server-rail-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.server-rail-btn {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--surface-2);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color var(--dur-fast), border-color var(--dur-fast);
+}
+
+.server-rail-btn:hover {
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--border));
+}
+
+.server-rail-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.server-rail-btn[aria-current='true'] {
+  border-color: transparent;
+  background: var(--accent);
+  color: var(--accent-contrast);
+}
+
+.server-rail-add {
+  border-style: dashed;
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.server-rail-add svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* The channel list, and the voice panel under it during a call. */
+.shell-side {
+  display: flex;
+  flex-direction: column;
+  flex: none;
+  width: 248px;
+  min-width: 0;
+  min-height: 0;
+  border-right: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 85%, transparent);
+}
+
+.channel-list {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.channel-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 52px;
+  padding: 8px 8px 8px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.channel-list-title {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  font-size: 15px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.channel-list-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 10px 8px 16px;
+  overflow-y: auto;
+}
+
+.channel-list-section h3 {
+  margin: 0 0 4px;
+  padding: 0 10px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Flat rows here (the server settings keep the boxed ones). */
+.channel-list .server-room-btn {
+  border-color: transparent;
+  background: transparent;
+}
+
+.channel-list .server-room-btn:hover {
+  border-color: transparent;
+  background: var(--surface-2);
+}
+
+.channel-list .server-room-btn[aria-current='true'] {
+  background: var(--accent-soft);
+}
+
+.channel-list .server-room-peers {
+  padding-left: 28px;
+}
+
+/* The call we're in. */
+.channel-list .server-room-btn.in-call .server-room-icon {
+  color: var(--success);
+}
+
+/* The room on top and the buttons in a row under it, each a third of the width (testers: side by
+   side, the small buttons were hard to hit on a big screen). */
+.voice-panel {
+  display: grid;
+  gap: 6px;
+  padding: 8px;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.voice-panel-room {
+  flex: 1;
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.voice-panel-room:hover {
+  background: var(--surface-2);
+}
+
+.voice-panel-room:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.voice-panel-status {
+  color: var(--success);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.voice-panel-name {
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.voice-panel-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.voice-panel-actions .icon-btn {
+  flex: 1;
+  width: auto;
+}
+
+.voice-panel .icon-btn[aria-pressed='true'] {
+  color: var(--danger);
+}
+
+.voice-panel .voice-panel-leave:hover {
+  background: var(--danger-fill);
+  color: #fff;
+}
+
+.channel-list-note {
+  margin: 0;
+  padding: 0 10px;
+}
+
+.channel-list-note:empty {
+  display: none;
+}
+
+/* "Direct call" or a text channel (the call sits next to it, hidden while one of them shows). */
+.shell-pane {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* The main area sizes the lobby (its hero hides when narrow, see .lobby-hero). */
+.shell-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  container-type: inline-size;
+}
+
+.channel-pane {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  padding: 16px 20px;
+}
+
+.channel-pane-title {
+  margin: 0;
+  font-size: 18px;
+}
+
+/* Who is in a call (ui/members-panel.js): a column when there's room, but not next to the call
+   (it shows everyone in it, and its chat opens on that side). */
+.shell-members {
+  display: none;
+  flex-direction: column;
+  width: 232px;
+  min-height: 0;
+  border-left: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 85%, transparent);
+}
+
+@media (min-width: 1100px) {
+  .shell:not([data-pane='call']) .shell-members {
+    display: flex;
+  }
+}
+
+.members-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.members-panel:focus {
+  outline: none;
+}
+
+.members-title {
+  display: flex;
+  align-items: center;
+  min-height: 52px;
+  margin: 0;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--border);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.members-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 12px 16px 16px;
+  overflow-y: auto;
+}
+
+.members-body .hint {
+  margin: 0;
+}
+
+.members-room-name {
+  margin: 0 0 4px;
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.members-room .server-room-peers {
+  padding-left: 0;
+}
+
+/* Phones: the channels (with the servers) and the members are drawers over the main area, opened
+   from the top bar (ui/app-shell.js). Closed, they're hidden from focus and screen readers too. */
+@media (max-width: 599px) {
+  /* The closed drawers wait outside it, without making it scroll sideways. */
+  .shell {
+    grid-template-columns: minmax(0, 1fr);
+    overflow: clip;
+  }
+
+  .topbar-drawer {
+    display: inline-grid;
+  }
+
+  .shell-nav,
+  .shell-members {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    z-index: 20;
+    display: flex;
+    max-width: calc(100% - 48px);
+    background: var(--surface);
+    box-shadow: var(--shadow-lg);
+    visibility: hidden;
+  }
+
+  .shell-nav {
+    left: 0;
+    transform: translateX(-100%);
+  }
+
+  .shell-members {
+    right: 0;
+    width: 280px;
+    border-left: 0;
+    transform: translateX(100%);
+  }
+
+  .shell-side {
+    flex-shrink: 1;
+    border-right: 0;
+  }
+
+  .shell[data-drawer='nav'] .shell-nav,
+  .shell[data-drawer='members'] .shell-members {
+    visibility: visible;
+    transform: none;
+  }
+
+  .shell[data-drawer] .shell-scrim {
+    display: block;
+    position: absolute;
+    inset: 0;
+    z-index: 19;
+    background: var(--backdrop);
+  }
+
+  /* Slides in; hidden only once it has slid out. */
+  :root[data-motion='full'] .shell-nav,
+  :root[data-motion='full'] .shell-members {
+    transition: transform var(--dur) ease, visibility 0s linear var(--dur);
+  }
+
+  :root[data-motion='full'] .shell[data-drawer='nav'] .shell-nav,
+  :root[data-motion='full'] .shell[data-drawer='members'] .shell-members {
+    transition: transform var(--dur) ease, visibility 0s;
+  }
+}
+
+/* ---------- Call ---------- */
+
+.call {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 16px;
+  gap: 12px;
+}
+
+.call-banner {
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--warning) 18%, var(--surface));
+  color: var(--text);
+  font-size: 14px;
+  text-align: center;
+}
+
+.call-stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.stage-screens {
+  display: none;
+}
+
+.stage-cameras {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  gap: 12px;
+  align-content: center;
+}
+
+/* Alone: own camera fills the stage (its width comes from fitCameras() in ui/call-view.js). */
+.call-stage[data-layout='solo'] .stage-cameras {
+  grid-template-columns: minmax(0, 1fr);
+  justify-content: center;
+}
+
+/* 1:1 — remote fills the stage, self-view floats in a corner. */
+.call-stage[data-layout='duo'] .stage-cameras {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+}
+
+.call-stage[data-layout='duo'] .stage-cameras .tile:not(.tile-local) {
+  height: 100%;
+  aspect-ratio: auto;
+}
+
+.call-stage[data-layout='duo'] .tile-local {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  width: clamp(120px, 22%, 260px);
+  z-index: 1;
+  box-shadow: var(--shadow);
+}
+
+/* 3–16 people: equal grid. */
+.call-stage[data-layout='grid'] .stage-cameras {
+  /* fitCameras() in ui/call-view.js sets the columns for the stage's size; this is before it runs. */
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  justify-content: center;
+}
+
+/* Someone is sharing: screens take the stage, cameras become a strip below. */
+.call-stage[data-layout='presenting'] .stage-screens {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 480px), 1fr));
+  grid-auto-rows: minmax(0, 1fr);
+}
+
+.call-stage[data-layout='presenting'] .stage-cameras {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: safe center;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.call-stage[data-layout='presenting'] .stage-cameras .tile {
+  flex: 0 0 auto;
+  width: 160px;
+}
+
+/* One stream focused among several: big on the left, the others in a column on the right. */
+.call-stage[data-layout='presenting'] .stage-screens[data-focus] {
+  grid-template-columns: minmax(0, 1fr) clamp(140px, 20%, 260px);
+  grid-template-rows: repeat(var(--others), min-content) minmax(0, 1fr);
+  grid-auto-rows: unset;
+}
+
+.stage-screens[data-focus] > .tile.tile-screen {
+  grid-column: 2;
+  height: auto;
+  aspect-ratio: 16 / 9;
+}
+
+.stage-screens[data-focus] > .tile.tile-screen.is-focused {
+  grid-column: 1;
+  grid-row: 1 / -1;
+  height: 100%;
+  aspect-ratio: auto;
+}
+
+/* Small streams in the column: room for the name only. */
+.stage-screens[data-focus] > .tile-screen:not(.is-focused) .tile-stream-actions {
+  display: none;
+}
+
+/* Someone's camera, focused (T12.B): it moves among the streams and takes the stage like one. */
+.stage-screens > .tile:not(.tile-screen) {
+  aspect-ratio: auto;
+  height: 100%;
+  min-height: 0;
+}
+
+.stage-screens[data-focus] > .tile.is-focused {
+  grid-column: 1;
+  grid-row: 1 / -1;
+  height: 100%;
+  aspect-ratio: auto;
+}
+
+.stage-cameras .tile:not(.tile-local),
+.stage-screens > .tile:not(.tile-screen) {
+  cursor: pointer;
+}
+
+/* Zoom (ui/tile-zoom.js): while it's possible, touches pinch and drag here instead of scrolling. */
+.tile.can-zoom {
+  touch-action: none;
+}
+
+.tile.is-zoomed {
+  cursor: grab;
+}
+
+.tile.is-zoomed video {
+  will-change: transform;
+}
+
+.tile-zoom {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgb(0 0 0 / 0.6);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  pointer-events: none;
+}
+
+/* A camera in full screen too (double-click, or the menu). */
+.tile:fullscreen {
+  width: 100%;
+  height: 100%;
+  max-height: none;
+  aspect-ratio: auto;
+}
+
+.tile.tile-screen {
+  cursor: pointer;
+}
+
+/* `.tile.` raises specificity above the generic 16:9 `.tile` rule further down. */
+.tile.tile-screen {
+  aspect-ratio: auto;
+  height: 100%;
+  min-height: 0;
+  background: #000;
+}
+
+.tile:fullscreen,
+.tile.is-fullscreen {
+  border: 0;
+  border-radius: 0;
+}
+
+/* Android: the WebView has no element full screen, so the stream is pinned over the page
+   (core/fullscreen.js) while the app hides the system bars. */
+.tile.is-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  width: auto;
+  height: auto;
+}
+
+/* Preview of what you're sharing, floating in a corner. */
+.tile.tile-screen-local {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  width: clamp(120px, 18%, 220px);
+  height: auto;
+  aspect-ratio: 16 / 9;
+  z-index: 1;
+  box-shadow: var(--shadow);
+  outline: 2px solid var(--accent);
+}
+
+/* The app's own share picker (ui/source-picker.js): screens and windows with thumbnails. */
+.source-picker {
+  width: min(760px, calc(100vw - 32px));
+}
+
+.source-picker[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+.source-picker-body {
+  flex: 1;
+  min-height: 0;
+}
+
+.source-section {
+  margin: 0 0 10px;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.source-section:not(:first-child) {
+  margin-top: 20px;
+}
+
+.source-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.source-option {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color var(--dur-fast),
+    background-color var(--dur-fast);
+}
+
+.source-option:hover {
+  border-color: var(--accent);
+}
+
+.source-option:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.source-thumb {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background: #000;
+}
+
+.source-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.source-thumb.is-loading {
+  background: var(--surface-3);
+}
+
+.source-thumb-icon svg {
+  width: 28px;
+  height: 28px;
+  color: #fff;
+}
+
+.source-title {
+  overflow: hidden;
+  font-size: 0.875rem;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.source-subtitle {
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Native share: nothing to preview, so say it's live (white on the tile's black). */
+.tile-screen-note {
+  position: absolute;
+  inset: 0 0 28px;
+  display: grid;
+  place-items: center;
+  padding: 0 8px;
+  color: #fff;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.tile-screen-icon {
+  display: inline-grid;
+}
+
+.tile-screen-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.tile {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  max-height: 100%;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-tile);
+  background: var(--surface-2);
+  box-shadow: var(--shadow-sm);
+  /* The avatar and its letter size off the card (cqmin), whatever the layout makes it. */
+  container-type: size;
+  transition:
+    border-color var(--dur-fast),
+    box-shadow var(--dur);
+}
+
+.tile:hover {
+  border-color: var(--border-strong);
+}
+
+.tile video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+}
+
+.tile-local video {
+  object-fit: cover;
+  transform: scaleX(-1); /* mirror the self-view */
+}
+
+.tile[data-video='off'] video {
+  visibility: hidden; /* keep playing so audio continues */
+}
+
+.tile-avatar {
+  position: absolute;
+  inset: 0;
+  display: none;
+  place-items: center;
+  font-size: min(20cqmin, 64px); /* about 40% of the circle, which stops at 160 px */
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--accent-text, var(--accent));
+}
+
+/* Profile picture in place of the initials: a circle that scales with the tile. */
+.tile-avatar img {
+  width: min(48cqmin, 160px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow:
+    0 0 0 3px rgb(255 255 255 / 0.18),
+    var(--shadow);
+}
+
+/* Settings › General: the picture (or initial) next to its buttons. */
+.avatar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.avatar-preview {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--surface-2);
+  color: var(--accent-text, var(--accent));
+  font-weight: 700;
+  font-size: 20px;
+}
+
+.avatar-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tile[data-video='off'] .tile-avatar {
+  display: grid;
+}
+
+/* Small cards (the strip under a live): a bigger circle, centered in the card (the name stays on top). */
+@container (max-height: 140px) {
+  .tile .tile-initials,
+  .tile .tile-avatar img {
+    width: min(56cqmin, 160px);
+    height: min(56cqmin, 160px);
+  }
+}
+
+/* Camera off: the person's profile color behind their avatar (core/profile-color.js). */
+.tile[data-video='off'] {
+  background: var(--tile-bg, var(--surface-2));
+}
+
+.tile-initials {
+  display: grid;
+  place-items: center;
+  width: min(48cqmin, 160px);
+  height: min(48cqmin, 160px);
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow:
+    0 0 0 3px rgb(255 255 255 / 0.18),
+    var(--shadow);
+}
+
+.tile-label {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  max-width: calc(100% - 16px);
+  z-index: 1; /* over the avatar where they meet (small cards) */
+  padding: 3px 9px;
+  border-radius: max(6px, calc(var(--radius-tile) / 2 - 2px));
+  background: rgb(0 0 0 / 0.6); /* white text >= 4.5:1 even over a white video (5.7:1) */
+  backdrop-filter: blur(8px);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tile-label > span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tile-muted {
+  display: inline-grid;
+  color: #fca5a5;
+}
+
+.tile-muted[hidden] {
+  display: none;
+}
+
+.tile-muted svg {
+  width: 14px;
+  height: 14px;
+}
+
+.tile-overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgb(0 0 0 / 0.6); /* white text >= 4.5:1 over any picture */
+  color: #fff;
+  font-weight: 600;
+}
+
+.tile-overlay[hidden] {
+  display: none;
+}
+
+/* Someone is streaming and we aren't watching: a button on their tile (opt-in, like Discord). */
+.tile-watch {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 4px;
+  border: 0;
+  border-radius: 999px;
+  background: rgb(0 0 0 / 0.6);
+  backdrop-filter: blur(8px);
+  color: #fff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tile-watch:hover {
+  background: rgb(0 0 0 / 0.8);
+}
+
+.tile-watch-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* With a still of the stream: a small card, the picture over the label. */
+.tile-watch.has-preview {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  padding: 4px 4px 6px;
+  border-radius: var(--radius-control);
+}
+
+.tile-watch-preview {
+  display: block;
+  width: clamp(120px, 22vw, 220px);
+  aspect-ratio: 16 / 9;
+  object-fit: contain;
+  border-radius: calc(var(--radius-control) - 4px);
+  background: #000;
+}
+
+.tile-screen-preview {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+}
+
+/* Speaking: a green ring (3.3:1 on light, 4.8:1 on dark surfaces). */
+.tile.speaking {
+  border-color: var(--speaking);
+  box-shadow:
+    0 0 0 3px var(--speaking),
+    0 0 18px color-mix(in srgb, var(--speaking) 35%, transparent);
+  transition: box-shadow 120ms, border-color 120ms;
+}
+
+.tile-watch:focus-visible,
+.tile:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.live-badge {
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--danger-fill); /* white text >= 4.5:1 in every style (test/theme-contrast.test.js) */
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+
+.tile-stream-actions {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 8px;
+  opacity: 0.85;
+}
+
+.tile-stream-actions .btn {
+  min-height: 36px;
+  border-color: rgb(255 255 255 / 0.12);
+  background: rgb(0 0 0 / 0.6);
+  backdrop-filter: blur(8px);
+  color: #fff;
+  font-size: 14px;
+}
+
+.tile-stream-actions .btn {
+  white-space: nowrap;
+}
+
+/* A narrow live (a phone): compact buttons on one line, so they don't cover the picture. */
+@container (max-width: 520px) {
+  .tile-stream-actions {
+    top: 6px;
+    right: 6px;
+    gap: 6px;
+  }
+
+  .tile-stream-actions .btn {
+    min-height: 32px;
+    padding: 0 10px;
+    font-size: 12px;
+  }
+
+  .tile-stream-actions .btn-icon {
+    width: 32px;
+  }
+}
+
+.tile-stream-actions .btn:hover:not(:disabled) {
+  border-color: rgb(255 255 255 / 0.25);
+  background: rgb(0 0 0 / 0.7);
+}
+
+.tile-stream-actions .btn-icon {
+  padding: 0;
+  width: 36px;
+  justify-content: center;
+}
+
+.tile-stream-actions .btn-icon svg,
+.audio-menu-action svg {
+  width: 18px;
+  height: 18px;
+}
+
+.audio-menu-actions {
+  display: grid;
+  gap: 2px;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.audio-menu-action {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.audio-menu-action > span {
+  display: flex;
+}
+
+.audio-menu-action:hover,
+.audio-menu-action:focus-visible {
+  background: var(--surface-2);
+}
+
+.tile-stream-actions:hover,
+.tile-stream-actions:focus-within {
+  opacity: 1;
+}
+
+/* Right-click on a person or a stream: volume and mute, just for us. */
+.audio-menu {
+  position: fixed;
+  inset: auto;
+  width: 248px;
+  margin: 0;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--overlay);
+  backdrop-filter: blur(var(--overlay-blur));
+  color: var(--text);
+  box-shadow: var(--shadow-lg);
+}
+
+.audio-menu-title {
+  margin: 0 0 10px;
+  font-size: 15px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.audio-menu-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.audio-menu input[type='range'] {
+  width: 100%;
+  margin: 6px 0 12px;
+  accent-color: var(--accent);
+}
+
+.audio-menu-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Call header: the room's name and how many are in it, like a channel header. */
+.call-header {
+  display: flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: 10px;
+  max-width: 100%;
+  padding: 4px 6px 4px 14px;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius-control) + 6px);
+  /* Its own surface: the app background can be any gradient, in either theme. */
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.call-header-room {
+  margin: 0;
+  overflow: hidden;
+  font-size: 17px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.call-header-hash {
+  margin-right: 4px;
+  color: var(--text-muted);
+}
+
+.call-header .icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-control);
+}
+
+.call-header .icon-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.call-header-count {
+  flex: 0 0 auto;
+  padding: 2px 10px;
+  border-radius: var(--radius-control);
+  background: var(--surface-2);
+  color: var(--text-muted);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.call-waiting {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px 12px;
+  color: var(--text-muted);
+}
+
+.call-waiting[hidden] {
+  display: none;
+}
+
+.call-waiting p {
+  margin: 0;
+}
+
+.call-toast {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  max-width: calc(100% - 32px);
+  padding: 9px 16px;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius-control) + 2px);
+  background: var(--overlay);
+  backdrop-filter: blur(var(--overlay-blur));
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: var(--shadow-lg);
+  z-index: 2;
+}
+
+.call-toast[hidden] {
+  display: none;
+}
+
+/* Everything but the control bar, which can sit on any edge (.call[data-bar], ui/control-bar.js). */
+.call-main {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* With room for both, the call's chat takes a column of its own and the call shrinks beside it
+   (testers: it floated over the live). Narrower (a phone), it stays over the call. 352px: the
+   panel's 340px and the call's 12px gap. */
+.call-main {
+  container: call-main / inline-size;
+}
+
+@container call-main (min-width: 640px) {
+  .call-main:has(> .chat-panel:not([hidden])) > :not(.chat-panel, .call-toast) {
+    margin-right: 352px;
+  }
+
+  .call-main:has(> .chat-panel:not([hidden])) > .call-toast {
+    left: calc(50% - 176px);
+  }
+}
+
+.call[data-bar='top'] {
+  flex-direction: column-reverse;
+}
+
+.call[data-bar='left'] {
+  flex-direction: row-reverse;
+}
+
+.call[data-bar='right'] {
+  flex-direction: row;
+}
+
+.call-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  gap: 10px;
+  max-width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius-lg) + 4px);
+  background: var(--overlay);
+  backdrop-filter: blur(var(--overlay-blur));
+  box-shadow: var(--shadow);
+  touch-action: none; /* dragging a button must not scroll the page on touch screens */
+}
+
+.call[data-bar='left'] .call-controls,
+.call[data-bar='right'] .call-controls {
+  flex-direction: column;
+}
+
+.bar-grip {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: grab;
+}
+
+.call[data-bar='left'] .bar-grip,
+.call[data-bar='right'] .bar-grip {
+  width: 40px;
+  height: 28px;
+  transform: rotate(90deg);
+}
+
+.bar-grip:hover {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.bar-grip svg {
+  width: 20px;
+  height: 20px;
+}
+
+.call-controls .dragging {
+  opacity: 0.7;
+  transform: scale(1.1);
+  cursor: grabbing;
+}
+
+/* While the grip is dragged: where the bar will land. */
+.call[data-drop]::after {
+  content: '';
+  position: absolute;
+  z-index: 3;
+  border: 2px dashed var(--accent);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+  pointer-events: none;
+}
+
+.call[data-drop='bottom']::after {
+  inset: auto 16px 8px 16px;
+  height: 72px;
+}
+
+.call[data-drop='top']::after {
+  inset: 8px 16px auto 16px;
+  height: 72px;
+}
+
+.call[data-drop='left']::after {
+  inset: 16px auto 16px 8px;
+  width: 72px;
+}
+
+.call[data-drop='right']::after {
+  inset: 16px 8px 16px auto;
+  width: 72px;
+}
+
+/* On a gradient background, the waiting note gets a surface of its own to stay readable. */
+:root[data-background='gradient'] .call-waiting {
+  align-self: center;
+  padding: 8px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+
+.control-btn {
+  display: inline-grid;
+  flex: none; /* never squeezed into an oval */
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-call);
+  background: var(--surface-2);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.control-btn:hover:not(:disabled) {
+  background: var(--surface-3);
+  border-color: var(--border-strong);
+}
+
+.control-btn:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+.control-btn.off {
+  border-color: color-mix(in srgb, var(--danger-fill) 45%, transparent);
+  background: color-mix(in srgb, var(--danger-fill) 16%, var(--surface));
+  color: var(--danger);
+}
+
+.control-btn.off:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--danger-fill) 26%, var(--surface));
+}
+
+.control-btn.danger {
+  border-color: transparent;
+  background: var(--danger-fill);
+  color: #fff;
+}
+
+.control-btn.danger:hover:not(:disabled) {
+  background: var(--danger-fill-hover);
+}
+
+.control-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Mic, camera and screen share stand out: bigger than the other controls. */
+.control-btn[data-control='mic'],
+.control-btn[data-control='camera'],
+.control-btn[data-control='share'] {
+  width: 56px;
+  height: 56px;
+}
+
+.control-btn[data-control='mic'] svg,
+.control-btn[data-control='camera'] svg,
+.control-btn[data-control='share'] svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* A little bounce on hover and when pressed (overshooting curve), unless motion is reduced. */
+.control-btn {
+  transition: transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1), background-color 120ms;
+}
+
+.control-btn:hover:not(:disabled) {
+  transform: scale(1.1);
+}
+
+.control-btn:active:not(:disabled) {
+  transform: scale(0.9);
+  transition-duration: 80ms;
+}
+
+/* No bounce unless motion is on (<html data-motion>, ui/theme.js). */
+:root:not([data-motion='full']) .control-btn,
+:root:not([data-motion='full']) .control-btn:hover:not(:disabled),
+:root:not([data-motion='full']) .control-btn:active:not(:disabled) {
+  transition: background-color 120ms;
+  transform: none;
+}
+
+.control-btn.active {
+  border-color: transparent;
+  background: var(--accent);
+  color: var(--accent-contrast);
+  box-shadow: var(--glow);
+}
+
+.control-btn.active:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+/* ---------- Android PiP (core/activity-pip.js) ---------- */
+
+/* While the whole app floats, show only the featured video. `visibility` (not `display`) keeps the
+   rest laid out and the call's audio playing from the hidden tiles. */
+.activity-pip-video {
+  display: none;
+}
+
+html[data-activity-pip] .activity-pip-video {
+  display: block;
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  object-fit: contain;
+  background: #000;
+  z-index: 1000;
+}
+
+html[data-activity-pip] body > :not(.activity-pip-video) {
+  visibility: hidden;
+  overflow: clip;
+}
+
+/* The page is never wider than the window. In one ~200 px wide (the floating window, also for a
+   moment after it closes) the top bar overflows, and Android's WebView zooms out to fit it: the
+   video falls short of the window, and back at full size the page stays zoomed in, scrolling. */
+body > :not(.activity-pip-video) {
+  overflow-x: clip;
+}
+
+/* ---------- Share panel (popover) ---------- */
+
+.share-panel {
+  position: fixed;
+  inset: auto auto 96px 50%;
+  transform: translateX(-50%);
+  width: min(400px, calc(100vw - 32px));
+  margin: 0;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--overlay);
+  backdrop-filter: blur(var(--overlay-blur));
+  color: var(--text);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Next to the control bar, wherever it is. */
+.call[data-bar='top'] .share-panel {
+  inset: 96px auto auto 50%;
+}
+
+.call[data-bar='left'] .share-panel {
+  inset: 50% auto auto 96px;
+  transform: translateY(-50%);
+}
+
+.call[data-bar='right'] .share-panel {
+  inset: 50% 96px auto auto;
+  transform: translateY(-50%);
+}
+
+.share-panel h2 {
+  margin: 0 0 16px;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.share-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.share-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.segmented-icon {
+  display: inline-grid;
+  margin-right: 6px;
+}
+
+.segmented-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.segmented label:has(.segmented-icon) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 480px) {
+  .call {
+    padding: 12px;
+  }
+
+  /* Six buttons and the grip fit a 360 px phone. */
+  .call-controls {
+    gap: 6px;
+    padding: 6px 8px;
+  }
+
+  .control-btn {
+    width: 40px;
+    height: 40px;
+  }
+
+  .control-btn[data-control='mic'],
+  .control-btn[data-control='camera'],
+  .control-btn[data-control='share'] {
+    width: 46px;
+    height: 46px;
+  }
+
+  .call-stage[data-layout='duo'] .tile-local {
+    width: 34%;
+  }
+
+  .topbar {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  .status-pill .label-long {
+    display: none;
+  }
+
+  .card {
+    padding: 20px 16px;
+  }
+}
+
+/* Settings › Audio devices: the live mic level, with the sensitivity threshold marked. */
+.mic-meter {
+  position: relative;
+  height: 12px;
+  margin-top: 8px;
+  border-radius: 999px;
+  background: var(--bg);
+  box-shadow: inset 0 0 0 1px var(--border-strong);
+  overflow: hidden;
+}
+
+.mic-meter-fill {
+  width: 0;
+  height: 100%;
+  background: var(--text-muted);
+  transition: width 60ms linear;
+}
+
+/* Loud enough to pass the sensitivity: this is what gets sent. */
+.mic-meter.is-sent .mic-meter-fill {
+  background: #16a34a;
+}
+
+.mic-meter-status {
+  font-variant-numeric: tabular-nums;
+}
+
+.mic-meter-mark {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--text);
+}
+
+.gate-field input[type='range'],
+.field input#settings-mic-gain {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+/* Unread count on a control button (the chat). */
+.control-btn {
+  position: relative;
+}
+
+.control-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--danger-fill); /* white text >= 4.5:1 in every style */
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 20px;
+  text-align: center;
+}
+
+/* The call's chat: a panel over the right side of the call. */
+.chat-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(340px, 100%);
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--overlay);
+  backdrop-filter: blur(var(--overlay-blur));
+  box-shadow: var(--shadow-lg);
+}
+
+.chat-panel[hidden] {
+  display: none;
+}
+
+.chat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.chat-header {
+  padding: 0 0 8px 4px;
+  border-bottom: 1px solid var(--border);
+}
+
+.chat-header h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.chat-header .icon-btn {
+  width: 34px;
+  height: 34px;
+}
+
+/* Nothing yet: a quiet invitation in the middle of the panel. */
+.chat-empty {
+  flex: 1;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 10px;
+  padding: 0 16px;
+  text-align: center;
+}
+
+.chat-empty[hidden] {
+  display: none;
+}
+
+.chat-empty-icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius);
+  background: var(--accent-soft);
+  color: var(--accent-text, var(--accent));
+}
+
+.chat-empty-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.chat-log {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0 2px;
+  list-style: none;
+}
+
+/* Like Discord: the sender's picture on the left of each group, name and time, then the text.
+   Later messages of the same group line up under the first, without picture or name. */
+.chat-message {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  column-gap: 10px;
+  padding: 10px 6px 2px;
+  border-radius: var(--radius-sm);
+}
+
+.chat-message.continued {
+  padding-top: 0;
+}
+
+.chat-message:hover {
+  background: color-mix(in srgb, var(--surface-2) 60%, transparent);
+}
+
+/* Replies (T15.F). The Reply button sits at the message's top right: on hover or keyboard focus,
+   and always (dimmed) where there is no hover (touch). */
+.chat-message {
+  position: relative;
+}
+
+.chat-reply-btn {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  opacity: 0;
+  background: var(--surface);
+}
+
+.chat-message:hover .chat-reply-btn,
+.chat-reply-btn:focus-visible {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .chat-reply-btn {
+    opacity: 0.7;
+  }
+}
+
+/* The quote on top of a reply: who and the start of the message, on one line. */
+.chat-reply {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  margin-bottom: 2px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.chat-reply:hover .chat-reply-text {
+  color: var(--text);
+}
+
+.chat-reply:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.chat-reply strong {
+  flex: none;
+  color: var(--text);
+}
+
+.chat-reply-icon {
+  flex: none;
+  display: inline-flex;
+}
+
+.chat-reply-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.chat-reply-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The message a quote led to, for a moment. */
+.chat-message.jumped {
+  background: var(--accent-soft);
+}
+
+/* "Replying to Ana: ..." over the message box. */
+.chat-replying {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 4px 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  background: var(--surface-2);
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.chat-replying-text {
+  flex: 1;
+  display: flex;
+  gap: 4px;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+/* A message that mentions whoever reads it (T14.B): tinted, with a bar on the left. */
+.chat-message.mentions-me {
+  background: var(--accent-soft);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+/* "@Name" in a message; "@you" stronger. */
+.chat-mention {
+  font-weight: 600;
+  color: var(--accent-text, var(--accent));
+}
+
+.chat-mention.me {
+  padding: 0 2px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+/* The sender's color as a ring, the initial in the theme's text color: readable for any color
+   (white on a light one wasn't). */
+.chat-avatar {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  overflow: hidden;
+  border: 3px solid transparent;
+  border-radius: 50%;
+  background: linear-gradient(var(--surface-2), var(--surface-2)) padding-box, var(--tile-bg, var(--surface-2)) border-box;
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.chat-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.chat-message.continued .chat-avatar {
+  visibility: hidden;
+  height: 0;
+}
+
+.chat-body {
+  min-width: 0;
+}
+
+.chat-text {
+  margin: 1px 0 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* `code` in a message (core/chat-format.js), as in the setup guide. */
+.chat-text code {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--surface-2);
+  font-family: ui-monospace, 'Cascadia Code', Consolas, monospace;
+  font-size: 0.9em;
+}
+
+/* A web link in a message (core/links.js): the address itself, in the readable accent color. */
+.chat-text a {
+  color: var(--accent-text, var(--accent));
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.chat-meta {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  font-size: 14px;
+}
+
+.chat-message.continued .chat-meta {
+  display: none;
+}
+
+.chat-meta time {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.chat-message.mine .chat-meta strong {
+  color: var(--accent-text, var(--accent));
+}
+
+.chat-form {
+  position: relative;
+  display: flex;
+  gap: 8px;
+}
+
+/* The @ list over the message box (ui/mention-picker.js). */
+.mention-list {
+  position: absolute;
+  right: 48px;
+  bottom: calc(100% + 6px);
+  left: 48px;
+  z-index: 5;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.25);
+}
+
+.mention-option {
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mention-option[aria-selected='true'],
+.mention-option:hover {
+  background: var(--accent-soft);
+}
+
+.btn.chat-send {
+  flex: 0 0 auto;
+  width: 40px;
+  padding: 0;
+}
+
+.chat-send svg {
+  width: 18px;
+  height: 18px;
+}
+
+.chat-form .input {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Settings › Profile color: a small card like the tile others see with your camera off. */
+.profile-preview {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 72px;
+  margin-bottom: 8px;
+  padding: 0 14px;
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+
+.profile-preview-avatar {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--accent-text, var(--accent));
+  font-size: 20px;
+  font-weight: 700;
+  box-shadow: var(--shadow);
+}
+
+.profile-preview-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-preview-name {
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: rgb(0 0 0 / 0.6);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* ---------- Motion (design review E) ----------
+   Only with <html data-motion="full"> (Settings › Appearance › Animations, or the OS allowing
+   motion; ui/theme.js). Uses the independent `translate`/`scale` properties so elements positioned
+   with `transform` (toast, share panel) keep their place. Entry animations use @starting-style;
+   dialogs and popovers also animate out (display/overlay allow-discrete). */
+
+/* Dialogs (Settings, setup guide): fade and rise in, fade out. */
+:root[data-motion='full'] .modal {
+  transition:
+    opacity 180ms ease,
+    translate 180ms ease,
+    scale 180ms ease,
+    overlay 180ms allow-discrete,
+    display 180ms allow-discrete;
+}
+
+:root[data-motion='full'] .modal:not([open]) {
+  opacity: 0;
+  translate: 0 8px;
+  scale: 0.98;
+}
+
+@starting-style {
+  :root[data-motion='full'] .modal[open] {
+    opacity: 0;
+    translate: 0 8px;
+    scale: 0.98;
+  }
+}
+
+:root[data-motion='full'] .modal::backdrop {
+  transition:
+    opacity 180ms ease,
+    overlay 180ms allow-discrete,
+    display 180ms allow-discrete;
+}
+
+@starting-style {
+  :root[data-motion='full'] .modal[open]::backdrop {
+    opacity: 0;
+  }
+}
+
+/* Popovers (share panel, right-click audio menu). */
+:root[data-motion='full'] [popover] {
+  transition:
+    opacity 150ms ease,
+    translate 150ms ease,
+    overlay 150ms allow-discrete,
+    display 150ms allow-discrete;
+}
+
+:root[data-motion='full'] [popover]:not(:popover-open) {
+  opacity: 0;
+  translate: 0 6px;
+}
+
+@starting-style {
+  :root[data-motion='full'] [popover]:popover-open {
+    opacity: 0;
+    translate: 0 6px;
+  }
+}
+
+/* Chat panel slides in from the side; toasts rise in. */
+:root[data-motion='full'] .chat-panel {
+  transition:
+    opacity 200ms ease,
+    translate 200ms ease;
+}
+
+@starting-style {
+  :root[data-motion='full'] .chat-panel {
+    opacity: 0;
+    translate: 24px 0;
+  }
+}
+
+:root[data-motion='full'] .call-toast {
+  transition:
+    opacity 200ms ease,
+    translate 200ms ease;
+}
+
+@starting-style {
+  :root[data-motion='full'] .call-toast {
+    opacity: 0;
+    translate: 0 10px;
+  }
+}
+
+/* Someone joins (or a stream opens): their tile pops in. */
+:root[data-motion='full'] .tile {
+  animation: tile-in 260ms cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+
+@keyframes tile-in {
+  from {
+    opacity: 0;
+    scale: 0.94;
+  }
+}
+
+/* Settings tabs: the chosen panel fades in. */
+:root[data-motion='full'] .settings-panel:not([hidden]) {
+  animation: panel-in 160ms ease;
+}
+
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    translate: 0 4px;
+  }
+}
+
+/* Focusing a stream (view transition in ui/call-view.js): tiles glide to their new place. */
+:root[data-motion='full']::view-transition-group(*) {
+  animation-duration: 260ms;
+  animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Welcome tour art (ui/welcome-art.js): each scene moves a little, on a loop. `--d` staggers. */
+:root[data-motion='full'] .welcome-art :is(.wa-pulse, .wa-pop, .wa-walk, .wa-bounce, .wa-slide, .wa-float) {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+:root[data-motion='full'] .welcome-art .wa-pulse { animation: wa-pulse 1.4s ease-in-out infinite; }
+:root[data-motion='full'] .welcome-art .wa-wave { animation: wa-wave 1.4s ease-in-out var(--d, 0ms) infinite; }
+:root[data-motion='full'] .welcome-art .wa-pop { animation: wa-pop 420ms cubic-bezier(0.3, 1.5, 0.6, 1) var(--d, 0ms) both; }
+:root[data-motion='full'] .welcome-art .wa-walk { animation: wa-walk 600ms ease-out var(--d, 0ms) both; }
+:root[data-motion='full'] .welcome-art .wa-flow { animation: wa-flow 900ms linear infinite; }
+:root[data-motion='full'] .welcome-art .wa-blink { animation: wa-blink 1.2s ease-in-out infinite alternate; }
+:root[data-motion='full'] .welcome-art .wa-caret { animation: wa-blink 600ms steps(2) infinite; }
+:root[data-motion='full'] .welcome-art .wa-hue { animation: wa-hue 6s linear infinite; }
+:root[data-motion='full'] .welcome-art .wa-bounce { animation: wa-bounce 1.6s ease-in-out var(--d, 0ms) infinite; }
+:root[data-motion='full'] .welcome-art .wa-slide { animation: wa-slide 2.4s ease-in-out infinite alternate; }
+:root[data-motion='full'] .welcome-art .wa-float { animation: wa-float 2s ease-in-out infinite alternate; }
+:root[data-motion='full'] .welcome-art .wa-speaking { animation: wa-blink 1s ease-in-out infinite alternate; }
+
+@keyframes wa-pulse { 50% { scale: 1.12; opacity: 0.4; } }
+@keyframes wa-wave { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
+@keyframes wa-pop { from { scale: 0; opacity: 0; } }
+@keyframes wa-walk { from { translate: 40px 0; opacity: 0; } }
+@keyframes wa-flow { to { stroke-dashoffset: -24; } }
+@keyframes wa-blink { to { opacity: 0.3; } }
+@keyframes wa-hue { to { filter: hue-rotate(360deg); } }
+@keyframes wa-bounce { 0%, 60%, 100% { translate: 0 0; } 30% { translate: 0 -5px; } }
+@keyframes wa-slide { to { translate: 60px -24px; } }
+@keyframes wa-float { from { translate: 0 -4px; } to { translate: 0 4px; } }
+
+/* ---- Files in the chats (T13): the attach button, the file on its way up, and files in messages ---- */
+.btn.chat-attach {
+  flex: 0 0 auto;
+  width: 40px;
+  padding: 0;
+}
+
+.chat-attach svg {
+  width: 18px;
+  height: 18px;
+}
+
+.attach {
+  display: grid;
+  gap: 4px;
+}
+
+.attach-status:empty {
+  display: none;
+}
+
+/* The GIFs sent on this server (T13.D), over the message box. */
+.attach-recent {
+  display: grid;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+}
+
+.attach-recent[hidden] {
+  display: none;
+}
+
+.attach-recent-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.attach-recent-head h3 {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.attach-recent-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 6px;
+  max-height: 188px;
+  overflow-y: auto;
+}
+
+.attach-recent-gif {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 4 / 3;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.attach-recent-gif:hover {
+  border-color: var(--accent);
+}
+
+.attach-recent-gif img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.attach-recent-gif.missing {
+  opacity: 0.6;
+}
+
+.attach-recent-file {
+  justify-self: start;
+}
+
+.attach-tray {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 6px 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  background: var(--surface-2);
+}
+
+.attach-icon {
+  display: inline-flex;
+  color: var(--text-muted);
+}
+
+.attach-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.attach-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+}
+
+.attach-progress {
+  flex: 0 0 72px;
+  height: 6px;
+  accent-color: var(--accent);
+}
+
+.chat-form.drop-here,
+.text-channel.drop-here,
+.chat-panel.drop-here {
+  outline: 2px dashed var(--accent);
+  outline-offset: -6px;
+  border-radius: var(--radius-control);
+}
+
+/* A file in a message: its space is kept (width and aspect ratio from the message). */
+.chat-media {
+  position: relative;
+  display: block;
+  max-width: 100%;
+  margin: 4px 0 2px;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.chat-media-video {
+  cursor: default;
+}
+
+.chat-media-fill {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.chat-media-badge {
+  position: absolute;
+  left: 6px;
+  bottom: 6px;
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  background: rgb(0 0 0 / 0.72);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.chat-media-play {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border: 0;
+  border-radius: 50%;
+  background: rgb(0 0 0 / 0.66);
+  color: #fff;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.chat-media-play svg {
+  width: 24px;
+  height: 24px;
+  margin-left: 3px;
+  fill: currentColor;
+}
+
+.chat-media-play:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.chat-media-loading {
+  position: absolute;
+  left: 6px;
+  bottom: 6px;
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  background: rgb(0 0 0 / 0.72);
+  color: #fff;
+  font-size: 12px;
+  z-index: 1;
+}
+
+.chat-media-error {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  padding: 8px;
+  color: var(--text-muted);
+  font-size: 13px;
+  text-align: center;
+}
+
+/* An image opened big. */
+.media-viewer {
+  max-width: 96vw;
+  max-height: 96vh;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  overflow: visible;
+}
+
+.media-viewer::backdrop {
+  background: rgb(0 0 0 / 0.82);
+}
+
+.media-viewer-image {
+  display: block;
+  max-width: 96vw;
+  max-height: 92vh;
+  object-fit: contain;
+}
+
+.media-viewer-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgb(0 0 0 / 0.66);
+  color: #fff;
+}

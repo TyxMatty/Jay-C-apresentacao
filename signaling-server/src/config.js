@@ -1,0 +1,59 @@
+function int(name, fallback) {
+  const raw = process.env[name];
+  if (raw === undefined || raw === '') return fallback;
+  const value = Number.parseInt(raw, 10);
+  if (!Number.isFinite(value) || value < 0) {
+    throw new Error(`Invalid ${name}: "${raw}" (expected a non-negative integer)`);
+  }
+  return value;
+}
+
+function json(name, fallback) {
+  const raw = process.env[name];
+  if (!raw) return fallback;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    throw new Error(`Invalid ${name}: not valid JSON`);
+  }
+}
+
+export function loadConfig() {
+  return {
+    host: process.env.HOST || '0.0.0.0',
+    port: int('PORT', 3000),
+    maxPeersPerRoom: int('MAX_PEERS_PER_ROOM', 16),
+    maxMessageBytes: int('MAX_MESSAGE_BYTES', 64 * 1024),
+    heartbeatMs: int('HEARTBEAT_MS', 30_000),
+    // Empty list = accept any origin (typical for a LAN/VPN self-hosted server).
+    allowedOrigins: (process.env.ALLOWED_ORIGINS || '')
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean),
+    // Forwarded to clients on join, e.g. [{"urls":"turn:host:3478","username":"u","credential":"p"}]
+    iceServers: json('ICE_SERVERS', []),
+
+    // ---- SFU (mediasoup) ----
+    // Single UDP+TCP port for all media (0 = random, used by tests).
+    rtcPort: int('RTC_PORT', 40000),
+    rtcListenIp: process.env.RTC_LISTEN_IP || '0.0.0.0',
+    // Address put in ICE candidates. Empty = the host each client used to reach the signaling server.
+    announcedAddress: process.env.ANNOUNCED_ADDRESS || '',
+    mediasoupLogLevel: process.env.MEDIASOUP_LOG_LEVEL || 'warn',
+
+    // ---- Server data (Jay-C 0.5): the fixed rooms (rooms.json) ----
+    dataDir: process.env.DATA_DIR || './data',
+    // Whoever has this key manages the fixed rooms from the app. Empty = nobody does.
+    adminKey: process.env.ADMIN_KEY || '',
+    // Shown in the app's server column and sidebar (empty = its address).
+    serverName: (process.env.SERVER_NAME || '').trim().slice(0, 32),
+
+    // ---- Images, GIFs and videos in the chats (Jay-C 0.5), kept in DATA_DIR/media ----
+    // MEDIA=off: no attach button, and files are refused.
+    media: (process.env.MEDIA || '').trim().toLowerCase() !== 'off',
+    maxImageBytes: int('MAX_IMAGE_MB', 8) * 1024 * 1024,
+    maxVideoBytes: int('MAX_VIDEO_MB', 50) * 1024 * 1024,
+    // All the files together; past it, new ones are refused until old messages leave.
+    mediaDiskBytes: int('MEDIA_DISK_MB', 2048) * 1024 * 1024,
+  };
+}

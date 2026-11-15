@@ -1,0 +1,333 @@
+/** What a participant can publish, and the media kind each source must have. */
+export const SOURCES = {
+  mic: 'audio',
+  camera: 'video',
+  screen: 'video',
+  'screen-audio': 'audio',
+};
+
+/** How a screen share was captured (sent along with `screen` producers). */
+export const SHARE_MODES = new Set(['screen', 'window']);
+
+export class SfuError extends Error {
+  constructor(code) {
+    super(code);
+    this.code = code;
+  }
+}
+
+const isObject = (value) => value !== null && typeof value === 'object' && !Array.isArray(value);
+
+/**
+ * mediasoup state of one room: a router plus, per participant, its transports, producers
+ * (what it publishes) and consumers (what it receives).
+ *
+ * Methods named like protocol requests take `(peerId, data, context)` and return the response data.
+ * Notifications to clients go through each participant's `peer.send()`.
+ */
+export class SfuRoom {
+  /** @type {Map<string, { peer: object, transports: Map, producers: Map, consumers: Map }>} */
+  #members = new Map();
+  #bandwidthTimer;
+  /** A round of reportViewerBandwidth is running (a stalled worker must not stack them up). */
+  #reporting = false;
+
+  constructor({ router, webRtcServer }) {
+    this.router = router;
+    this.webRtcServer = webRtcServer;
+    this.#bandwidthTimer = setInterval(() => this.reportViewerBandwidth().catch(() => {}), 2000);
+    this.#bandwidthTimer.unref?.();
+  }
+
+  get rtpCapabilities() {
+    return this.router.rtpCapabilities;
+  }
+
+  isEmpty() {
+    return this.#members.size === 0;
+  }
+
+  addPeer(peer) {
+    if (!this.#members.has(peer.id)) {
+      this.#members.set(peer.id, { peer, transports: new Map(), producers: new Map(), consumers: new Map() });
+    }
+  }
+
+  /** Closing a participant's transports closes its producers, which closes everyone's consumers of them. */
+  removePeer(peerId) {
+    const member = this.#members.get(peerId);
+    if (!member) return;
+    this.#members.delete(peerId);
+    for (const transport of member.transports.values()) transport.close();
+  }
+
+  /** What `peerId` currently publishes, for the `joined` snapshot. */
+  producersOf(peerId) {
+    const member = this.#members.get(peerId);
+    if (!member) return [];
+    return [...member.producers.values()].map((p) => ({
+      id: p.id,
+      kind: p.kind,
+      source: p.appData.source,
+      ...(p.appData.mode ? { mode: p.appData.mode } : {}),
+      paused: p.paused,
+    }));
+  }
+
+  // ---------- Requests ----------
+
+  async createTransport(peerId, { direction }, { announcedAddress }) {
+    if (direction !== 'send' && direction !== 'recv') throw new SfuError('bad-request');
+    const member = this.#member(peerId);
+    const transport = await this.router.createWebRtcTransport({
+      webRtcServer: this.webRtcServer,
+      enableUdp: true,
+      enableTcp: true,
+      preferUdp: true,
+      // Where the estimate towards a viewer starts. It only goes down when they congest, and a
+      // native live is capped to it (reportViewerBandwidth): at 1 Mbps a still screen (little traffic,
+      // so the estimate never grows) would stay at 540p.
+      initialAvailableOutgoingBitrate: 6_000_000,
+      appData: { direction },
+    });
+    member.transports.set(transport.id, transport);
+    transport.on('routerclose', () => member.transports.delete(transport.id));
+    if (direction === 'send') {
+      // Room for a 1080p60 screen share plus camera and audio.
+      await transport.setMaxIncomingBitrate(20_000_000).catch(() => {});
+    }
+    return {
+      id: transport.id,
+      iceParameters: transport.iceParameters,
+      // The WebRtcServer listens on 0.0.0.0; tell this client where it can actually reach us.
+      iceCandidates: transport.iceCandidates.map((c) => ({ ...c, address: announcedAddress, ip: announcedAddress })),
+      dtlsParameters: transport.dtlsParameters,
+    };
+  }
+
+  /**
+   * Closes one of the caller's transports (e.g. the native screen share's, when it stops). Its
+   * producers close with it, so everyone consuming them gets `producer-closed`.
+   */
+  async closeTransport(peerId, { transportId }) {
+    const member = this.#member(peerId);
+    this.#transport(peerId, transportId).close();
+    member.transports.delete(transportId);
+  }
+
+  async connectTransport(peerId, { transportId, dtlsParameters }) {
+    if (!isObject(dtlsParameters)) throw new SfuError('bad-request');
+    await this.#transport(peerId, transportId).connect({ dtlsParameters });
+  }
+
+  async restartIce(peerId, { transportId }) {
+    return { iceParameters: await this.#transport(peerId, transportId).restartIce() };
+  }
+
+  async produce(peerId, { transportId, kind, rtpParameters, source, mode, paused = false }) {
+    if (SOURCES[source] !== kind || !isObject(rtpParameters)) throw new SfuError('bad-request');
+    if (source.startsWith('screen') ? mode !== undefined && !SHARE_MODES.has(mode) : mode !== undefined) {
+      throw new SfuError('bad-request');
+    }
+    const member = this.#member(peerId);
+    if ([...member.producers.values()].some((p) => p.appData.source === source)) {
+      throw new SfuError('duplicate-source');
+    }
+    const transport = this.#transport(peerId, transportId);
+    if (transport.appData.direction !== 'send') throw new SfuError('bad-request');
+
+    const producer = await transport.produce({
+      kind,
+      rtpParameters,
+      paused: Boolean(paused),
+      appData: { source, peerId, ...(mode ? { mode } : {}) },
+    });
+    member.producers.set(producer.id, producer);
+    producer.on('transportclose', () => member.producers.delete(producer.id));
+
+    this.#broadcast(peerId, {
+      type: 'new-producer',
+      peerId,
+      producerId: producer.id,
+      kind,
+      source,
+      ...(mode ? { mode } : {}),
+      paused: producer.paused,
+    });
+    return { id: producer.id };
+  }
+
+  async closeProducer(peerId, { producerId }) {
+    const member = this.#member(peerId);
+    const producer = this.#ownProducer(member, producerId);
+    producer.close(); // consumers get 'producerclose' -> clients are told below
+    member.producers.delete(producerId);
+  }
+
+  async pauseProducer(peerId, { producerId }) {
+    await this.#ownProducer(this.#member(peerId), producerId).pause();
+  }
+
+  async resumeProducer(peerId, { producerId }) {
+    await this.#ownProducer(this.#member(peerId), producerId).resume();
+  }
+
+  async consume(peerId, { producerId, rtpCapabilities }) {
+    if (typeof producerId !== 'string' || !isObject(rtpCapabilities)) throw new SfuError('bad-request');
+    const member = this.#member(peerId);
+    const owner = this.#producerOwner(producerId);
+    if (!owner || owner.peer.id === peerId) throw new SfuError('unknown-producer');
+    if (!this.router.canConsume({ producerId, rtpCapabilities })) throw new SfuError('cannot-consume');
+
+    const transport = [...member.transports.values()].find((t) => t.appData.direction === 'recv');
+    if (!transport) throw new SfuError('unknown-transport');
+
+    const producer = owner.producers.get(producerId);
+    // Start paused: the client resumes once its consumer is wired up (avoids losing the first keyframe).
+    const consumer = await transport.consume({ producerId, rtpCapabilities, paused: true });
+    member.consumers.set(consumer.id, consumer);
+
+    const ownerId = owner.peer.id;
+    const tell = (message) => member.peer.send({ ...message, peerId: ownerId, producerId });
+    consumer.on('transportclose', () => member.consumers.delete(consumer.id));
+    consumer.on('producerclose', () => {
+      member.consumers.delete(consumer.id);
+      tell({ type: 'producer-closed' });
+    });
+    consumer.on('producerpause', () => tell({ type: 'producer-state', paused: true }));
+    consumer.on('producerresume', () => tell({ type: 'producer-state', paused: false }));
+
+    return {
+      id: consumer.id,
+      producerId,
+      peerId: ownerId,
+      kind: consumer.kind,
+      source: producer.appData.source,
+      ...(producer.appData.mode ? { mode: producer.appData.mode } : {}),
+      type: consumer.type,
+      rtpParameters: consumer.rtpParameters,
+      producerPaused: consumer.producerPaused,
+    };
+  }
+
+  async resumeConsumer(peerId, { consumerId }) {
+    await this.#consumer(peerId, consumerId).resume();
+  }
+
+  /** Close one of your consumers: the client starts a fresh one when its audio fell far behind. */
+  async closeConsumer(peerId, { consumerId }) {
+    this.#consumer(peerId, consumerId).close();
+    this.#member(peerId).consumers.delete(consumerId);
+  }
+
+  /** Stop receiving (e.g. stopped watching a stream) without closing the consumer. */
+  async pauseConsumer(peerId, { consumerId }) {
+    await this.#consumer(peerId, consumerId).pause();
+  }
+
+  /** Simulcast: pick which spatial layer (0 = lowest) this client receives for one consumer. */
+  async setPreferredLayers(peerId, { consumerId, spatialLayer, temporalLayer }) {
+    const consumer = this.#consumer(peerId, consumerId);
+    if (!Number.isInteger(spatialLayer) || spatialLayer < 0) throw new SfuError('bad-request');
+    if (consumer.type !== 'simulcast' && consumer.type !== 'svc') return;
+    await consumer.setPreferredLayers({
+      spatialLayer,
+      ...(Number.isInteger(temporalLayer) ? { temporalLayer } : {}),
+    });
+  }
+
+  /**
+   * Tells each screen sharer the smallest bandwidth (kbps, null = nobody watching) among the people
+   * watching it, as mediasoup estimates it towards each of them. A native live has one layer and
+   * its sender only sees its own link to us: without this it sent 1080p60 at ~7 Mbps to a viewer
+   * on 4 Mbps, who then got no picture at all (measured).
+   * With it goes `loss`: the worst share of the live's packets a viewer lost (0-1, from their
+   * receiver reports). That estimate stays at the link's speed while the link is full of
+   * retransmissions: a viewer on 1.3 Mbps got ~830 kbps of them and no frame for minutes, with
+   * the live still sending ~900 kbps (measured). The sender cuts on the loss.
+   */
+  async reportViewerBandwidth() {
+    if (this.#reporting) return;
+    this.#reporting = true;
+    try {
+      const screens = [...this.#members.values()].flatMap((owner) =>
+        [...owner.producers.values()].filter((p) => p.appData.source === 'screen').map((producer) => ({ owner, producer })),
+      );
+      const watches = (member, producer) => [...member.consumers.values()].some((c) => c.producerId === producer.id && !c.paused);
+      const viewers = [...this.#members.values()].filter((member) => screens.some(({ producer }) => watches(member, producer)));
+      // Each viewer's estimate once per round, all at once (kbps; undefined while mediasoup has none).
+      const estimates = new Map(
+        await Promise.all(
+          viewers.map(async (member) => {
+            const transport = [...member.transports.values()].find((t) => t.appData.direction === 'recv');
+            const [stats] = (await transport?.getStats().catch(() => null)) ?? [];
+            return [member, stats?.availableOutgoingBitrate && Math.round(stats.availableOutgoingBitrate / 1000)];
+          }),
+        ),
+      );
+      for (const { owner, producer } of screens) {
+        const watching = viewers.filter((member) => watches(member, producer));
+        const known = watching.filter((member) => estimates.get(member)).map((member) => estimates.get(member));
+        // fractionLost: 0-255, from the viewer's last receiver report (absent before the first one).
+        const losses = await Promise.all(
+          watching
+            .flatMap((member) => [...member.consumers.values()].filter((c) => c.producerId === producer.id && !c.paused))
+            .map(async (consumer) => ((await consumer.getStats?.().catch(() => null)) ?? []).find((s) => s.type === 'outbound-rtp')?.fractionLost),
+        );
+        const lost = losses.filter((l) => Number.isFinite(l));
+        owner.peer.send({
+          type: 'viewer-bandwidth',
+          producerId: producer.id,
+          kbps: known.length ? Math.min(...known) : null,
+          ...(lost.length ? { loss: Math.round((Math.max(...lost) / 255) * 100) / 100 } : {}),
+        });
+      }
+    } finally {
+      this.#reporting = false;
+    }
+  }
+
+  close() {
+    clearInterval(this.#bandwidthTimer);
+    this.router.close();
+  }
+
+  // ---------- Internals ----------
+
+  #member(peerId) {
+    const member = this.#members.get(peerId);
+    if (!member) throw new SfuError('not-in-room');
+    return member;
+  }
+
+  #transport(peerId, transportId) {
+    const transport = this.#member(peerId).transports.get(transportId);
+    if (!transport) throw new SfuError('unknown-transport');
+    return transport;
+  }
+
+  #consumer(peerId, consumerId) {
+    const consumer = this.#member(peerId).consumers.get(consumerId);
+    if (!consumer) throw new SfuError('unknown-consumer');
+    return consumer;
+  }
+
+  #ownProducer(member, producerId) {
+    const producer = member.producers.get(producerId);
+    if (!producer) throw new SfuError('unknown-producer');
+    return producer;
+  }
+
+  #producerOwner(producerId) {
+    for (const member of this.#members.values()) {
+      if (member.producers.has(producerId)) return member;
+    }
+    return null;
+  }
+
+  #broadcast(fromPeerId, message) {
+    for (const [id, member] of this.#members) {
+      if (id !== fromPeerId) member.peer.send(message);
+    }
+  }
+}

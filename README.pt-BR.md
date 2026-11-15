@@ -1,0 +1,78 @@
+# Jay-C
+
+[English](README.en.md) · **Português**
+
+[![CI](https://github.com/TyxMatty/Jay-C/actions/workflows/ci.yml/badge.svg)](https://github.com/TyxMatty/Jay-C/actions/workflows/ci.yml)
+
+App leve e open-source de chamadas e compartilhamento de tela para desktop e mobile, com servidor de sinalização self-hosted via Docker.
+
+<p align="center"><img src="docs/images/call.png" alt="Uma chamada num servidor do Jay-C: as salas e os canais de texto do servidor à esquerda, a live de uma pessoa em destaque, os cards de quem está na sala e a barra de controles" width="820"></p>
+
+- **Voz limpa**, que não abafa o som dos outros apps.
+- **Lives de um jogo, uma janela ou da tela inteira**, com o som, em até 1080p60.
+- **Até 16 pessoas por sala**, com chat e o vídeo em destaque numa janelinha por cima de tudo (PiP).
+- **Servidores com salas e canais de texto**: salas fixas (com senha, ou invisíveis), canais com histórico, menções com @, e imagens, GIFs e vídeos em todos os chats.
+- **No seu servidor ou no de um amigo**, sem contas e sem anúncios.
+
+<table>
+  <tr>
+    <td><img src="docs/images/server-calm.png" alt="Um canal de texto de um servidor no estilo Calmo, em roxo: mensagens com uma imagem e um GIF, as salas e os canais à esquerda e quem está nas calls à direita"></td>
+    <td><img src="docs/images/server-neon.png" alt="O mesmo canal no estilo Neon, em ciano"></td>
+    <td><img src="docs/images/server-soft.png" alt="O mesmo canal no estilo Suave, em laranja"></td>
+  </tr>
+  <tr align="center"><td>Calmo</td><td>Neon</td><td>Suave</td></tr>
+</table>
+
+<p align="center"><img src="docs/images/phone.png" alt="O Jay-C no celular: uma call com a live de uma pessoa e as câmeras, e a gaveta com as salas e os canais do servidor" width="400"></p>
+
+## Baixar
+
+O instalador para Windows está nos **[releases](https://github.com/TyxMatty/Jay-C/releases/latest)**: baixe o `Jay-C_<versão>_x64-setup.exe` da versão mais recente. Ele abre uma janela pequena e instala para o usuário atual. Atualiza uma versão anterior por cima e mantém as configurações. Todas as versões ficam em [releases](https://github.com/TyxMatty/Jay-C/releases).
+
+## Código
+
+| Pasta | Conteúdo |
+|---|---|
+| [`signaling-server/`](signaling-server/) | Servidor de sinalização (Node.js + `ws`) e SFU de mídia (mediasoup), com arquivos Docker |
+| [`frontend/`](frontend/) | App Tauri v2 + Vanilla JS (Vite) |
+| [`plugins/tauri-plugin-system-audio/`](plugins/tauri-plugin-system-audio/) | Captura de áudio por processo para as transmissões (Windows) |
+| `plugins/tauri-plugin-pip/` | Plugin de Picture-in-Picture para Android/iOS *(em construção)* |
+| [`docs/ARQUITETURA.md`](docs/ARQUITETURA.md) | Arquitetura, decisões técnicas e etapas |
+| [`docs/CONTINUAR.md`](docs/CONTINUAR.md) | Instalar num PC novo, estado atual e próximos passos |
+| [`scripts/`](scripts/) | Ferramentas de desenvolvimento: app com depuração, rodar JS no app real, tom de teste |
+
+## Rodando o app
+
+```bash
+npm install
+npm run dev
+```
+
+Esse comando abre a janela do Jay-C (Tauri) com recarregamento automático. Para abrir só a interface no navegador, sem Tauri, use `npm run web`. A primeira compilação do Rust leva alguns minutos.
+
+No Windows, o build também precisa de **Python com Meson e Ninja** (`py -m pip install --user meson ninja`, com a pasta de Scripts do Python no PATH). Eles compilam o processamento de áudio do WebRTC, usado pelo microfone. O primeiro build baixa o abseil-cpp e leva alguns minutos a mais.
+
+## Rodando o servidor localmente
+
+```bash
+npm install
+npm run server
+```
+
+O servidor usa a porta **3000/tcp** para a sinalização (`ws://`) e a **40000** (UDP e TCP) para a mídia. Libere as duas no firewall. O health check fica em `http://localhost:3000/health`.
+
+## Rodando o servidor com Docker
+
+Dentro do repositório, o comando abaixo gera a imagem a partir do código-fonte:
+
+```bash
+docker compose -f signaling-server/docker-compose.yml up -d --build
+```
+
+Usuários finais só precisam do `docker-compose.yml` numa pasta vazia e de `docker compose up -d`. Os comentários dele listam as configurações (chave de admin, nome do servidor, limites dos arquivos); a tabela completa está em [docs/ARQUITETURA.md](docs/ARQUITETURA.md), seção 4. A imagem é baixada do registry, que ainda vai ser publicado na etapa de release.
+
+## Testes
+
+```bash
+npm test
+```

@@ -1,0 +1,21 @@
+{
+  "name": "signaling-server",
+  "version": "0.5.5",
+  "private": true,
+  "description": "Jay-C WebRTC signaling server (WebSocket relay for SDP and ICE)",
+  "license": "MIT",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "mediasoup": "^3.32.1",
+    "ws": "^8.22.1"
+  }
+}

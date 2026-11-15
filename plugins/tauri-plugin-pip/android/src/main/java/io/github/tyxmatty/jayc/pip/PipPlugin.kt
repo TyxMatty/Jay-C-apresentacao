@@ -1,0 +1,270 @@
+package io.github.tyxmatty.jayc.pip
+
+import android.app.Activity
+import android.app.PictureInPictureParams
+import android.content.pm.ActivityInfo
+import android.content.pm.PackageManager
+import android.content.res.Configuration
+import android.os.Build
+import android.util.Log
+import android.util.Rational
+import android.webkit.WebView
+import androidx.activity.ComponentActivity
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.PictureInPictureModeChangedInfo
+import androidx.core.util.Consumer
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
+import app.tauri.annotation.Command
+import app.tauri.annotation.InvokeArg
+import app.tauri.annotation.TauriPlugin
+import app.tauri.plugin.Invoke
+import app.tauri.plugin.JSObject
+import app.tauri.plugin.Plugin
+
+private const val TAG = "JayC/Pip"
+
+@InvokeArg
+class AutoEnterArgs {
+    var enabled: Boolean = false
+    var width: Int = 16
+    var height: Int = 9
+}
+
+@InvokeArg
+class ImmersiveArgs {
+    var enabled: Boolean = false
+}
+
+@InvokeArg
+class EnterArgs {
+    var width: Int = 16
+    var height: Int = 9
+}
+
+/** The in-call notification (CallService), its texts already translated by the page. */
+@InvokeArg
+class CallServiceArgs {
+    var title: String = "Jay-C"
+    var text: String = ""
+    var mute: String = "Mute"
+    var unmute: String = "Unmute"
+    var leave: String = "Leave"
+    var channel: String = "Calls"
+    var muted: Boolean = false
+}
+
+@InvokeArg
+class CallServiceUpdateArgs {
+    var muted: Boolean = false
+}
+
+/**
+ * Picture-in-Picture for the whole activity (Android's WebView has no <video> PiP).
+ *
+ * - `setAutoEnter`: during a call, leaving the app (Home, recents) shrinks it into a floating
+ *   window. Android 12+ does it via PictureInPictureParams.setAutoEnterEnabled; older versions
+ *   via the activity's user-leave hint.
+ * - `enter`: go to PiP now (e.g. from a button).
+ * - Event `pipModeChanged` { active }: the page switches to a compact layout while in PiP.
+ */
+@TauriPlugin
+class PipPlugin(private val activity: Activity) : Plugin(activity) {
+    private var autoEnter = false
+    private var aspect = Rational(16, 9)
+    private var lastReported: Boolean? = null
+    private var webView: WebView? = null
+
+    private val modeListener = Consumer<PictureInPictureModeChangedInfo> { info ->
+        report(info.isInPictureInPictureMode, "listener")
+    }
+
+    /** Entering/leaving PiP resizes the window, and TauriActivity forwards configuration changes to plugins. */
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) report(activity.isInPictureInPictureMode, "configuration")
+    }
+
+    /** Tells the page when PiP starts/ends (once per change, whichever callback sees it first). */
+    private fun report(active: Boolean, via: String) {
+        if (active == lastReported) return
+        lastReported = active
+        Log.i(TAG, "pipModeChanged active=$active (via $via)")
+        keepWebViewAlive(active)
+        trigger("pipModeChanged", JSObject().put("active", active))
+    }
+
+    /**
+     * Android pauses the activity in PiP, and WryActivity.onPause pauses the WebView with it:
+     * the page stops drawing (the mini window freezes on the last frame) and becomes `hidden`.
+     * While in PiP the page *is* what the user sees, so keep it running; once PiP ends without
+     * coming back to the app (window closed), pause it again like a normal background activity.
+     */
+    private fun keepWebViewAlive(inPip: Boolean) {
+        val view = webView ?: return
+        if (inPip) {
+            view.onResume()
+        } else if (CallService.running) {
+            // A call goes on in the background (with its notification): the page runs it.
+            Log.i(TAG, "PiP ended during a call: the WebView keeps running")
+        } else if (activity is ComponentActivity &&
+            !activity.lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.RESUMED)
+        ) {
+            view.onPause() // onResume() runs again if the activity comes back to the front
+        }
+    }
+
+    /** Runs after WryActivity.onPause has paused the WebView (TauriActivity calls plugins last). */
+    override fun onPause(activity: AppCompatActivity) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && activity.isInPictureInPictureMode) {
+            Log.i(TAG, "onPause in PiP: keeping the WebView running")
+            webView?.onResume()
+        }
+    }
+    private val leaveHintListener = Runnable {
+        // Android 12+ enters on its own (setAutoEnterEnabled); this covers 8.0-11.
+        if (autoEnter && Build.VERSION.SDK_INT < Build.VERSION_CODES.S) enterNow()
+    }
+
+    companion object {
+        @Volatile
+        private var current: PipPlugin? = null
+
+        /**
+         * For the app's Back handler (MainActivity), when the page has nothing left to close:
+         * during a call (auto-enter armed) go to PiP, as Home does, and return true. Sent to the
+         * background instead, the call kept its connection but Android silenced the mic within
+         * seconds (measured: 50 -> 5 packets/s; in PiP it stayed at 50).
+         */
+        @JvmStatic
+        fun enterForBack(): Boolean {
+            val plugin = current ?: return false
+            if (!plugin.autoEnter || !plugin.supported()) return false
+            Log.i(TAG, "Back during a call: entering PiP")
+            return plugin.enterNow()
+        }
+    }
+
+    override fun load(webView: WebView) {
+        this.webView = webView
+        current = this
+        CallService.onAction = { action -> trigger("callAction", JSObject().put("action", action)) }
+        val component = activity as? ComponentActivity
+        Log.i(TAG, "load: ComponentActivity=${component != null}")
+        component?.let {
+            it.addOnPictureInPictureModeChangedListener(modeListener)
+            it.addOnUserLeaveHintListener(leaveHintListener)
+        }
+    }
+
+    override fun onDestroy() {
+        if (current === this) current = null
+        CallService.onAction = null
+        CallService.stop(activity)
+        (activity as? ComponentActivity)?.let {
+            it.removeOnPictureInPictureModeChangedListener(modeListener)
+            it.removeOnUserLeaveHintListener(leaveHintListener)
+        }
+    }
+
+    /** A call began: keep its microphone in the background, with a notification (CallService). */
+    @Command
+    fun callServiceStart(invoke: Invoke) {
+        val args = invoke.parseArgs(CallServiceArgs::class.java)
+        // Android 13+: the notification needs this permission (asked once; denied, the service
+        // still runs and keeps the microphone, only the notification is hidden).
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            activity.checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+        ) {
+            activity.requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 4712)
+        }
+        CallService.start(activity, CallService.Texts(args.title, args.text, args.mute, args.unmute, args.leave, args.channel), args.muted)
+        invoke.resolve()
+    }
+
+    @Command
+    fun callServiceUpdate(invoke: Invoke) {
+        CallService.update(activity, invoke.parseArgs(CallServiceUpdateArgs::class.java).muted)
+        invoke.resolve()
+    }
+
+    @Command
+    fun callServiceStop(invoke: Invoke) {
+        CallService.stop(activity)
+        invoke.resolve()
+    }
+
+    @Command
+    fun isSupported(invoke: Invoke) {
+        invoke.resolve(JSObject().put("supported", supported()))
+    }
+
+    @Command
+    fun setAutoEnter(invoke: Invoke) {
+        val args = invoke.parseArgs(AutoEnterArgs::class.java)
+        autoEnter = args.enabled && supported()
+        aspect = clampedAspect(args.width, args.height)
+        if (supported()) activity.setPictureInPictureParams(params())
+        invoke.resolve(JSObject().put("autoEnter", autoEnter))
+    }
+
+    @Command
+    fun enter(invoke: Invoke) {
+        val args = invoke.parseArgs(EnterArgs::class.java)
+        aspect = clampedAspect(args.width, args.height)
+        if (!supported()) return invoke.reject("Picture-in-Picture isn't supported on this device")
+        invoke.resolve(JSObject().put("entered", enterNow()))
+    }
+
+    /**
+     * A stream in full screen (the page pins it over everything): hide the status and navigation
+     * bars (a swipe from the edge shows them for a moment) and turn to landscape; off restores both.
+     */
+    @Command
+    fun setImmersive(invoke: Invoke) {
+        val args = invoke.parseArgs(ImmersiveArgs::class.java)
+        activity.runOnUiThread {
+            val window = activity.window
+            val controller = WindowCompat.getInsetsController(window, window.decorView)
+            if (args.enabled) {
+                controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                controller.hide(WindowInsetsCompat.Type.systemBars())
+                activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+            } else {
+                controller.show(WindowInsetsCompat.Type.systemBars())
+                activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+            }
+            invoke.resolve(JSObject().put("immersive", args.enabled))
+        }
+    }
+
+    private fun supported(): Boolean =
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+            activity.packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)
+
+    private fun enterNow(): Boolean =
+        try {
+            activity.enterPictureInPictureMode(params())
+        } catch (e: IllegalStateException) {
+            false // e.g. the activity isn't resumed anymore
+        }
+
+    private fun params(): PictureInPictureParams {
+        val builder = PictureInPictureParams.Builder().setAspectRatio(aspect)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            builder.setAutoEnterEnabled(autoEnter).setSeamlessResizeEnabled(true)
+        }
+        return builder.build()
+    }
+
+    /** Android rejects ratios outside 1:2.39 .. 2.39:1. */
+    private fun clampedAspect(width: Int, height: Int): Rational {
+        if (width <= 0 || height <= 0) return Rational(16, 9)
+        val ratio = width.toDouble() / height
+        return when {
+            ratio > 2.39 -> Rational(239, 100)
+            ratio < 1 / 2.39 -> Rational(100, 239)
+            else -> Rational(width, height)
+        }
+    }
+}

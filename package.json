@@ -1,0 +1,25 @@
+{
+  "name": "jay-c",
+  "private": true,
+  "description": "Jay-C — lightweight cross-platform screen-sharing and calling app",
+  "license": "MIT",
+  "workspaces": [
+    "signaling-server",
+    "frontend",
+    "plugins/tauri-plugin-system-audio"
+  ],
+  "scripts": {
+    "dev": "npm run tauri dev -w frontend",
+    "build": "npm run tauri build -w frontend",
+    "web": "npm run dev -w frontend",
+    "server": "npm run start -w signaling-server",
+    "server:dev": "npm run dev -w signaling-server",
+    "test": "npm test --workspaces --if-present"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "allowScripts": {
+    "mediasoup@3.32.1": true
+  }
+}

@@ -1,0 +1,349 @@
+//! BGRA capture texture -> NV12 (D3D11 video processor, scaled to the output size) -> hardware
+//! H.264 (async Media Foundation MFT), all on the GPU. One instance per output size: a step to a
+//! new size makes a new one, whose first frame is a keyframe with the new SPS. A step that only
+//! changes the frame rate keeps it (`set_fps`): a new encoder's keyframe on a slow link froze the
+//! picture for ~0.5-0.9 s at each such step (measured).
+//!
+//! Keyframes only when asked for (a viewer's PLI, a new encoder): measured on the NVIDIA MFT at
+//! 1080p30 and 3 Mbps, each keyframe of the old 4 s GOP was 300-500 KB, 57-95x a normal frame and
+//! 1-1.3 s of the whole link, so the live hitched every 4 s. The rate control's buffer is kept
+//! small too (`buffer_bits`): with it, keyframes and scene cuts came out 4x smaller (96-145 KB)
+//! and the output held within 2.1-3.1 Mbps of 3 Mbps each second, against 1.6-5.3 Mbps.
+
+use std::mem::ManuallyDrop;
+
+use windows::core::{Interface, Result, GUID};
+use windows::Win32::Foundation::E_FAIL;
+use windows::Win32::Graphics::Direct3D11::*;
+use windows::Win32::Graphics::Dxgi::Common::{DXGI_FORMAT_NV12, DXGI_RATIONAL, DXGI_SAMPLE_DESC};
+use windows::Win32::Media::MediaFoundation::*;
+use windows::Win32::System::Com::CoTaskMemFree;
+use windows::Win32::System::Variant::VARIANT;
+
+const RING: usize = 4; // NV12 textures the encoder may still be reading
+/// No periodic keyframes: an hour of frames between them. Viewers ask for one (PLI) when they
+/// need it, and the server asks when someone starts watching.
+const GOP_SECONDS: u32 = 3600;
+
+/// Never finer than this. On a still picture (a chat between messages) the rate control kept
+/// spending the whole bitrate refining it, the QP sank, and the next big change came out at that
+/// QP: scrolls of 20-60 KB at 600 kbps 1080p5, which the buffer above doesn't stop (the NVIDIA MFT
+/// ignores it on big changes). With 26: at most 27 KB, and a settled still picture costs ~10 kbps
+/// (encprobe, chat picture).
+const MIN_QP: u32 = 26;
+
+/// The rate control's buffer: 50 ms of the bitrate, or 1.5 frames if that's more. Smaller (33 ms
+/// at 30 fps) and the NVIDIA encoder stalled; under 1.5 frames it can't reach the bitrate.
+fn buffer_bits(kbps: u32, fps: u32) -> u32 {
+    kbps * (1500 / fps.max(1)).max(50)
+}
+
+pub struct Output {
+    /// Sample time, 100 ns units.
+    pub time: i64,
+    pub data: Vec<u8>,
+}
+
+pub struct Encoder {
+    pub width: u32,
+    pub height: u32,
+    /// The frames per second it gets now (`set_fps`), at most `rate_fps`.
+    pub fps: u32,
+    /// The frame rate it was made for. The NVIDIA rate control spends the bitrate over this many
+    /// frames a second whatever it gets (fed half as many, it put out half the bitrate, measured),
+    /// so the bitrate it's given is scaled by rate_fps / fps.
+    rate_fps: u32,
+    pub name: String,
+    activate: IMFActivate,
+    transform: IMFTransform,
+    events: IMFMediaEventGenerator,
+    codec: Option<ICodecAPI>,
+    provides_samples: bool,
+    vdevice: ID3D11VideoDevice,
+    vcontext: ID3D11VideoContext,
+    vp_enum: ID3D11VideoProcessorEnumerator,
+    processor: ID3D11VideoProcessor,
+    ring: Vec<(ID3D11Texture2D, ID3D11VideoProcessorOutputView)>,
+    next_slot: usize,
+    need: u32,
+    _manager: IMFDXGIDeviceManager,
+}
+
+fn pack(hi: u32, lo: u32) -> u64 {
+    ((hi as u64) << 32) | lo as u64
+}
+
+/// The first hardware H.264 encoder (NV12 in), in the system's order, that starts and takes
+/// `device`. Not just the first one listed: on a laptop with an NVIDIA and an Intel GPU (RTX 3050
+/// + UHD, measured), the NVIDIA MFT came first and failed to even start (`ActivateObject`
+/// 0x8000FFFF), with a device on either GPU, while the capture device was on the Intel GPU and its
+/// Quick Sync encoder took it. The encoders don't report their GPU (`MFT_ENUM_ADAPTER_LUID` was
+/// missing on all three), so each is tried with the device instead.
+unsafe fn open_hardware_encoder(device: &ID3D11Device) -> Result<(IMFActivate, IMFTransform, IMFDXGIDeviceManager, String)> {
+    let input_info = MFT_REGISTER_TYPE_INFO { guidMajorType: MFMediaType_Video, guidSubtype: MFVideoFormat_NV12 };
+    let output_info = MFT_REGISTER_TYPE_INFO { guidMajorType: MFMediaType_Video, guidSubtype: MFVideoFormat_H264 };
+    let mut activates: *mut Option<IMFActivate> = std::ptr::null_mut();
+    let mut count = 0u32;
+    MFTEnumEx(MFT_CATEGORY_VIDEO_ENCODER, MFT_ENUM_FLAG_HARDWARE | MFT_ENUM_FLAG_SORTANDFILTER, Some(&input_info), Some(&output_info), &mut activates, &mut count)?;
+    let found: Vec<IMFActivate> = std::slice::from_raw_parts_mut(activates, count as usize).iter_mut().filter_map(Option::take).collect();
+    CoTaskMemFree(Some(activates as _));
+
+    let mut last_error = windows::core::Error::new(E_FAIL, "no hardware H.264 encoder");
+    for activate in found {
+        let mut name = windows::core::PWSTR::null();
+        let mut len = 0;
+        let name_str = match activate.GetAllocatedString(&MFT_FRIENDLY_NAME_Attribute, &mut name, &mut len) {
+            Ok(()) => {
+                let s = name.to_string().unwrap_or_default();
+                CoTaskMemFree(Some(name.0 as _));
+                s
+            }
+            Err(_) => "H.264 encoder".into(),
+        };
+        let opened = (|| -> Result<(IMFTransform, IMFDXGIDeviceManager)> {
+            let transform: IMFTransform = activate.ActivateObject()?;
+            transform.GetAttributes()?.SetUINT32(&MF_TRANSFORM_ASYNC_UNLOCK, 1)?;
+            let mut token = 0u32;
+            let mut manager = None;
+            MFCreateDXGIDeviceManager(&mut token, &mut manager)?;
+            let manager: IMFDXGIDeviceManager = manager.unwrap();
+            manager.ResetDevice(device, token)?;
+            transform.ProcessMessage(MFT_MESSAGE_SET_D3D_MANAGER, manager.as_raw() as usize)?;
+            Ok((transform, manager))
+        })();
+        match opened {
+            Ok((transform, manager)) => return Ok((activate, transform, manager, name_str)),
+            Err(e) => {
+                log::warn!("native live: {name_str} can't be used here, trying the next encoder: {e}");
+                let _ = activate.ShutdownObject();
+                last_error = e;
+            }
+        }
+    }
+    Err(last_error)
+}
+
+impl Encoder {
+    /// `input`: the capture size; `width` x `height` (even): what gets encoded; `rate_fps`: the most
+    /// frames a second it will get; `fps`: how many it gets for now.
+    pub unsafe fn new(device: &ID3D11Device, input: (u32, u32), width: u32, height: u32, rate_fps: u32, fps: u32, kbps: u32) -> Result<Self> {
+        let fps = fps.clamp(1, rate_fps.max(1));
+        let (rate_fps, scaled) = (rate_fps.max(1), kbps * rate_fps.max(1) / fps);
+        let context = device.GetImmediateContext()?;
+        let vdevice: ID3D11VideoDevice = device.cast()?;
+        let vcontext: ID3D11VideoContext = context.cast()?;
+        let rate = DXGI_RATIONAL { Numerator: rate_fps, Denominator: 1 };
+        let content = D3D11_VIDEO_PROCESSOR_CONTENT_DESC {
+            InputFrameFormat: D3D11_VIDEO_FRAME_FORMAT_PROGRESSIVE,
+            InputFrameRate: rate,
+            InputWidth: input.0,
+            InputHeight: input.1,
+            OutputFrameRate: rate,
+            OutputWidth: width,
+            OutputHeight: height,
+            Usage: D3D11_VIDEO_USAGE_OPTIMAL_SPEED,
+        };
+        let vp_enum = vdevice.CreateVideoProcessorEnumerator(&content)?;
+        let processor = vdevice.CreateVideoProcessor(&vp_enum, 0)?;
+        let nv12_desc = D3D11_TEXTURE2D_DESC {
+            Width: width,
+            Height: height,
+            MipLevels: 1,
+            ArraySize: 1,
+            Format: DXGI_FORMAT_NV12,
+            SampleDesc: DXGI_SAMPLE_DESC { Count: 1, Quality: 0 },
+            Usage: D3D11_USAGE_DEFAULT,
+            BindFlags: (D3D11_BIND_RENDER_TARGET.0 | D3D11_BIND_VIDEO_ENCODER.0) as u32,
+            ..Default::default()
+        };
+        let mut ring = Vec::new();
+        for _ in 0..RING {
+            let mut tex = None;
+            device.CreateTexture2D(&nv12_desc, None, Some(&mut tex))?;
+            let tex = tex.unwrap();
+            let view_desc = D3D11_VIDEO_PROCESSOR_OUTPUT_VIEW_DESC { ViewDimension: D3D11_VPOV_DIMENSION_TEXTURE2D, ..Default::default() };
+            let mut view = None;
+            vdevice.CreateVideoProcessorOutputView(&tex, &vp_enum, &view_desc, Some(&mut view))?;
+            ring.push((tex, view.unwrap()));
+        }
+
+        let (activate, transform, manager, name_str) = open_hardware_encoder(device)?;
+
+        // Before the media types: the NVIDIA MFT ignores GOP and CBR when they come after.
+        let codec = transform.cast::<ICodecAPI>().ok();
+        if let Some(codec) = &codec {
+            let set = |guid: &GUID, v: VARIANT, what: &str| {
+                if let Err(e) = codec.SetValue(guid, &v) {
+                    log::warn!("native live: encoder ignored {what}: {e}");
+                }
+            };
+            set(&CODECAPI_AVLowLatencyMode, VARIANT::from(true), "low latency");
+            set(&CODECAPI_AVEncCommonRateControlMode, VARIANT::from(eAVEncCommonRateControlMode_CBR.0 as u32), "CBR");
+            set(&CODECAPI_AVEncCommonMeanBitRate, VARIANT::from(scaled * 1000), "bitrate");
+            set(&CODECAPI_AVEncCommonBufferSize, VARIANT::from(buffer_bits(kbps, fps)), "buffer size");
+            set(&CODECAPI_AVEncMPVGOPSize, VARIANT::from(rate_fps * GOP_SECONDS), "GOP");
+            set(&CODECAPI_AVEncVideoMinQP, VARIANT::from(MIN_QP), "min QP");
+        }
+        let out_type = MFCreateMediaType()?;
+        out_type.SetGUID(&MF_MT_MAJOR_TYPE, &MFMediaType_Video)?;
+        out_type.SetGUID(&MF_MT_SUBTYPE, &MFVideoFormat_H264)?;
+        out_type.SetUINT32(&MF_MT_AVG_BITRATE, scaled * 1000)?;
+        out_type.SetUINT64(&MF_MT_FRAME_SIZE, pack(width, height))?;
+        out_type.SetUINT64(&MF_MT_FRAME_RATE, pack(rate_fps, 1))?;
+        out_type.SetUINT32(&MF_MT_INTERLACE_MODE, MFVideoInterlace_Progressive.0 as u32)?;
+        out_type.SetUINT32(&MF_MT_MPEG2_PROFILE, eAVEncH264VProfile_High.0 as u32)?;
+        out_type.SetUINT32(&MF_MT_MAX_KEYFRAME_SPACING, rate_fps * GOP_SECONDS)?;
+        transform.SetOutputType(0, &out_type, 0)?;
+        let in_type = MFCreateMediaType()?;
+        in_type.SetGUID(&MF_MT_MAJOR_TYPE, &MFMediaType_Video)?;
+        in_type.SetGUID(&MF_MT_SUBTYPE, &MFVideoFormat_NV12)?;
+        in_type.SetUINT64(&MF_MT_FRAME_SIZE, pack(width, height))?;
+        in_type.SetUINT64(&MF_MT_FRAME_RATE, pack(rate_fps, 1))?;
+        in_type.SetUINT32(&MF_MT_INTERLACE_MODE, MFVideoInterlace_Progressive.0 as u32)?;
+        transform.SetInputType(0, &in_type, 0)?;
+
+        let provides_samples = transform.GetOutputStreamInfo(0)?.dwFlags & MFT_OUTPUT_STREAM_PROVIDES_SAMPLES.0 as u32 != 0;
+        transform.ProcessMessage(MFT_MESSAGE_NOTIFY_BEGIN_STREAMING, 0)?;
+        transform.ProcessMessage(MFT_MESSAGE_NOTIFY_START_OF_STREAM, 0)?;
+        let events: IMFMediaEventGenerator = transform.cast()?;
+        Ok(Self {
+            width,
+            height,
+            fps,
+            rate_fps,
+            name: name_str,
+            activate,
+            transform,
+            events,
+            codec,
+            provides_samples,
+            vdevice,
+            vcontext,
+            vp_enum,
+            processor,
+            ring,
+            next_slot: 0,
+            need: 0,
+            _manager: manager,
+        })
+    }
+
+    pub fn wants_input(&self) -> bool {
+        self.need > 0
+    }
+
+    /// Handles the encoder's queued events; returns the frames it finished.
+    pub unsafe fn poll(&mut self) -> Result<Vec<Output>> {
+        let mut out = Vec::new();
+        loop {
+            let event = match self.events.GetEvent(MF_EVENT_FLAG_NO_WAIT) {
+                Ok(event) => event,
+                Err(e) if e.code() == MF_E_NO_EVENTS_AVAILABLE => break,
+                Err(e) => return Err(e),
+            };
+            // A failed MFT (GPU reset, device removed) posts an error status or MEError and then
+            // goes quiet: surface it, so the live ends with a message instead of freezing.
+            let status = event.GetStatus()?;
+            if status.is_err() {
+                return Err(status.into());
+            }
+            match event.GetType()? {
+                t if t == MEError.0 as u32 => return Err(windows::core::Error::from(E_FAIL)),
+                t if t == METransformNeedInput.0 as u32 => self.need += 1,
+                t if t == METransformHaveOutput.0 as u32 => {
+                    let mut buf = [MFT_OUTPUT_DATA_BUFFER::default()];
+                    if !self.provides_samples {
+                        let info = self.transform.GetOutputStreamInfo(0)?;
+                        let s = MFCreateSample()?;
+                        s.AddBuffer(&MFCreateMemoryBuffer(info.cbSize.max(1 << 20))?)?;
+                        buf[0].pSample = ManuallyDrop::new(Some(s));
+                    }
+                    let mut status = 0;
+                    let result = self.transform.ProcessOutput(0, &mut buf, &mut status);
+                    // Taken back whatever happened, so nothing leaks on an error.
+                    let sample = ManuallyDrop::take(&mut buf[0].pSample);
+                    drop(ManuallyDrop::take(&mut buf[0].pEvents));
+                    match result {
+                        // The Intel Quick Sync MFT asks this before its first frame (measured; the
+                        // NVIDIA one never did): take the output type it offers now and go on.
+                        Err(e) if e.code() == MF_E_TRANSFORM_STREAM_CHANGE => {
+                            let offered = self.transform.GetOutputAvailableType(0, 0)?;
+                            self.transform.SetOutputType(0, &offered, 0)?;
+                            log::info!("native live: {} changed its output type; accepted", self.name);
+                            continue;
+                        }
+                        Err(e) => return Err(e),
+                        Ok(()) => {}
+                    }
+                    let Some(sample) = sample else { continue };
+                    let media = sample.ConvertToContiguousBuffer()?;
+                    let (mut ptr, mut len) = (std::ptr::null_mut(), 0u32);
+                    media.Lock(&mut ptr, None, Some(&mut len))?;
+                    let data = std::slice::from_raw_parts(ptr, len as usize).to_vec();
+                    media.Unlock()?;
+                    out.push(Output {
+                        time: sample.GetSampleTime()?,
+                        data,
+                    });
+                }
+                _ => {}
+            }
+        }
+        Ok(out)
+    }
+
+    /// Scales/converts `capture` into the next NV12 texture and queues it. Call when `wants_input`.
+    pub unsafe fn encode(&mut self, capture: &ID3D11Texture2D, time: i64) -> Result<()> {
+        let (nv12, out_view) = &self.ring[self.next_slot];
+        self.next_slot = (self.next_slot + 1) % RING;
+        let in_desc = D3D11_VIDEO_PROCESSOR_INPUT_VIEW_DESC { FourCC: 0, ViewDimension: D3D11_VPIV_DIMENSION_TEXTURE2D, ..Default::default() };
+        let mut in_view = None;
+        self.vdevice.CreateVideoProcessorInputView(capture, &self.vp_enum, &in_desc, Some(&mut in_view))?;
+        let mut streams = [D3D11_VIDEO_PROCESSOR_STREAM { Enable: true.into(), pInputSurface: ManuallyDrop::new(in_view), ..Default::default() }];
+        self.vcontext.VideoProcessorBlt(&self.processor, out_view, 0, &streams)?;
+        ManuallyDrop::drop(&mut streams[0].pInputSurface);
+
+        let sample = MFCreateSample()?;
+        sample.AddBuffer(&MFCreateDXGISurfaceBuffer(&ID3D11Texture2D::IID, nv12, 0, false)?)?;
+        sample.SetSampleTime(time)?;
+        sample.SetSampleDuration(10_000_000 / self.fps as i64)?;
+        self.transform.ProcessInput(0, &sample, 0)?;
+        self.need -= 1;
+        Ok(())
+    }
+
+    pub unsafe fn set_bitrate(&self, kbps: u32) {
+        if let Some(c) = &self.codec {
+            let _ = c.SetValue(&CODECAPI_AVEncCommonBufferSize, &VARIANT::from(buffer_bits(kbps, self.fps)));
+            let _ = c.SetValue(&CODECAPI_AVEncCommonMeanBitRate, &VARIANT::from(kbps * self.rate_fps / self.fps * 1000));
+        }
+    }
+
+    /// The most frames a second it can get without a new encoder.
+    pub fn rate_fps(&self) -> u32 {
+        self.rate_fps
+    }
+
+    /// Gets `fps` frames a second from now on (at most `rate_fps`), at `kbps`. No new keyframe.
+    pub unsafe fn set_fps(&mut self, fps: u32, kbps: u32) {
+        self.fps = fps.clamp(1, self.rate_fps);
+        self.set_bitrate(kbps);
+    }
+
+    pub unsafe fn force_keyframe(&self) {
+        if let Some(c) = &self.codec {
+            let _ = c.SetValue(&CODECAPI_AVEncVideoForceKeyFrame, &VARIANT::from(1u32));
+        }
+    }
+}
+
+impl Drop for Encoder {
+    /// Frees the hardware session (GeForce cards allow only a few at once).
+    fn drop(&mut self) {
+        unsafe {
+            let _ = self.transform.ProcessMessage(MFT_MESSAGE_COMMAND_FLUSH, 0);
+            let _ = self.transform.ProcessMessage(MFT_MESSAGE_NOTIFY_END_STREAMING, 0);
+            let _ = self.activate.ShutdownObject();
+        }
+    }
+}

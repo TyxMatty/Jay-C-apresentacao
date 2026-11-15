@@ -1,0 +1,75 @@
+[package]
+name = "jay-c"
+version = "0.5.5"
+description = "Jay-C — lightweight calls and screen sharing"
+authors = ["TyxMatty"]
+license = "MIT"
+repository = "https://github.com/TyxMatty/Jay-C"
+edition = "2024"
+rust-version = "1.90"
+
+[lib]
+# The `_lib` suffix avoids a name clash with the binary on Windows (cargo#8519).
+name = "jay_c_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2.7.4", features = [] }
+
+[dependencies]
+serde_json = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+log = "0.4"
+tauri = { version = "2.12.5", features = [] }
+tauri-plugin-log = "2"
+tauri-plugin-system-audio = { path = "../../plugins/tauri-plugin-system-audio" }
+tauri-plugin-pip = { path = "../../plugins/tauri-plugin-pip" }
+tauri-plugin-notification = "2"
+
+[target.'cfg(windows)'.dependencies]
+# Same versions as wry's, to reach the WebView2 controller it creates.
+webview2-com = "0.39"
+windows = { version = "0.62", features = [
+    "Foundation",
+    "Graphics_Capture",
+    "Graphics_DirectX_Direct3D11",
+    "Win32_Foundation",
+    "Win32_Graphics_Direct3D",
+    "Win32_Graphics_Direct3D11",
+    "Win32_Graphics_Dwm",
+    "Win32_Graphics_Dxgi",
+    "Win32_Graphics_Dxgi_Common",
+    "Win32_Graphics_Gdi",
+    "Win32_Graphics_Imaging",
+    "Win32_Media_MediaFoundation",
+    "Win32_Storage_EnhancedStorage",
+    "Win32_System_Com",
+    "Win32_System_Com_StructuredStorage",
+    "Win32_System_Diagnostics_ToolHelp",
+    "Win32_System_Ole",
+    "Win32_System_Registry",
+    "Win32_System_Threading",
+    "Win32_System_Variant",
+    "Win32_System_WinRT",
+    "Win32_System_WinRT_Direct3D11",
+    "Win32_System_WinRT_Graphics_Capture",
+    "Win32_UI_Shell",
+    "Win32_UI_Shell_PropertiesSystem",
+    "Win32_UI_WindowsAndMessaging",
+] }
+# The shared updater of the Jay line (src/update.rs); bump together with the Jay-I `ref` in .github/workflows/installer.yml.
+jay-i = { git = "https://github.com/TyxMatty/Jay-I", rev = "60de872dee82c5be37d2ea15c5f94d0dddffde26" }
+# Native screen share over WebRTC (src/native_live); Windows' own crypto, no OpenSSL.
+str0m = { version = "0.25", default-features = false, features = ["wincrypto"] }
+
+[profile.release]
+# Smaller, leaner binaries.
+codegen-units = 1
+lto = true
+opt-level = "s"
+panic = "abort"
+strip = true
+
+# A pacing cap for the native live (third_party/str0m/JAYC.md).
+[patch.crates-io]
+str0m = { path = "third_party/str0m" }

@@ -1,0 +1,191 @@
+// A text channel (Jay-C 0.5): its last messages from the server, older ones when scrolled to the
+// top, new ones live, and a box to write. Everyone on the server sees it; the server keeps the
+// last 500 messages. Shown in the main area when picked in the channel list (ui/app-shell.js).
+import { h } from './dom.js';
+import { attachMentionPicker } from './mention-picker.js';
+import { icons } from './icons.js';
+import { createChatLog } from './chat-log.js';
+import { createAttach } from './attach.js';
+import { createMediaLoader } from '../core/attachment-net.js';
+import { profileBackground } from '../core/profile-color.js';
+import { mergeMessages, cleanReply } from '../core/text-channels.js';
+import { t } from '../core/i18n.js';
+import { plainText } from '../core/chat-format.js';
+
+const MAX_LENGTH = 500;
+/** Loaded messages kept on the page (the server has at most 500 per channel). */
+const MAX_SHOWN = 600;
+
+const SEND_ERRORS = {
+  'rate-limited': 'Too many messages: the last one was not sent.',
+  'unknown-channel': 'This channel no longer exists.',
+};
+
+/**
+ * @param {{ session: import('../core/server-session.js').ServerSession, channel: string,
+ *   onRead: (lastId: number) => void }} options onRead: the newest message shown (for unread marks).
+ */
+export function createTextChannel({ session, channel, onRead }) {
+  const access = () => (session.media && session.httpBase ? { base: session.httpBase, ...session.media } : null);
+  const loader = createMediaLoader(access);
+  // Who can be mentioned here (T14.B): who has the server open, who is in its calls, who wrote here.
+  const mentionNames = () => [...session.knownNames(), ...messages.map((m) => m.name)];
+  // Replying (T15.F): the message being answered, shown over the box until sent or cancelled.
+  let replyTo = null;
+  const replyingText = h('span', { class: 'chat-replying-text' });
+  const replying = h(
+    'div',
+    { class: 'chat-replying', hidden: true },
+    h('span', { class: 'chat-reply-icon', html: icons.reply, 'aria-hidden': 'true' }),
+    replyingText,
+    h('button', { type: 'button', class: 'icon-btn icon-btn-small', 'aria-label': t('Cancel reply'), title: t('Cancel reply'), html: icons.close, onClick: () => setReply(null) }),
+  );
+  const setReply = (message) => {
+    replyTo = message;
+    replying.hidden = !message;
+    replyingText.replaceChildren(...(message ? [t('Replying to {name}', { name: message.name }), ': ', h('span', { class: 'chat-reply-text' }, plainText(message.text))] : []));
+    input.focus();
+  };
+  const chatLog = createChatLog({
+    label: t('Messages in #{channel}', { channel }),
+    max: MAX_SHOWN,
+    loader,
+    mentions: () => ({ names: mentionNames(), me: session.name }),
+    // Only on a server that keeps the quote (0.5.2 on): an older one would drop it in silence.
+    onReply: session.features.includes('replies') ? (message) => setReply(message) : null,
+  });
+  const empty = h('div', { class: 'chat-empty' }, h('span', { class: 'chat-empty-icon', html: icons.chat, 'aria-hidden': 'true' }), h('p', { class: 'hint' }, t('No messages here yet. Everyone on this server sees this channel.')));
+  const input = h('input', { class: 'input', type: 'text', maxlength: MAX_LENGTH, placeholder: t('Message #{channel}', { channel }), 'aria-label': t('Message') });
+  const status = h('p', { class: 'hint', 'aria-live': 'polite' });
+  const form = h('form', { class: 'chat-form' });
+  const element = h('section', { class: 'text-channel', 'aria-label': `#${channel}` });
+  const attach = createAttach({ getAccess: access, dropTarget: form, dropZone: element, input });
+  attachMentionPicker({ input, anchor: form, names: mentionNames, me: () => session.name });
+  form.append(attach.button, attach.picker, input, h('button', { type: 'submit', class: 'btn chat-send', 'aria-label': t('Send'), title: t('Send'), html: icons.send }));
+
+  /** @type {{ id: number, at: number, name: string, color?: object, text: string }[]} */
+  let messages = [];
+  let loadingOlder = false;
+  let reachedStart = false;
+  const toChat = (m) => ({
+    id: m.id,
+    reply: cleanReply(m.reply),
+    replyToMe: m.name !== session.name && cleanReply(m.reply)?.name === session.name,
+    sender: `name:${m.name}`,
+    name: m.name,
+    text: m.text,
+    at: m.at,
+    background: profileBackground(m.color ?? null, m.name),
+    avatar: session.avatar(m.avatar),
+    ...(m.media !== undefined ? { media: m.media, caption: typeof m.caption === 'string' ? m.caption : '' } : {}),
+  });
+  const show = (options) => {
+    empty.hidden = messages.length > 0;
+    chatLog.replace(messages.map(toChat), options);
+    if (messages.length) onRead(messages.at(-1).id);
+    session.loadAvatars(messages.map((m) => m.avatar));
+  };
+  // Pictures that arrived: drawn in place, keeping where the reader is.
+  const onAvatars = () => {
+    if (messages.some((m) => m.avatar && session.avatar(m.avatar))) show({ keepPlace: true });
+  };
+
+  const loadNewest = async () => {
+    try {
+      messages = mergeMessages(await session.channelHistory(channel), messages);
+      reachedStart = false;
+      show();
+    } catch {
+      status.textContent = t("Couldn't load the messages. They come back when the server does.");
+    }
+  };
+  const loadOlder = async () => {
+    if (loadingOlder || reachedStart || !messages.length) return;
+    loadingOlder = true;
+    try {
+      const older = await session.channelHistory(channel, messages[0].id);
+      if (!older.length) reachedStart = true;
+      else {
+        messages = mergeMessages(older, messages);
+        show({ keepPlace: true });
+      }
+    } catch {
+      // Offline: scrolling up again tries again.
+    } finally {
+      loadingOlder = false;
+    }
+  };
+  chatLog.element.addEventListener('scroll', () => {
+    if (chatLog.element.scrollTop < 40) loadOlder();
+  });
+
+  const onMessage = (e) => {
+    if (e.detail.channel !== channel) return;
+    const { message } = e.detail;
+    if (messages.some((m) => m.id === message.id)) return;
+    messages = mergeMessages(messages, [message]);
+    empty.hidden = true;
+    chatLog.append(toChat(message), { follow: message.name === session.name });
+    onRead(message.id);
+    session.loadAvatars([message.avatar]);
+  };
+  const onError = (e) => {
+    status.textContent = t(SEND_ERRORS[e.detail.code] ?? 'The server did not accept your message (it may need updating).');
+  };
+  // Back after a drop (or the admin changed something): what was missed meanwhile.
+  const onConnected = () => {
+    attach.refresh(); // a new token with every list
+    loadNewest();
+  };
+  session.addEventListener('message', onMessage);
+  session.addEventListener('channel-error', onError);
+  session.addEventListener('connected', onConnected);
+  session.addEventListener('avatars', onAvatars);
+
+  let sending = false;
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const text = input.value.trim();
+    if (sending || (!text && !attach.pending)) return;
+    let upload = null;
+    if (attach.pending) {
+      sending = true;
+      status.textContent = t('Sending the file…');
+      upload = await attach.ready();
+      sending = false;
+      status.textContent = '';
+      if (!upload) return; // failed or removed: the reason is under the box, the text stays
+    }
+    const ref = upload ? { id: upload.id, ...(upload.poster ? { poster: upload.poster.id } : {}) } : null;
+    if (session.sendChannel(channel, text, ref, replyTo?.id ?? null)) {
+      input.value = '';
+      status.textContent = '';
+      if (replyTo) setReply(null);
+      if (upload) attach.sent();
+    } else {
+      status.textContent = t('Not connected right now. Your message is still in the box.');
+    }
+  });
+
+  // Esc in the box gives up the reply (when the @ list didn't take the key).
+  input.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape' || e.defaultPrevented || !replyTo) return;
+    e.preventDefault();
+    setReply(null);
+  });
+  element.append(empty, chatLog.element, status, replying, attach.element, form);
+  attach.refresh();
+  loadNewest();
+
+  return {
+    element,
+    focus: () => input.focus(),
+    destroy() {
+      loader.clear();
+      session.removeEventListener('message', onMessage);
+      session.removeEventListener('channel-error', onError);
+      session.removeEventListener('connected', onConnected);
+      session.removeEventListener('avatars', onAvatars);
+    },
+  };
+}

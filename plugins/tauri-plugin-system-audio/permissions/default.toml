@@ -1,0 +1,16 @@
+[default]
+description = "Lets the app capture audio natively: other apps' sound for screen sharing, and the call microphone."
+permissions = [
+  "allow-is-supported",
+  "allow-list-audio-apps",
+  "allow-list-mics",
+  "allow-window-process",
+  "allow-start-capture",
+  "allow-stop-capture",
+  "allow-start-mic",
+  "allow-stop-mic",
+  "allow-mic-call-state",
+  "allow-jay-a-show",
+  "allow-jay-a-installed",
+  "allow-jay-a-open-releases",
+]

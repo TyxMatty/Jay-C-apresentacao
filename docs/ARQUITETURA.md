@@ -1,0 +1,588 @@
+# Jay-C — Arquitetura
+
+**Português** · [English](ARQUITETURA.en.md)
+
+App leve e open-source de chamadas e compartilhamento de tela, para desktop e mobile, com servidor de sinalização self-hosted via Docker.
+
+## 1. Visão geral
+
+```mermaid
+flowchart LR
+  subgraph A["Jay-C (A)"]
+    UIA[UI Vanilla JS] --> MSA[mediasoup-client<br/>send + recv transports]
+    UIA --> WSA[WebSocket client]
+  end
+  subgraph B["Jay-C (B … P, até 16)"]
+    UIB[UI Vanilla JS] --> MSB[mediasoup-client]
+    UIB --> WSB[WebSocket client]
+  end
+  subgraph S["Servidor Jay-C (Docker)"]
+    SIG[Sinalização<br/>Node + ws :3000]
+    SFU[SFU mediasoup<br/>:40000 UDP/TCP]
+  end
+  WSA <-- "JSON" --> SIG
+  WSB <-- "JSON" --> SIG
+  MSA <== "SRTP (1× upload)" ==> SFU
+  MSB <== "SRTP" ==> SFU
+```
+
+- O servidor faz a **sinalização** (porta 3000) e **repassa a mídia** como SFU (porta 40000): recebe cada faixa uma vez e a encaminha a quem assiste, sem decodificar.
+- Em LAN, ZeroTier ou Radmin VPN, o cliente alcança o servidor direto, sem STUN ou TURN. Para uso pela internet sem VPN, o servidor repassa aos clientes os STUN/TURN definidos em `ICE_SERVERS`. Um serviço coturn opcional no compose fica para a etapa de release.
+- Salas de **até 16 pessoas**. Até a etapa 6 a topologia era mesh, com P2P entre todos e limite de 4.
+
+### Topologia: SFU (até 16 pessoas)
+
+Em mesh, cada participante envia N−1 cópias de cada faixa. Com 16 pessoas, quem transmite a tela em 1080p60 (~6 Mbps) precisaria de ~90 Mbps de upload. Com um **SFU** (*Selective Forwarding Unit*), cada pessoa envia **uma vez** para o servidor, que repassa para as outras sem decodificar.
+
+```mermaid
+flowchart LR
+  A[Jay-C A] -- "1× upload" --> S[(signaling + SFU<br/>mediasoup, Docker)]
+  B[Jay-C B] -- "1× upload" --> S
+  S -- "repasse" --> A
+  S -- "repasse" --> B
+  S -- "repasse" --> C[Jay-C C … P]
+```
+
+| Tema | Escolha | Motivo |
+|---|---|---|
+| SFU | **mediasoup** (Node.js + worker em C++) no **mesmo container** do servidor de sinalização | Reaproveita o servidor Node e o protocolo próprio. O self-hosting continua sendo um único `docker compose up -d`. |
+| Portas | **Uma porta UDP/TCP** para toda a mídia (`WebRtcServer` do mediasoup), além da 3000 da sinalização | É fácil de liberar no firewall, de mapear no Docker Desktop e de explicar no guia |
+| IP anunciado | O servidor anuncia o IP/host que o cliente usou para conectar (cabeçalho `Host` do WebSocket) | O usuário não precisa configurar o IP no compose. Isso precisa ser validado na etapa do SFU. |
+| Câmeras | **Simulcast** em 3 camadas | A grade de 16 recebe a camada baixa e quem está em destaque recebe a alta |
+| Mesh | Removido na etapa 7. Todas as salas passam pelo SFU. | Um só caminho de mídia para manter. Na LAN ou VPN, o salto extra pelo servidor é desprezível. |
+
+Custo para quem hospeda: o servidor recebe cada faixa uma vez e reenvia para cada espectador. Uma tela em 1080p60 para 15 pessoas pede ~90 Mbps de **upload da máquina que hospeda**. Na LAN isso é tranquilo. Pela internet, via ZeroTier ou Radmin, o limite passa a ser a conexão do host, e o guia vai deixar isso claro.
+
+## 2. Decisões técnicas
+
+| Tema | Escolha | Motivo |
+|---|---|---|
+| Framework UI | **Vanilla JS + Vite** | Zero runtime de framework, menor memória e bundle. A UI é pequena: chamada, configurações e modal. |
+| Shell | **Tauri v2** | Usa a WebView do sistema (WebView2, WKWebView, Android WebView) em vez de embutir o Chromium. |
+| Servidor | **Node.js + `ws`** (não Socket.io) | O cliente usa o `WebSocket` nativo da WebView, sem lib extra no bundle. O protocolo é JSON simples e a imagem Docker fica mínima (`node:alpine`). |
+| Negociação | Padrão **"perfect negotiation"** (W3C) | Resolve colisões de oferta (glare) e permite renegociar adicionando ou removendo faixas sem derrubar a chamada. |
+| Troca de qualidade | `track.applyConstraints()` + `RTCRtpSender.setParameters()` | Muda resolução, FPS e bitrate **sem renegociar SDP**. Para trocar a fonte (câmera ↔ tela) usa `sender.replaceTrack()`, também sem renegociar. |
+| Tema | CSS Custom Properties em `:root[data-theme]` | A troca é instantânea, só muda um atributo. Respeita `prefers-color-scheme` no primeiro uso. |
+| Markdown do guia | Renderer próprio (~80 linhas) | O conteúdo é nosso e controlado. Basta suportar títulos, negrito, `code`, imagens e parágrafos, sem dependência extra. Escapa HTML por padrão. |
+| Assets do guia | `frontend/public/assets/setup/`: 4 ilustrações SVG próprias e 1 captura PNG do próprio app | A pasta `public/` do Vite é servida na raiz pelo Tauri. `src-tauri/icons/` é só para ícones do app. As ilustrações são cartões escuros autocontidos (paleta do tema escuro), legíveis nos dois temas, sem logos nem cópias da interface de terceiros. Elas envelhecem menos que screenshots do Docker ou do Windows. A captura (Settings › Server, 2×) é refeita pelo CDP quando a tela mudar. |
+| Áudio das transmissões | **Captura nativa** (WASAPI process loopback) num plugin Tauri | O `getDisplayMedia` não exclui apps do áudio do sistema nem captura áudio de janela. Detalhes na seção 6. |
+| Microfone das chamadas (Windows) | **Captura nativa** (WASAPI) + AudioProcessing do WebRTC (eco, ruído, ganho) no plugin; `getUserMedia` nas outras plataformas | O microfone do WebView2 coloca o áudio de alguns notebooks em "modo chamada" e abafa os outros apps. Ver [spikes/09](spikes/09-som-abafado.md). |
+| Persistência | `localStorage` | Guarda endereço do servidor, tema, preset de qualidade e nome. |
+
+## 3. Estrutura do monorepo
+
+```
+JayC/
+├─ package.json                 # npm workspaces: frontend, signaling-server, plugin guest-js
+├─ docs/ARQUITETURA.md
+├─ signaling-server/
+│  ├─ src/server.js             # HTTP (/health) + WebSocketServer
+│  ├─ src/rooms.js              # salas, peers, roteamento de mensagens
+│  ├─ test/                     # node:test — join/leave/relay/limites
+│  ├─ Dockerfile                # node:22-alpine, usuário não-root, HEALTHCHECK
+│  ├─ docker-compose.yml        # porta 3000; coturn opcional (profile "turn")
+│  └─ .dockerignore
+├─ frontend/
+│  ├─ index.html
+│  ├─ vite.config.js
+│  ├─ public/assets/setup/step1_docker.svg … step4_address.svg, step5_connect.png
+│  ├─ src/
+│  │  ├─ main.js
+│  │  ├─ styles/theme.css       # tokens claro/escuro
+│  │  ├─ core/signaling.js      # WS client com reconexão + heartbeat
+│  │  ├─ core/peer.js           # RTCPeerConnection + perfect negotiation
+│  │  ├─ core/media.js          # getUserMedia / getDisplayMedia
+│  │  ├─ core/quality.js        # presets → constraints + sender params
+│  │  ├─ core/pip.js            # abstração de PiP por plataforma
+│  │  ├─ core/activity-pip.js   # PiP do Android (a activity inteira flutua)
+│  │  ├─ core/platform.js       # detecta desktop/android/ios via @tauri-apps/plugin-os
+│  │  ├─ ui/call-view.js, ui/settings-modal.js, ui/setup-guide-modal.js
+│  │  ├─ ui/markdown.js         # renderer mínimo
+│  │  ├─ content/setup-guide-connect.md, setup-guide-host.md # abas do guia, importadas com ?raw
+│  │  └─ store/settings.js
+│  └─ src-tauri/
+│     ├─ tauri.conf.json, Cargo.toml, capabilities/default.json
+│     ├─ src/lib.rs, src/main.rs
+│     └─ gen/android, gen/apple # gerados por `tauri android|ios init`
+├─ plugins/tauri-plugin-system-audio/   # captura de áudio por processo (Windows; macOS depois)
+│  ├─ src/lib.rs, src/commands.rs
+│  ├─ src/windows/{loopback.rs, sessions.rs, mixer.rs}
+│  └─ guest-js/index.js        # listAudioApps(), startCapture(), stopCapture()
+└─ plugins/tauri-plugin-pip/   # PiP da activity no Android; o app chama `invoke('plugin:pip|…')` direto
+   ├─ build.rs, src/lib.rs, permissions/default.toml
+   └─ android/src/main/java/.../PipPlugin.kt   # (ios/ na etapa 15)
+```
+
+## 4. Protocolo de sinalização (JSON via WebSocket)
+
+Cliente → servidor:
+
+| type | campos | |
+|---|---|---|
+| `join` | `room`, `name`, `avatar?`, `color?`, `password?` | entra na sala (cria se não existir). (0.5) Uma sala fixa com senha só com `password`; senão `error` `wrong-password` com `ref: "join"`. 10 tentativas por IP, depois uma a cada 5 s (`rate-limited`). O app reenvia a senha ao reconectar |
+| `profile` | `avatar` (data URL ou `null`), `color` (`{from, to?, angle?}` ou `null`) | troca a foto ou a cor de perfil durante a chamada; os outros recebem `peer-updated`. A cor só aceita `#rrggbb` e ângulo inteiro 0–360 |
+| `chat` | `text` (1–500 caracteres) e/ou `media: {id, poster?}` | mensagem para a sala; os outros recebem `chat`. Nada fica guardado no servidor. (0.5) Com `media`, um arquivo que esta conexão subiu (ver "Arquivos nos chats"), e o `text` vira a legenda |
+| `screen-preview` | `image` (JPEG em data URL, até 48 000 caracteres, ou `null` ao parar) | uma imagem da própria live, a cada 6 s; os outros recebem `screen-preview`, e quem entra depois recebe a última no `joined`. Até 1 a cada 2 s (rajada de 3). Só é enviado se o `joined` listar `screen-preview` em `features` |
+| `leave` | — | sai da sala |
+| `hello` | `name`, `avatar?`, `color?` | (0.5) a conexão passa a acompanhar a lista de salas do servidor, sem entrar em call. Resposta: `server-state`. O app abre uma conexão só para isso, separada da call |
+| `admin` | `key` | (0.5) a chave do servidor (`ADMIN_KEY`). Resposta: `{type: "admin", ok: true}` e um `server-state` com `admin: true` e também as salas invisíveis (`hidden: true`); ou `error` `not-admin` / `rate-limited` com `ref: "admin"` |
+| `channel-send` | `channel`, `text` (1–500 caracteres) e/ou `media: {id, poster?}`, `replyTo?` | (0.5) mensagem num canal de texto; só depois do `hello`. Todos na sessão do servidor (inclusive quem mandou) recebem `channel-message`. Mesmo limite do chat da call. Erros com `ref: "channel-send"`: `not-in-server`, `unknown-channel`, `bad-message`, `rate-limited` |
+| `channel-history` | `id`, `data`: `{channel, before?}` | (0.5) até 50 mensagens mais antigas que o id `before` (as mais novas, sem ele), da mais antiga para a mais nova. Resposta: `{messages}` |
+| `avatars` | `id`, `data`: `{ids}` (até 100) | (0.5.1, T14.A) as fotos de perfil das mensagens dos canais, pelo id. Resposta: `{avatars: {id: dataURL}}`, só com os ids que o servidor tem; erros `not-in-server`, `bad-request` |
+| `channel-create` / `channel-edit` / `channel-delete` | `id`, `data`: `{name, newName?}` | (0.5, só admin) como as das salas; erros `channel-exists`, `unknown-channel` |
+| `room-create` / `room-edit` / `room-delete` | `id`, `data`: `{name, newName?, password?, hidden?}` (`password: null` tira a senha) | (0.5, só admin) muda as salas fixas e grava o `rooms.json`; todos recebem um `server-state` novo. Resposta como as do SFU; erros `not-admin`, `bad-request` (inclui invisível sem senha), `room-exists`, `room-in-use` (renomear uma sala com gente), `unknown-room`, `not-saved` |
+| *requisição SFU* | `id`, `data` | resposta: `{type: "response", id, ok, data}` ou `{…, ok: false, error}` |
+
+Requisições SFU, com os nomes da API do mediasoup:
+
+| type | `data` | resposta |
+|---|---|---|
+| `createTransport` | `direction: "send" \| "recv"` | `id`, `iceParameters`, `iceCandidates` (com o endereço que este cliente usou), `dtlsParameters` |
+| `closeTransport` | `transportId` (só os seus) | — (fecha os producers dele; quem consumia recebe `producer-closed`). A live nativa usa um transporte próprio e o fecha ao parar |
+| `closeConsumer` | `consumerId` (só os seus) | — (o cliente abre um novo quando um áudio recebido ficou muito atrasado; ver `core/catch-up.js`) |
+| `connectTransport` | `transportId`, `dtlsParameters` | — |
+| `restartIce` | `transportId` | `iceParameters` |
+| `produce` | `transportId`, `kind`, `rtpParameters`, `source` (`mic` \| `camera` \| `screen` \| `screen-audio`), `paused?` | `id` |
+| `closeProducer` / `pauseProducer` / `resumeProducer` | `producerId` | — |
+| `consume` | `producerId`, `rtpCapabilities` | `id`, `peerId`, `kind`, `source`, `rtpParameters`, `producerPaused` (o consumer nasce pausado) |
+| `resumeConsumer` / `pauseConsumer` | `consumerId` | — (pausar = parar de receber, ex.: deixou de assistir a uma live) |
+| `setPreferredLayers` | `consumerId`, `spatialLayer`, `temporalLayer?` | — (só tem efeito com simulcast) |
+
+Servidor → cliente:
+
+| type | campos | |
+|---|---|---|
+| `joined` | `id`, `room`, `peers: [{id, name, avatar?, color?, preview?, producers: [{id, kind, source, paused}]}]`, `iceServers`, `routerRtpCapabilities`, `features`, `media?` | quem já está na sala, o que cada um publica e as capacidades do router. `features`: as mensagens e pedidos novos que o servidor aceita (hoje, `screen-preview`, `close-consumer`, `server-session` e, com arquivos ligados, `media`); um servidor antigo não manda o campo. `media`: `{token, maxImageBytes, maxVideoBytes}`, o token desta conexão para os arquivos |
+| `peer-joined` / `peer-left` | `id`, `name`, `avatar?`, `color?` (só no `peer-joined`) | |
+| `peer-updated` | `id`, `avatar`, `color` | alguém trocou ou tirou (`null`) a foto ou a cor de perfil |
+| `chat` | `id`, `name`, `text`, `media?`, `caption?` | mensagem de alguém da sala (quebras de linha mantidas; caracteres de controle removidos). Com um arquivo: `media: {id, kind, mime, size, width?, height?, poster?}`, preenchido pelo servidor, e `caption` (a legenda, talvez vazia); o `text` é a legenda ou `[Image]`, `[GIF]`, `[Video]`, para apps sem arquivos |
+| `screen-preview` | `id`, `image` | uma imagem da live de alguém (`null` = parou). O card "Assistir live" do card da pessoa mostra a imagem |
+| `new-producer` | `peerId`, `producerId`, `kind`, `source`, `paused` | alguém começou a publicar uma faixa |
+| `producer-state` | `peerId`, `producerId`, `paused` | só para quem consome: mutou ou desligou a câmera, ou voltou |
+| `viewer-bandwidth` | `producerId`, `kbps` (`null` = ninguém assiste), `loss?` | a cada 2 s, para quem transmite a tela: a menor banda entre quem assiste, como o mediasoup estima para cada um. A live nativa (uma camada só) fica abaixo dela. `loss` (depois da 0.5.1): a pior fração de pacotes perdidos entre quem assiste (0–1, dos relatórios de recepção); acima de 10% a live corta o envio, como faz com a perda do próprio link (`loss_limit`). Sem isso, um link cheio de retransmissões deixava quem assiste sem imagem por minutos |
+| `producer-closed` | `peerId`, `producerId` | só para quem consome |
+| `server-state` | `rooms: [{name, locked, peers: [{id, name, avatar?, color?, micOn, live}]}]`, `channels: [{name, lastId}]`, `features`, `name?`, `media?` | (0.5) resposta ao `hello`: as salas fixas visíveis e quem está em cada uma; `name` é o `SERVER_NAME`, se houver; `media` como no `joined` |
+| `online` | `names` | (0.5.1, T14.B) quem está com o servidor aberto (fez `hello`), cada nome uma vez; também vem em `server-state` (`online`). Sai só quando a lista muda. O app usa para a lista do @ |
+| `room-update` | `room` (como em `server-state`) | (0.5) alguém entrou, saiu ou trocou a foto ou a cor numa sala fixa visível |
+| `channel-message` | `channel`, `message: {id, at, name, color?, avatar?, reply?, text, media?, caption?}` | (0.5) uma mensagem nova num canal de texto (`id` crescente por canal; `at` em ms). (0.5.1) `avatar`: o id da foto de quem mandou (um hash; a foto vem pelo pedido `avatars`), que fica com a mensagem mesmo se a pessoa trocar de foto |
+| `room-peer` | `room`, `id`, `micOn`, `live` | (0.5) alguém mutou, desmutou, abriu ou fechou uma live (mensagem pequena, sem as fotos) |
+| `error` | `code` (`room-full`, `bad-message`, `rate-limited`, `internal`; 0.5: `wrong-password`, `not-admin`), `ref` opcional | |
+
+Erros das requisições: `not-in-room`, `bad-request`, `unknown-transport`, `unknown-producer`, `unknown-consumer`, `duplicate-source`, `cannot-consume`, `internal`.
+
+O estado "mic/câmera ligados" de cada pessoa **é o estado de pausa dos producers dela**. Não existe uma mensagem separada para isso.
+
+Configuração por variáveis de ambiente:
+
+| Variável | Padrão | Para quê |
+|---|---|---|
+| `PORT` | 3000 | porta da sinalização |
+| `HOST` | 0.0.0.0 | interface da sinalização |
+| `MAX_PEERS_PER_ROOM` | 16 | tamanho máximo da sala |
+| `MAX_MESSAGE_BYTES` | 65536 | tamanho máximo de mensagem |
+| `HEARTBEAT_MS` | 30000 | intervalo do ping/pong |
+| `ALLOWED_ORIGINS` | vazio = qualquer | origens aceitas |
+| `ICE_SERVERS` | — | STUN/TURN, em JSON |
+| `RTC_PORT` | 40000 | porta única de mídia, UDP e TCP |
+| `RTC_LISTEN_IP` | 0.0.0.0 | interface da mídia |
+| `ANNOUNCED_ADDRESS` | vazio = o host que cada cliente usou | endereço anunciado nos candidatos ICE |
+| `MEDIASOUP_LOG_LEVEL` | warn | nível de log do mediasoup |
+| `DATA_DIR` | `./data` | (0.5) pasta com o `rooms.json` (as salas fixas), o `channels.json` (os canais de texto) e `history/<canal>.json` (as últimas 500 mensagens de cada um, gravadas ~0,3 s depois de chegar). (0.5.1) `avatars/<id>.txt`: cada foto de perfil usada por uma mensagem guardada, uma vez só, apagada quando nenhuma mensagem a usa. No Docker, `/data`, montada de `./data` ao lado do compose (no Linux, gravável pelo uid 1000) |
+| `SERVER_NAME` | vazio = o endereço | (0.5) o nome do servidor na coluna de servidores e na lista de canais do app (até 32 caracteres) |
+| `MEDIA` | ligado | (0.5) `off` desliga os arquivos nos chats: sem `media` em `features`, e as rotas `/media` respondem 404 |
+| `MAX_IMAGE_MB` / `MAX_VIDEO_MB` | 8 / 50 | (0.5) tamanho máximo de uma imagem (e GIF) e de um vídeo |
+| `MEDIA_DISK_MB` | 2048 | (0.5) todos os arquivos juntos, em `DATA_DIR/media`; passado isso, um envio novo recebe 507 até mensagens antigas saírem |
+| `ADMIN_KEY` | vazio = ninguém gerencia | (0.5) quem manda essa chave (`admin`) cria, edita e apaga as salas fixas pelo app. Comparada em tempo constante, nunca vai para log; 5 tentativas por IP, depois uma a cada 10 s |
+
+**Salas fixas (0.5).** `DATA_DIR/rooms.json`: `{ "rooms": [{ "name": "geral" }, { "name": "privada", "hidden": true }] }`. Só elas aparecem na lista, na ordem do arquivo; `hidden` as tira da lista (entra-se pelo nome). Uma sala aberta por um nome que não está ali (DC, ou um app 0.4) é temporária e nunca aparece. Um arquivo ilegível é ignorado (o servidor sobe sem salas fixas e avisa no log).
+
+Proteções:
+- Mensagem de no máximo 64 KB, no máximo 16 pessoas por sala e limite de mensagens por segundo (rajada de 300, 100/s).
+- Ping/pong a cada 30 s para derrubar conexões mortas.
+- IDs de peer gerados pelo servidor, com `crypto.randomUUID()`.
+- Foto de perfil (`avatar`): só `data:image/(webp|jpeg|png);base64,…` com até 32 000 caracteres. SVG fica de fora, porque pode carregar script, e URLs remotas também, porque rastreariam quem vê. Uma foto inválida recusa o `join` ou o `profile` com `bad-message`. O campo só vai nas mensagens quando existe.
+- Endpoint `GET /health` para o `HEALTHCHECK` do Docker.
+
+**Respostas (depois da 0.5.1, T15.F).** `channel-send` aceita `replyTo`: o id de uma mensagem do mesmo canal. O servidor põe na mensagem nova `reply: {id, name, text}`, com o nome e os primeiros 120 caracteres tirados do **próprio histórico** (quem responde não manda a citação, então não dá para forjar uma). Se a mensagem citada já saiu das 500, a resposta segue como mensagem comum; um `replyTo` que não é inteiro dá `bad-message`. O servidor anuncia a feature `replies`, e o app só mostra o botão Responder com ela. O chat da call ainda não tem respostas (as mensagens de lá não têm id).
+
+**Arquivos nos chats (0.5, T13).** Imagens (PNG, JPEG, WebP), GIFs (GIF e WebP animado) e vídeos (MP4, WebM) vão por HTTP, na mesma porta da sinalização, não pelo WebSocket. Código em `signaling-server/src/media.js`; testes de ataque em `signaling-server/test/media.test.js` e `frontend/test/attachments.test.js`.
+- `POST /media`, com `Authorization: Bearer <token>` (o `media.token` do `joined` ou do `server-state`, um por conexão, que morre com ela) e o arquivo no corpo. Resposta 201 `{id, kind, mime, size, width?, height?}`. Recusas, com `{error}`: 401 `no-token`, 403 `not-in-chat` (sem call e sem `hello`), 413 `too-large`, 415 `bad-type` ou `too-big-image`, 429 `rate-limited`/`busy`/`too-many-pending`, 507 `disk-full`.
+- `GET /media/<id>`, com o mesmo cabeçalho: o arquivo, com `Content-Type` do tipo conferido, `X-Content-Type-Options: nosniff`, `Content-Security-Policy: default-src 'none'; sandbox` e `Content-Disposition: inline`. Só vê quem está na call do arquivo (os do chat da call) ou na sessão do servidor (os dos canais); qualquer outro caso, inclusive um id que não existe, é 404. `OPTIONS` responde o CORS (`Access-Control-Allow-Origin: *`: não há cookies, o token decide).
+- `POST /media/<id>/copy`, com o mesmo cabeçalho (T13.D, os GIFs recentes do app): uma cópia de um GIF que esta conexão pode ver agora, como um envio novo dela (201, a mesma resposta do `POST /media`), que a próxima mensagem usa como qualquer outro. Cada mensagem tem o próprio arquivo, então apagar uma nunca leva o de outra. Um id que não existe, que a conexão não vê ou que não é GIF dá 404; vale o mesmo ritmo dos envios.
+- O tipo vem dos primeiros bytes, nunca do que o app diz; o tamanho da imagem, do cabeçalho dela (mais de 8192 px num lado ou de 40 MP é recusado, contra bombas de descompressão). Os limites cortam o envio enquanto ele chega.
+- O id (16 bytes aleatórios, base64url) só vale numa mensagem da conexão que o subiu, uma vez, em até 10 minutos; o servidor preenche o resto (`kind`, `mime`, tamanhos, `poster`) do próprio registro. O `poster` de um vídeo é uma imagem da mesma conexão.
+- Apagados: com a mensagem que saiu das 500 do canal, com o canal apagado, quando a call esvazia, e o que subiu sem virar mensagem. Num reinício, ficam só os arquivos das mensagens dos canais.
+- Limites: 6 envios seguidos por conexão (depois um a cada 5 s), 20 por IP, 2 ao mesmo tempo por IP e 16 no total, e uploads sem mensagem até 2 vídeos por IP. Downloads: 4 ao mesmo tempo por conexão, 120 seguidos e depois 2/s. Um envio parado por 30 s é cortado.
+- No app (`core/attachments.js`, `core/attachment-net.js`): o arquivo sai sem de onde foi feito (JPEG sem EXIF/XMP/IPTC, com a orientação mantida; PNG e WebP sem texto e EXIF; MP4 com a localização zerada; WebM não é limpo), e o que chega é conferido contra a mensagem (tipo e tamanho) antes de virar um `blob:`. A CSP do app só ganhou `http: https:` em `connect-src`; imagens e vídeos continuam só de `blob:`.
+
+## 5. Fluxos principais
+
+**Iniciar chamada (SFU).**
+1. O app conecta em `ws://<ip>:3000`, envia `join` e recebe `routerRtpCapabilities`, que carrega o `Device` do mediasoup-client.
+2. Cria **dois transportes**: `send` (upload) e `recv` (download). Cada um é um único `RTCPeerConnection` com o servidor, na porta de mídia.
+3. Publica `mic` e `camera` (*producers*) e consome (*consumers*) cada producer da lista do `joined`. Depois, também cada `new-producer` que chegar.
+
+Os consumers nascem pausados e o cliente os retoma quando está pronto, para não perder o primeiro keyframe.
+
+**Câmera com simulcast.** São 3 camadas (÷4, ÷2 e cheia), com 150, 500 e 1500 kbps. O cliente pede ao SFU a camada que cabe no tamanho da tile: até 2 câmeras na tela recebem a camada alta, até 6 a média, e acima disso a baixa. O Chrome só gera as camadas que a resolução de entrada permite; com câmeras de 720p, saem as 3.
+
+**Estado da mídia.** Mutar ou desligar a câmera é `producer.pause()` no cliente mais `pauseProducer` no servidor. Quem consome recebe `producer-state` na hora e mostra o avatar ou o ícone de mudo. Desligar a câmera também faz `replaceTrack(null)` e para a faixa, para apagar a luz da câmera.
+
+**Queda do servidor.** Como a mídia passa pelo SFU, **a chamada para enquanto o servidor está fora**, e um aviso aparece na tela. O cliente reconecta com backoff (1, 2, 4, 8 e 10 s), recebe um novo id e refaz transportes, producers e consumers a partir do novo `joined`. No teste, com o servidor reiniciado, a volta levou ~1 s.
+
+## 6. Transmissões ("lives")
+
+Ao iniciar uma transmissão, a pessoa escolhe um de dois modos:
+
+| Modo | Vídeo | Áudio transmitido |
+|---|---|---|
+| **Tela inteira** | um monitor, via `getDisplayMedia` | todo o áudio do sistema, **menos** o próprio Jay-C (as vozes da chamada) e os apps da lista de exclusão em Settings › Streaming (ex.: Discord) |
+| **Janela** | a janela de um aplicativo, via `getDisplayMedia` | **só** o áudio do processo dono daquela janela, incluindo os processos filhos dele |
+
+### Por que o áudio é nativo
+
+O áudio do `getDisplayMedia` não serve para esses dois modos:
+- **Tela inteira:** no Windows ele captura a mistura inteira do sistema. Isso inclui as vozes da chamada, o que gera eco, e o Discord. Não há como filtrar por aplicativo.
+- **Janela:** o Chromium não captura áudio de janela, só de aba do navegador.
+
+Por isso o vídeo continua vindo do `getDisplayMedia` e o **áudio é capturado em Rust**.
+
+### Pipeline de áudio (Windows)
+
+```
+WASAPI process loopback        mixer Rust                 tauri::ipc::Channel      AudioWorklet
+(1 stream por processo)  ──►  48 kHz estéreo f32,  ──►  (bytes, ~100 msg/s)  ──►  (ring buffer) ──► MediaStreamAudioDestinationNode
+                              blocos de 10 ms                                                            │
+                                                                                                         ▼
+                                                                                   faixa "screen-audio" → transceiver próprio
+```
+
+- **API do Windows:** `ActivateAudioInterfaceAsync` com `AUDIOCLIENT_PROCESS_LOOPBACK_PARAMS`, disponível a partir do Windows 10 2004 (build 19041). Cada stream **inclui ou exclui uma única árvore de processos**.
+- **Tela inteira:**
+  - Se a lista de exclusão estiver vazia, basta um stream EXCLUDE da árvore do **processo navegador do WebView2**, o `msedgewebview2.exe` filho direto do Jay-C, que é quem toca todo o som do app. A árvore do próprio `jay-c.exe` não serve: para o loopback do Windows, ela não inclui o WebView2. Ver [spikes/06](spikes/06-transmissoes.md).
+  - Com exclusões: o app lista as sessões de áudio ativas (`IAudioSessionManager2`) e abre um stream INCLUDE por processo que não seja o Jay-C nem esteja na lista. A comparação é pelo nome do executável, também nos processos ancestrais. Uma raiz que já está dentro da árvore de outra é pulada, para o som não entrar duas vezes. Como o INCLUDE pega a **árvore inteira**, nenhuma raiz pode ter na árvore o Jay-C ou um app excluído: todos os ancestrais deles ficam proibidos. Assim, o `explorer.exe` com sessão de áudio nunca é capturado, porque a árvore dele contém quase tudo, inclusive as vozes da chamada. Quando o pai de um app excluído toca som, esse pai também fica de fora, e a privacidade vence. Isso foi achado no app real: com os players filhos do mesmo terminal, o app excluído vazava pela árvore do terminal. O teste `exclusion_live_nested` cobre esse caso. Os streams são misturados por uma thread com relógio próprio de 20 ms. Ela não depende de nenhum stream, porque um processo em silêncio pode não entregar pacotes e um app pode fechar. Cada stream só entra na mistura depois de ter 40 ms na fila, para o jitter dos pacotes não cortar o som. Um stream que falha ao abrir é pulado. Medido com tons em dois executáveis: o app excluído cai de −16,7 para −90 dB e o outro continua a −16,7 dB (teste `exclusion_live`, `cargo test --lib -- --ignored`).
+  - Durante a transmissão, as sessões são reavaliadas a cada 2 s. Um app novo ganha stream, e o stream de um app que fechou (ou perdeu a sessão) sai da mistura. Foi usada uma varredura em vez de `IAudioSessionNotification`: é mais simples e também percebe quando um app fecha. Um app que entra pode perder até ~2 s do começo. Erros de um app só vão para o log, porque um app que fecha não pode derrubar o som da transmissão. Medido (`exclusion_live`): com as capturas iniciadas antes dos players, os dois tons entram na mistura (−16,5 dB). Quando um player fecha, o número de streams volta ao de antes e o mixer segue a 48 kHz.
+  - **CPU** (`cpu_many_streams`, release, Ryzen 5 5600G com 12 threads, em 10 s): o stream único gasta 1–3% de um núcleo. O modo por app gasta ~5% com 5 streams e 7–15% com 15, ou seja, ~1% de um núcleo por stream e no máximo ~1,2% da CPU inteira. Duas medições do stream único deram 46 242 e 47 530 quadros/s, em vez de 48 000, logo depois de iniciar 10 PowerShells. Nas três rodadas seguintes (0, 1 e 10 players), deu 47 963–48 009. Não foi reproduzido, e a causa (carga no início da medição?) não foi confirmada.
+- **Janela:** obtém o processo dono da janela com HWND → `GetWindowThreadProcessId` e abre um stream INCLUDE dessa árvore.
+- **Plugin:** `plugins/tauri-plugin-system-audio`, em Rust com o crate `windows`. Comandos:
+  - `list_audio_apps()`: apps tocando som agora, para a tela de Settings
+  - `start_capture({ include[] | excludeSelf, excludeExes[] }, channel)`
+  - `stop_capture()`
+
+  Em outras plataformas o plugin responde `unsupported` e a transmissão sai sem áudio. No macOS, o ScreenCaptureKit (`SCContentFilter` com `excludingApplications`) cobre os dois modos e fica para uma fase posterior.
+- **Descobrir qual janela foi escolhida:**
+  - O rótulo da faixa de vídeo do `getDisplayMedia` no Chromium identifica a fonte, como `window:<HWND>:0`. Isso ainda **precisa ser validado no WebView2** (spike).
+  - Plano B: um seletor de janelas próprio em Rust, com `EnumWindows` e miniaturas.
+
+### Mídia e sinalização
+
+- Cada participante publica até **4 faixas**: microfone, câmera, vídeo da tela e áudio da tela. No SFU, cada uma é um *producer* do mediasoup. Iniciar ou parar uma transmissão é só `replaceTrack()`, sem renegociar, e dá para transmitir a tela com a câmera ligada.
+- O estado da transmissão vem dos próprios producers. Um producer `screen`, e `screen-audio` se houver áudio, existe enquanto a pessoa transmite. O modo (tela ou janela) vai no `appData` do producer e chega aos outros no `new-producer`. Quem recebe mostra a tela em destaque, com as câmeras em miniatura.
+- O áudio da tela usa Opus **estéreo** a ~128 kbps. O Chrome envia mono por padrão, então é preciso acrescentar `stereo=1; sprop-stereo=1` ao fmtp do Opus no SDP.
+- `track.contentHint`: `detail` para texto e código, `motion` para jogos e vídeo.
+
+### Qualidade durante a transmissão
+
+Tudo fica no painel "Share" da chamada, que é um `popover`. As escolhas são salvas para a próxima vez.
+
+1. `track.applyConstraints({ frameRate: {max}, height: {max} })` reduz a captura na origem, que é o caminho mais barato. O Chromium faz isso com `resizeMode: crop-and-scale`.
+2. `producer.setRtpEncodingParameters({ maxBitrate, maxFramerate, scaleResolutionDownBy })` ajusta o encoder. Se a captura continuar maior que o pedido, porque o `applyConstraints` foi ignorado, quem reduz é o encoder (`scaleResolutionDownBy`).
+3. Não há renegociação nem queda: o SSRC é o mesmo antes e depois, verificado com `getStats()`.
+
+| Opção | Valores |
+|---|---|
+| Resolução | 360p, 480p, 720p, 1080p (padrão), 1440p ou Source |
+| FPS | 5, 15, 24, 30 (padrão) ou 60 |
+| Otimizar para | *Text* (`contentHint: detail`, padrão), *Balanced* (sem `contentHint`; depois da 0.5.1) ou *Motion* (`motion`), com uma linha embaixo dizendo o que a opção escolhida perde. Na live nativa, é a ordem dos degraus da escada (`ladder.rs`): Texto derruba os quadros primeiro, Movimento a resolução, Balanceado um pouco de cada, nunca abaixo de 15 qps |
+
+Bitrate automático: ~0,08 bit/pixel/quadro, e os quadros acima de 30 fps contam pela metade. Dá ≈5 Mbps em 1080p30 e ≈7,5 Mbps em 1080p60, entre 0,2 e 12 Mbps.
+
+A tela vai numa única camada, sem simulcast, em **H.264 High** (`profile-level-id` 640032, adicionado ao router). Com esse perfil, o WebView2 usa o encoder da placa de vídeo (Media Foundation: `NVIDIA H.264 Encoder MFT` medido numa RTX 3050). O H.264 constrained baseline (42e01f) fica no OpenH264 em software, mesmo em 720p, e o VP8 fica no libvpx. Servidor antigo, sem o perfil High: VP8. Durante a live de **tela inteira pelo seletor do sistema** (o caminho sem a live nativa), a janela do Jay-C sai da captura (`setContentProtected` = `WDA_EXCLUDEFROMCAPTURE`), para não filmar a própria prévia (efeito espelho). A live nativa não tem vídeo local, então o Jay-C aparece nela, e a própria janela do Jay-C pode ser transmitida (sem o som, que seria o da chamada).
+
+**Na live nativa (Windows),** o "Otimizar para" também escolhe os degraus de qualidade quando falta banda: *Texto* mantém a resolução e baixa os quadros/s primeiro; *Movimento* faz o contrário. O codificador só manda quadro-chave quando pedido, e a live mede a própria fila de envio para não deixar o atraso crescer (`docs/spikes/10-live-nativa.md`, "Engasgos, texto ilegível e a escada"). A imagem espera o som: quem transmite a segura pelo atraso do caminho do som até o WebRTC, e quem assiste pelo próprio buffer de som ("O som da live atrás da imagem").
+
+**Para quem assiste:** o layout vira *presenting*, com as telas em destaque e as câmeras numa faixa de 160 px (pedindo a camada mais baixa). Clique duplo na tela abre em tela cheia. Quem transmite vê uma prévia pequena no canto.
+
+### Settings › Streaming
+
+- **Lista de exclusão** de apps por nome de executável (`excludedApps`), guardada nas configurações. Sugestões em chips: os apps com sessão de áudio agora (`list_audio_apps`, atualizado ao abrir o Settings) mais Discord, Teams (`ms-teams.exe`) e Zoom. Também dá para digitar o nome, com ".exe" opcional e sem diferenciar maiúsculas.
+- A seção só aparece onde a captura nativa existe (Windows).
+- **Aplicada ao vivo:** mudar a lista durante uma transmissão de tela inteira reinicia a captura e troca a faixa com `replaceTrack`, sem renegociar. As reinicializações rodam uma por vez, porque cada uma substitui a captura Rust da anterior.
+- O Jay-C nunca é transmitido e não aparece na lista.
+
+## 7. Picture-in-Picture
+
+`core/pip.js` dá a API (`createPip`, `pickPipTrack`, `pipSupported`) e escolhe a implementação:
+
+| Plataforma | Implementação |
+|---|---|
+| Windows (WebView2/Chromium) ✅ | **Janela própria** (0.3.7): o `window.open('')` da página vira uma janela do Jay-C sempre no topo e sem barra de título (`src-tauri/src/pip_window.rs`, `on_new_window` da janela principal), que a página preenche com o vídeo e os seus botões. O PiP de `<video>` do WebView2 (`requestPictureInPicture`, botões da Media Session) ficou como reserva: ele mostrava a origem "tauri.localhost". O **Document PiP não funciona**: a API existe no WebView2, mas `requestWindow` falha com "Internal error: no window" (3 de 3 tentativas). |
+| macOS (WKWebView) | `video.requestPictureInPicture()` (Safari 13.1+) |
+| Linux (WebKitGTK) / fallback geral | **Mini-janela Tauri**: `WebviewWindow` pequena com `alwaysOnTop: true`, sem decoração, exibindo o stream remoto |
+| Android ✅ | Plugin Kotlin `tauri-plugin-pip`: a **activity inteira** flutua, porque a Android WebView não tem PiP de `<video>`. `setAutoEnterEnabled(true)` (API 31+) ou o user-leave hint (API 26–30) entram em PiP ao sair do app durante a chamada; o botão "Pop out video" chama `enter`. Manifest: `android:supportsPictureInPicture="true"` e `resizeableActivity`. |
+| iOS | Plugin Swift: `AVPictureInPictureController` com `AVPictureInPictureVideoCallViewController` (iOS 15+), `canStartPictureInPictureAutomaticallyFromInline = true` e background modes `audio` + `voip`. Alternativa mais simples a avaliar: `video.webkitSetPresentationMode('picture-in-picture')` do próprio WKWebView. |
+
+**Desktop:**
+- **Abertura e vídeo mostrado:** o botão "Pop out video" fica nos controles da chamada. O PiP mostra a tela compartilhada de alguém; se não houver, mostra a primeira câmera ligada.
+- **Troca do vídeo:** como o mesmo `<video>` continua no PiP, a faixa troca sem novo clique quando alguém começa ou para de transmitir, desliga a câmera ou sai. O PiP fecha quando não sobra vídeo e quando a chamada acaba.
+- **Som:** sai dos tiles da chamada; o vídeo do PiP fica mudo.
+- **Sem entrada automática:** o PiP não abre sozinho ao minimizar, porque o pedido precisa de um clique do usuário.
+- **Faixas remotas:** chegam `muted` e só desmutam com os primeiros quadros, sem evento de participante. Por isso o botão também escuta `mute`/`unmute`/`ended` das faixas.
+
+**Android** (`core/activity-pip.js` + `plugins/tauri-plugin-pip`):
+- **Entrada:** durante a chamada, a página liga a entrada automática com a proporção do vídeo em destaque (o Android limita entre 1:2,39 e 2,39:1). Sair do app (Home, recentes) ou o botão encolhem a activity.
+- **Layout compacto:** o plugin manda o evento `pipModeChanged`. A página marca `html[data-activity-pip]` e o CSS mostra só um `<video>` em tela cheia com a faixa em destaque, que troca como no desktop.
+- **WebView pausada:** o Android pausa a activity em PiP, e o `WryActivity.onPause` pausa a WebView junto. A mini-janela congelava no último quadro (o topo da interface), e a página ficava `hidden`. Por isso o plugin chama `webView.onResume()` enquanto está em PiP. O `onPause` dos plugins roda depois do da WryActivity. Se o PiP fechar sem voltar ao app, o plugin pausa a WebView de novo.
+- **Medido no emulador (Android 16, API 36):**
+  - Pelo Home, o evento chega à página ~4,5 s depois. É o tempo da animação do sistema (`sendOnPipTransitionFinished` nos logs); o app soma ~0,2 s. A primeira entrada depois de instalar levou 17 s e não se repetiu.
+  - Pelo botão, o PiP abre em 4,5 s.
+  - Em PiP, a página fica visível a 228×128 e o vídeo roda a 10–16 fps.
+  - Ao expandir, o layout volta em ~2 s e a chamada continua.
+  - Não testado num celular real nem no Android 8–11.
+
+## 8. Riscos conhecidos (importante)
+
+1. **Compartilhar tela no mobile não funciona via `getDisplayMedia`.** Android WebView e iOS WKWebView não implementam essa API.
+   - Android exige captura nativa com `MediaProjection` + foreground service, e o vídeo precisa voltar para o WebRTC. Isso é complexo.
+   - iOS exige uma *Broadcast Upload Extension* (ReplayKit).
+   - Proposta: **no mobile, o v1 só recebe tela e faz chamada de câmera e áudio**. Compartilhar tela pelo celular fica para uma fase posterior.
+2. **iOS só compila num Mac com Xcode.** Neste PC Windows dá para escrever o código Swift, mas não para compilar nem testar.
+3. **Linux/WebKitGTK** tem suporte parcial a `getDisplayMedia` e WebRTC, dependendo da versão. O alvo principal é Windows, com macOS em seguida.
+4. **Permissões no Android**: câmera e microfone precisam estar declarados no manifest e ser concedidos em runtime. A WebView também precisa aceitar o `onPermissionRequest`. Validado na etapa 13: o wry já pede CAMERA e RECORD_AUDIO no `onPermissionRequest`, então basta declarar no manifest.
+5. **Guia de setup**:
+   - Para `docker compose up -d` "baixar o servidor automaticamente", a imagem precisa estar **publicada num registry** (GHCR ou Docker Hub). Isso exige um repositório GitHub público.
+   - O comando atual é `docker compose` (com espaço). `docker-compose` é o v1, descontinuado. Vou ajustar o texto do guia.
+6. **Firewall do Windows** no host precisa liberar a porta 3000. Vale citar no guia.
+7. ~~**Transmissões: pontos a validar no spike (etapa 6)**~~ ✅ Validados, ver [spikes/06-transmissoes.md](spikes/06-transmissoes.md). O `getDisplayMedia` funciona no WebView2 e o rótulo `window:<HWND>:0` identifica a janela, então o Plano B não é necessário. A process loopback funciona nos modos INCLUDE e EXCLUDE, com vários streams simultâneos.
+8. **Process loopback** só existe a partir do Windows 10 2004. Em versões anteriores, a transmissão sai sem áudio, com aviso.
+9. **Apps cujo áudio sai de outro processo** fora da árvore da janela, como alguns jogos e launchers. Nesses casos o modo janela captura silêncio, e o modo tela inteira continua funcionando.
+10. **Sincronia áudio/vídeo da tela:** o áudio nativo e o vídeo seguem caminhos diferentes até o WebRTC. A diferença precisa ser medida; ~50–100 ms é aceitável para transmissão.
+11. **SFU com 16 pessoas:**
+    - A banda de upload de quem hospeda vira o limite (ver a seção 1).
+    - A imagem Docker cresce por causa do worker do mediasoup.
+    - ✅ Validado na etapa 7: o mapeamento UDP no Docker Desktop do Windows e o IP anunciado a partir do `Host`, tanto em `localhost` quanto no IP da LAN.
+    - Ainda falta testar o IP de VPN (ZeroTier/Radmin).
+    - A imagem passou a ter 379 MB, por causa da base Debian, necessária para o worker pré-compilado do mediasoup.
+
+## 9. Ferramentas necessárias
+
+| Ferramenta | Para quê | Status nesta máquina |
+|---|---|---|
+| Node.js + npm | frontend, servidor, Tauri CLI | ✅ v24.21 / 11.19 |
+| Git | versionamento | ✅ |
+| WebView2 | runtime do Tauri no Windows | ✅ 156 |
+| WSL2 | backend do Docker Desktop | ✅ (Ubuntu) |
+| MS C++ Build Tools (VS 2022, "Desktop development with C++") | linker do Rust no Windows e SDK do Windows (WASAPI) | ✅ |
+| Rust (rustup, toolchain MSVC) | compilar Tauri e plugins | ✅ 1.99 |
+| Docker Desktop | testar a imagem do servidor | ✅ 29.9 |
+| Android Studio (JDK) + SDK 36/37, NDK 30, emulador | build Android | ✅ |
+| Alvos Rust Android (`aarch64-linux-android` etc.) | build Android | ✅ |
+| Python 3.13 + Meson + Ninja (`pip install --user meson ninja`) | compilar o processamento de áudio do WebRTC no Windows | ✅ |
+| Xcode | build iOS | ⛔ impossível no Windows |
+
+O Tauri CLI entra como `devDependency` (`@tauri-apps/cli`), sem instalação global.
+
+## 10. Etapas de implementação
+
+Cada etapa termina com algo testável.
+
+| # | Etapa | Pronto quando |
+|---|---|---|
+| 0 ✅ | Instalar ferramentas | `rustc`, `cargo`, `docker` e `java` respondem. `npx tauri info` sem erros. |
+| 1 ✅ | Scaffold do monorepo + `git init` | `npm install` na raiz funciona |
+| 2 ✅ | Servidor de sinalização + testes | `npm test` passa e dois clientes trocam mensagens |
+| 3 ✅ | Docker do servidor | `docker compose up -d` sobe e `/health` responde 200 |
+| 4 ✅ | Frontend base: Vite + Tauri desktop, tema, settings | `npm run tauri dev` abre a janela e o tema alterna na hora |
+| 5 ✅ | Chamadas (câmera/mic), 1:1 e até 4 pessoas | duas instâncias do app se veem e se ouvem via servidor local |
+| 6 ✅ | **Spike das transmissões** (Windows), ver [spikes/06-transmissoes.md](spikes/06-transmissoes.md) | No Tauri: o `getDisplayMedia` abre o seletor e dá para descobrir a janela escolhida (ou o Plano B foi decidido). Um protótipo em Rust captura o áudio de um único processo. |
+| 7 ✅ | **SFU (mediasoup)** no container, interface de transporte no cliente, estado pela sinalização, simulcast; limite da sala vai a 16 | 16 abas ou instâncias numa sala se veem; cada cliente envia 1× (confirmado em `getStats()`); o Docker expõe só a 3000 e uma porta de mídia |
+| 8 ✅ | **Transmissão: vídeo** (tela inteira e janela), tela em destaque para quem assiste e controles de qualidade | resolução e FPS mudam durante a transmissão sem a chamada cair, confirmado em `getStats()` |
+| 9 ✅ | **Plugin `system-audio` (Windows):** process loopback, mixer, ponte Channel → AudioWorklet → faixa WebRTC, Opus estéreo | quem assiste ouve o áudio de um app escolhido, em estéreo |
+| 10 ✅ | **Modos completos + Settings › Streaming** | Tela inteira: com o Discord excluído, ninguém ouve o Discord nem as vozes da chamada. Janela: só o áudio daquele app é transmitido. |
+| 11 ✅ | PiP desktop | o vídeo remoto flutua sobre outras janelas |
+| 12 ✅ | Modal do guia + renderer Markdown + imagens (com a porta de mídia e a nota sobre banda) | o guia renderiza com as 5 imagens nos dois temas |
+| 13 ✅ | Android: `tauri android init`, permissões, plugin PiP Kotlin | o APK roda no emulador ou no celular, entra em chamada e vai para PiP ao minimizar |
+| 14 | Release: imagem no GHCR + instalador Windows (`.exe`) + `.apk` | o guia de 5 passos funciona do zero numa máquina limpa |
+| 15 | iOS: plugin Swift (código), adiado para depois do lançamento | código escrito; build pendente de um Mac |
+
+### Release (etapa 14)
+
+| Parte | Entrega | Estado |
+|---|---|---|
+| 14.A | **Instalador Windows** (NSIS, `.exe`) gerado localmente | ✅ |
+| 14.B | **APK de release** assinado (ARM 64 e 32 bits) | ✅ (14/11/2026, 0.5.5). Chave do autor fora do repositório; o Gradle a acha pelo `gen/android/keystore.properties` (no `.gitignore`): `storeFile`, `storePassword`, `keyAlias`, `keyPassword`. Build: `npx tauri android build --apk --target aarch64 armv7` em `frontend/`, com as variáveis do `android-dev.ps1`; sai em `gen/android/app/build/outputs/apk/universal/release/`. Sem a chave, o APK sai sem assinatura. Perder a chave = não dá para atualizar por cima; guarde uma cópia. Ícones: `python scripts/android-icon.py` depois do `tauri icon` |
+| 14.C | **GitHub Actions:** com uma tag `v*`, gera `.exe`, `.apk` e a imagem no GHCR, e monta um rascunho de Release com o `docker-compose.yml` | |
+| 14.D | **Ícone** do usuário em todos os tamanhos (`tauri icon`): o lobo do Jay-C, com o traço engrossado e a cabeça preenchida (`scripts/wolf-icon.ps1`), na cor de cada estilo | ✅ |
+| 14.E | **Publicação** e teste do guia do zero numa máquina limpa | |
+
+**Instalador Windows** (`npm run build`, ~7–9 min com LTO):
+- **Tipo:** NSIS por usuário (`installMode: currentUser`). Instala em `%LOCALAPPDATA%\Jay-C` sem UAC, com atalho no menu Iniciar e entrada em "Aplicativos" (publisher TyxMatty). O WebView2 vem pelo bootstrapper se faltar (Windows 10 antigo).
+- **Tamanho:** instalador de 1,47 MiB e `jay-c.exe` de 3,9 MB.
+- **Sem assinatura de código:** o SmartScreen avisa na primeira execução (vale para o setup do Jay-I e para o NSIS dentro dele). Um certificado é pago (decisão em aberto).
+- **Reinstalar por cima** atualiza o exe. O instalador fecha só um `jay-c.exe` que rode da pasta de instalação (Restart Manager no caminho exato), e não o de `tauri dev`.
+- **Câmera e microfone sem o aviso do WebView2:** num perfil novo, o WebView2 perguntava "tauri.localhost wants to use your camera", e a entrada na sala ficava parada em "Joining…" até a resposta. Agora `src-tauri/src/media_permissions.rs` libera câmera e microfone no evento `PermissionRequested`, só para a página do próprio app (`http://tauri.localhost/`, e `localhost:5173` em dev). Outras permissões seguem o padrão do WebView2. As configurações de privacidade do Windows continuam valendo.
+
+**Verificado no app instalado** (perfil WebView2 isolado, servidor de teste, um bot na sala):
+- Modo release: a página vem de `http://tauri.localhost/`, e `window.__jaycCall` não existe.
+- **Entrada na sala:** pelo lobby, sem aviso de permissão e sem violações de CSP.
+- **Câmera:** chega ao bot em 1280×720.
+- **Microfone nativo:** WASAPI → AudioWorklet → faixa → WebRTC. Medido no envio (`media-source`: nível variando, energia subindo), e no bot chega áudio real (pico −50,9 dBFS numa sala silenciosa, com supressão de ruído).
+- **Tela inteira com som:** com o seletor trocado por um canvas, um tom de teste tocado em outro processo chega ao bot em estéreo, a −37 dBFS (L 445 Hz, R 656 Hz; o tom era 440/660 Hz).
+- **Não testado:** o seletor de tela real e o SmartScreen numa máquina sem o projeto.
+
+### Tour "Welcome!" (pedido do usuário, depois da 0.2.1)
+
+Cards que explicam o app passo a passo, para quem usa pela primeira vez.
+
+| Parte | Entrega | Estado |
+|---|---|---|
+| W1 | **Estrutura:** modal com 7 cards (boas-vindas, servidor, perfil, sala, chamada, live, chat/PiP/ajuda), Back/Next, pontinhos clicáveis, setas do teclado, Skip. Abre sozinho na primeira vez; Settings › Help › "Show the welcome tour" reabre. | ✅ |
+| W2 | **Animações:** uma ilustração animada em SVG/CSS por card (`ui/welcome-art.js`), transição entre cards e altura estável. | ✅ |
+
+**Como funciona:**
+- **Arquivos:** conteúdo e navegação em `core/welcome.js` (`WELCOME_STEPS`, `clampStep`, `shouldShowWelcome`, com testes), modal em `ui/welcome-modal.js` e CSS `.welcome-*`.
+- **"Já viu":** `settings.welcomeSeen` é gravado **quando o tour abre sozinho**, não quando fecha. Assim ele aparece uma vez mesmo se o app for fechado no meio, e não depende do evento `close` do `<dialog>`, que o Chrome só dispara no próximo quadro desenhado (num painel escondido, nunca chegou). Quem já usava o app vê o tour uma vez ao atualizar.
+- **Atalhos:** o card do servidor abre o guia de setup e o do perfil abre Settings › Profile, por cima do tour, que continua aberto embaixo.
+- **Ilustrações (W2):** uma cena SVG por passo em `ui/welcome-art.js`, com as cores do tema (o destaque é `currentColor`; as classes `.wa-*` usam as variáveis do tema). As animações (`@keyframes wa-*`) só rodam com `<html data-motion="full">`; sem isso, cada cena é uma imagem parada. Trocar de passo faz o card entrar deslizando do lado de onde veio (Web Animations, 220 ms). A altura é a do passo mais longo: `fitHeight()` mede os 7 textos ao abrir e ao redimensionar (depende da largura e do idioma), e o botão de atalho ocupa o espaço mesmo escondido. Medido no app a 1100 px: card com 553 px e título na mesma posição nos 7 passos; 4 a 7 animações por cena; zero com as animações desligadas, nos temas escuro e claro.
+- **Acessibilidade:** o texto do passo fica numa região `aria-live`, e o pontinho atual tem `aria-current="step"`. O foco vai para Next ao abrir. Esc fecha. Não há botão X: o X ficava sobre a ilustração, e Skip, Get started e Esc já fecham.
+
+**Verificado no navegador** (painel do Claude, Vite de dev):
+- primeira abertura sem configurações salvas;
+- os 7 passos por setas e pelos pontinhos (Back desligado no primeiro; no último, "Get started" e sem Skip);
+- os dois atalhos;
+- reload sem reabrir;
+- reabrir pelo Help;
+- a 360×640, todos os cards cabem sem rolagem;
+- tema claro.
+
+### Discord Rich Presence (pedido do usuário, depois da 0.3.3)
+
+Durante uma chamada, o perfil do Discord da pessoa mostra o Jay-C. Só no Windows: no Android, o Discord não tem o canal local.
+
+**O que aparece** (escolhas do usuário):
+- "Jay-C", com o lobo na cor do estilo do app (Calmo `discord-wolf-calm`, Neon `discord-wolf-neon`, Suave `jayc_orange_thick`; as imagens saem de `scripts/wolf-icon.ps1`: `app-icon.png` e `discord-wolf-calm.png`/`discord-wolf-neon.png`);
+- "Numa chamada", quantas pessoas (ex.: 3 de 16) e o tempo desde que entrou;
+- em live: "Transmitindo a tela" ou "Assistindo uma live", sem nomes, com um ícone pequeno de live;
+- o nome da sala só com uma opção, desligada por padrão;
+- sem botão;
+- nada no lobby; ao sair da chamada, o status some.
+
+O status vem ligado por padrão, com uma opção para desligar.
+
+| Parte | Entrega | Estado |
+|---|---|---|
+| D1 | **Conexão (Rust, `src-tauri/src/discord.rs`):** o protocolo IPC local do Discord pelo pipe `\\.\pipe\discord-ipc-N` (opcode e tamanho em u32 LE + JSON; handshake e `SET_ACTIVITY`), sem dependência nova. Uma thread recebe só o último status pedido, espaça os envios em 4 s (documentado como ~5 a cada 20 s; não medido), reenvia a cada 15 s (um Discord reiniciado recupera o status) e tenta de novo a cada 10 s enquanto ele estiver fechado. Comando `discord_presence(activity | null)`. | ✅ |
+| D2 | **O que aparece (JS):** `core/discord-presence.js` traduz o estado da chamada no status (`presenceActivity`, função pura) e o mantém em dia até a chamada acabar: junta rajadas de eventos em 250 ms, só manda quando o status muda e, ao sair, limpa sem passar por um "1 de 16". O ícone `live` é `src-tauri/discord-live.png` (o ícone de monitor do app, em branco sobre o vermelho de perigo, 1024 px). | ✅ |
+| D3 | **Configurações:** Settings › Perfil › Discord (só no app do Windows): "Mostrar no Discord" (`discordPresence`, ligado) e "Mostrar o nome da sala" (`discordShowRoom`, desligado; some enquanto o status está desligado). Valem na hora, durante a chamada; desligar e ligar mantém o tempo na chamada. Trocar o estilo troca o lobo. | ✅ |
+| D4 | Docs e release | |
+
+**Aplicação no Discord:** "Jay-C" (Application ID 1568029459146346599, no `CLIENT_ID`), criada pelo usuário. Imagens que o código usa: `discord-wolf-calm`, `discord-wolf-neon`, `jayc_orange_thick` e `live` (`src-tauri/discord-live.png`). Uma chave que não existe na aplicação é descartada pelo Discord: o status aparece, sem a imagem.
+
+**Medido (D1):** com o Discord aberto, um handshake com um id inventado volta recusado (`Invalid Client ID`), o que prova o pipe e o formato das mensagens. Com o id real: `JAYC_DISCORD_ID=<id> cargo test --lib discord -- --ignored --nocapture` mostra um status por 10 s e depois o limpa. Medido: o Discord devolveu `name: "Jay-C"`, `type: 0` ("Jogando") e o início em milissegundos como enviado.
+
+**Medido numa chamada de verdade** (app de dev, servidor de teste e um bot; o log do app mostra o que o Discord aceitou a cada mudança): ao entrar, "Numa chamada" / "Conversando" (1 de 16) com o lobo roxo, já resolvido pelo Discord para o id do asset; o bot entrou, 2 de 16; o bot começou uma live, sem mudança, porque ninguém assistia; o app passou a assistir, "Assistindo uma live"; ao sair, o status foi limpo. Cada mudança chegou ao Discord no mesmo segundo do evento.
+
+**Medido nas configurações (D3)**, pela interface de verdade, durante uma chamada: o nome da sala ligado e o estilo Neon 2 s depois viraram **um** status só, 4 s depois do anterior ("Na sala #rp" com o lobo ciano), o que confirma o espaçamento e que só vai o último pedido; desligar limpou o status na hora; religar mandou de novo 4 s depois; voltar ao Calmo trocou o lobo 4 s depois do envio anterior; sair da chamada limpou.
+
+### Customização (entre a 12 e a 13, a pedido do usuário)
+
+Plugins ficaram para depois do release. Plugins sem isolamento no cliente estão descartados: eles alcançariam o IPC do Tauri (captura de áudio, tela e microfone). A customização vem em três partes:
+
+| Parte | Entrega | Estado |
+|---|---|---|
+| 12.A | **Settings › Appearance:** cor dos botões e fundo do app em degradê (2 cores + ângulo) | ✅ |
+| 12.B | **Barra da chamada:** arrastar com o mouse para reordenar os botões e mover a barra para uma das 4 bordas, com alternativa por teclado no Settings | ✅ |
+| 12.C | **Foto de perfil:** recortada em quadrado e reduzida (~128 px). Vai pelo servidor junto com o nome, com validação de tamanho e tipo, e aparece quando a câmera está desligada. | ✅ |
+
+**Como a aparência funciona** (`core/appearance.js`, aplicada em `ui/theme.js`):
+- **Variáveis inline no `<html>`**, que valem nos dois temas: `--accent`, `--accent-hover`, `--accent-contrast`, `--accent-text` e `--app-background`. Valores vazios voltam aos tokens do tema.
+- **Texto dos botões:** branco ou quase preto, o que der mais contraste com a cor escolhida (WCAG). O hover clareia botões escuros e escurece os claros.
+- **`--accent-text`:** onde a cor de destaque vira texto sobre as superfícies do tema (o hífen da marca e as iniciais do tile), ela é misturada a 35% com a cor de texto do tema. Medido no app: ≥ 5,4:1 nos dois temas, inclusive com branco ou preto puros. Com 55%, amarelo no tema claro dava 4,07.
+- **Degradê:** só no `body` (`--app-background`). Os painéis continuam com as superfícies do tema, então o texto não fica sobre o degradê. O `theme-init.js` aplica o degradê antes da primeira pintura, para não piscar.
+- **Barra do topo com degradê:** fica translúcida (75% da superfície do tema, com desfoque) e não ganha setting própria. No pior caso calculado (degradê branco no tema escuro), a marca fica a 6,38:1. O selo de status e os botões têm fundo opaco. A barra de título nativa do Windows continua na cor do tema.
+
+**Como a barra funciona** (`ui/control-bar.js`, lógica pura em `core/call-bar.js`, salva em `settings.callBar`):
+- **Layout:** a `section.call` tem duas partes, `.call-main` (aviso, palco, "waiting", toast) e a barra. A direção do flex segue `data-bar` (`column`, `column-reverse`, `row-reverse`, `row`). O painel de compartilhamento abre ao lado da barra.
+- **Arraste:** pointer events, então funciona com mouse, caneta e toque. Um arraste só começa depois de 6 px; abaixo disso é clique.
+  - `pointermove`/`pointerup` ficam na `window` enquanto o botão está pressionado, porque um arraste rápido sai de cima da barra antes do limiar. Esse bug foi achado no teste.
+  - A captura do ponteiro fica na barra, não no botão: mover o botão no DOM soltaria a captura.
+  - O clique que vem depois de um arraste é suprimido, então o painel de compartilhamento não abre sozinho.
+- **Alça (⋮⋮):** arrastar mostra onde a barra vai cair (a borda mais próxima). Clicar, inclusive pelo teclado, leva a barra para a próxima borda.
+- **Settings › Call controls:** posição e ordem com setas ↑/↓. O foco fica no botão que moveu.
+- Verificado com eventos de mouse reais pelo CDP (`Input.dispatchMouseEvent`): reordenar nos dois eixos, o clique normal ainda alternando o mic, a alça nas bordas esquerda e superior, e o clique na alça.
+
+**Foto de perfil** (`core/avatar.js`, Settings › General):
+- **Recorte e formato:** a imagem escolhida é recortada no quadrado central e reduzida para 128 px em WebP, baixando a qualidade se passar de 32 000 caracteres. No WebKit, que não codifica WebP, vira JPEG. Medido: uma foto 1600×900 deu 1 783 caracteres.
+- **Na chamada:** a foto aparece no lugar das iniciais quando a câmera está desligada. Uma troca durante a chamada chega aos outros por `profile`/`peer-updated`. Numa reconexão, o `join` leva a foto atual.
+
+### Integração com o Jay-A (pedido do usuário, depois da 0.4.0)
+
+O Jay-A é o app de áudio da linha Jay e fica em outro repositório. Na chamada, ele pode substituir o filtro do microfone do Jay-C, como o Krisp no Discord. A pessoa escolhe o filtro, Jay-A ou Jay-C, e o filtro do Jay-C fica rodando em paralelo como reserva, caso o Jay-A caia. O plano, com os diagramas, o que o Jay-C pede ao Jay-A e as etapas I0–I7, está em [JAY-A.md](JAY-A.md).
+
+### Atualização automática (pedido do usuário, depois da 0.4.1)
+
+O Jay-C se atualiza do mesmo jeito que o hub Jay-H atualiza os apps da linha Jay, sem chave de assinatura própria.
+
+- **De onde vem:** a última release **publicada** de `TyxMatty/Jay-C` no GitHub. Rascunhos não aparecem.
+- **Conferência** (`src-tauri/src/update.rs`, as mesmas regras do `products.rs` do Jay-H):
+  - o `_x64-setup.exe` tem de vir de `https://github.com/TyxMatty/Jay-C/releases/download/`;
+  - o nome não pode ter barras, e o arquivo tem até 200 MB;
+  - o tamanho e o SHA-256 têm de bater com o `digest` que o GitHub calcula para o arquivo.
+
+  A página só diz "atualize": o Rust busca a release de novo e decide o que baixar. Desde a 0.5.4 o download é da crate `jay-i`, que usa o WinHTTP do Windows, como o código próprio de antes (seção abaixo).
+- **Aplicar:** o Jay-C roda o setup do Jay-I com `/P /UPDATE /R` e fecha. O setup mostra só o progresso e abre o Jay-C de novo no fim. Atualiza por cima e mantém as configurações e os atalhos.
+- **Interface** (`core/update.js`):
+  - uma faixa no lobby, "O Jay-C X está disponível.", com Atualizar e Agora não. Por ficar no lobby, nunca aparece numa chamada;
+  - Configurações › Ajuda › Sobre, com Procurar atualização e Atualizar. Durante uma chamada, pede para sair antes.
+  - Uma consulta por abertura, só no app de Windows.
+- **Publicação:** numa tag `v*`, o workflow do instalador cria a release em rascunho com o instalador (`docs/CONTINUAR.md`, seção 3).
+- **Medido (0.4.2, com o código antigo do WinHTTP):** o download do instalador da 0.4.1 bateu o SHA-256 do GitHub; o app de dev dizendo 0.4.0 ofereceu a 0.4.1 no lobby e na Ajuda. O código foi trocado na 0.5.4 e essa medida não vale para ele.
+- **Não medido:** o instalador abrindo e o Jay-C fechando de verdade, porque não rodamos instalador no PC do usuário com o Jay-C instalado. A primeira versão com auto-update é a 0.4.2, e quem está na 0.4.1 ou antes instala essa à mão ou pelo Jay-H.
+
+### O setup do Jay-I e a autoatualização (0.5.4)
+
+O Jay-C 0.5.4 adota o [Jay-I](https://github.com/TyxMatty/Jay-I), o instalador e atualizador compartilhado da linha Jay.
+
+**O que mudou**
+- **A crate no lugar do código próprio.** O `src-tauri/src/update.rs` foi de 258 para 102 linhas. O cliente WinHTTP, a busca da release, a escolha do instalador e o download com SHA-256 em memória saíram. Entraram `jay_i::latest`, `pick_installer`, `download` (para uma pasta temporária nova) e `run` com `Mode::Update { relaunch: true }`. Saíram também o `sha2` e a feature `Win32_Networking_WinHttp`.
+- **As regras são as mesmas:** só a última release **publicada** de `TyxMatty/Jay-C`; o `_x64-setup.exe` só de `https://github.com/TyxMatty/Jay-C/releases/download/`; nome simples, até 200 MB; tamanho e SHA-256 iguais ao `digest` do GitHub. A página continua só dizendo "atualize" (`update_latest` e `update_install` não mudaram; uma atualização por vez; as Configurações recusam durante uma chamada; o lobby nunca aparece numa chamada).
+- **Novo:** o Rust recusa se a release não for mais nova que a versão em execução. O instalador agora roda em silêncio e o modelo do NSIS aceita voltar versão, então a trava ficou no app.
+- **O arquivo da release agora é o setup do Jay-I:** uma janela pequena no visual do Jay, com o instalador NSIS dentro. O Jay-C roda com `/P /UPDATE /R` e fecha. O setup mostra só o progresso e roda o NSIS com `/S /UPDATE /R`: atualiza por cima, mantém configurações e atalhos e abre o Jay-C de novo. Quem está na 0.5.2 ou antes (o atualizador antigo roda o arquivo sem argumentos) vê a janela de confirmação do setup e clica em Instalar uma vez.
+- **A versão do Jay-I está fixada em dois lugares que andam juntos:** a dependência git `jay-i` no `frontend/src-tauri/Cargo.toml` (só Windows) e o `ref` do segundo checkout no `.github/workflows/installer.yml`. Os dois apontam para o commit `f4f9ef07c0cf49abd1f53d3caa00c69e5aa1c90a`.
+- **O workflow** (`installer.yml`): toda action fixada por SHA completo; um passo novo, "The tag is the app's version", falha se a tag não for `v` + a versão do `tauri.conf.json`; depois do `npm run build`, um segundo checkout do `TyxMatty/Jay-I` no SHA fixado (`persist-credentials: false`) e o `jay-i/scripts/build-setup.ps1` monta o `setup-out/Jay-C_<versão>_x64-setup.exe` em volta do NSIS. Falha se não houver exatamente um arquivo, se passar de 15 MB ou se tiver o mesmo tamanho do NSIS cru. O artefato e o rascunho da release levam **só** o `setup-out/` (os dois arquivos têm o mesmo nome, e o Jay-H e o atualizador do Jay-C pegam o arquivo que termina em `_x64-setup.exe`). A lógica de rascunho, de sobrescrever e de nunca tocar numa release publicada, e as permissões (job com `contents: write`, o topo com `contents: read`), não mudaram.
+
+**Revisão do modelo NSIS no modo silencioso** (`src-tauri/windows/installer.nsi`, sem mudanças). Ele só difere do modelo original do Tauri 2.12.4 em quatro blocos "Jay-C:": linhas 167–169 (`MUI_LANGDLL_ALWAYSSHOW`), 171–174 (cores), 254–259 (versão mais antiga = atualiza por cima, dentro da `PageReinstall`) e 798–800 (`SHChangeNotify`).
+- Com `/S` o NSIS não mostra página nem chama função de página: a `PageReinstall` e a `PageLeaveReinstall` (227–427, com a `MessageBox` da 414) nunca rodam. O diálogo de idioma é cercado pelo `${unless} ${Silent}` do MUI2.
+- A `MessageBox` da 599 é o ramo sem silêncio e só é compilada com `allowDowngrades=false` (o Jay-C usa o padrão, `true`; conferido no script gerado). A da 689 só é compilada com `minimumWebview2Version` (o Jay-C não tem).
+- Gerenciador de reinício (`CheckIfAppIsRunning`, do `utils.nsh` do Tauri): em silêncio, fecha à força um `jay-c.exe` aberto, sem perguntar; se falhar, sai com um código de erro, sem janela.
+- As flags `/P`, `/NS`, `/UPDATE` (527–540) e `/R` (813) são lidas como no modelo original.
+- Casos com `/S`: instalação nova = `%LOCALAPPDATA%\Jay-C`, atalhos no menu Iniciar e na Área de Trabalho (789–792); versão mais antiga com `/UPDATE` = por cima, atalhos intocados (1002–1009, 1031–1038), sem desinstalar, reabre com `/R` (811–818); mesma versão ou mais velha = instala por cima sem perguntar (o app não chega aí por causa da trava do Rust; quem roda um setup antigo à mão chega, como no modelo original); sobra de instalação WiX ou por máquina = a busca no HKLM fica na `PageReinstall`, então em silêncio ela **não** é removida e a instalação por usuário fica ao lado (o modelo original faz igual; o Jay-C nunca teve MSI).
+- Nada espera para sempre sem janela. Só o `/P` sozinho (quando falta o WebView2 e o setup não consegue mostrar a janela) ainda mostra o diálogo de idioma, por causa do `MUI_LANGDLL_ALWAYSSHOW`: é visível, não trava. Ficou como está.
+- O `frontend/test/installer.test.js` prende isso: as quatro flags continuam sendo lidas e o modelo tem exatamente 3 `MessageBox`.
+
+**Os 10 pontos de segurança**
+1. **Superfície de ataque:** nenhum comando novo e nenhuma porta. A página continua só chamando `update_latest` e `update_install`, sem URL nem caminho. Medido: a lista de comandos não mudou. Não medido: nada além disso.
+2. **Controle de acesso e IDOR:** não há dado de outra pessoa nem recurso por id. A trava nova (só versão mais nova) é do Rust e usa o `jay_i::newer`, testado na crate. Não medido: a trava dentro do `update_install` (nenhum teste do Jay-C chama o comando, porque ele baixaria e rodaria o setup).
+3. **Permissões de dados:** o download vai para uma pasta temporária nova, e o instalador mantém as configurações da pessoa, sem ler nem apagar dados. Medido: a leitura do modelo NSIS acima. Não medido: o efeito sobre as configurações numa atualização de verdade.
+4. **Entrada não confiável em operação sensível:** a resposta do GitHub é entrada não confiável. O endereço do arquivo, o nome, o tamanho (200 MB) e o SHA-256 são conferidos antes de rodar qualquer coisa. Medido: os testes da própria crate cobrem endereços, `digest`, tamanhos e nomes ruins. Não medido: um arquivo malicioso de um autor que publica releases (ver abaixo).
+5. **Credenciais expostas:** nenhuma chave ou token no app. No workflow, o checkout do Jay-I usa `persist-credentials: false`, e o job só tem `contents: write` onde precisa. Medido: leitura do workflow. Não medido: a execução no GitHub Actions.
+6. **Autenticação:** não há login. A confiança vem de a release ser do repositório certo e do SHA-256. **O SHA-256 vem do `digest` do próprio GitHub:** protege contra um download corrompido ou trocado, **não** contra quem consegue publicar uma release no repositório. Os instaladores (o setup e o NSIS) **não têm assinatura**, e o SmartScreen avisa.
+7. **Abuso de recursos e corridas:** uma atualização por vez; uma consulta por execução, mais o download; arquivo de até 200 MB. O Rust recusa o que não é mais novo. Medido: os limites estão no código e nos testes da crate. Não medido: um atualizador disparado duas vezes ao mesmo tempo, além da trava de uma por vez.
+8. **Cadeia de dependências:** a dependência git do `jay-i` é fixada por commit; o segundo checkout do CI é fixado pelo mesmo SHA, com `persist-credentials: false`; todas as actions são fixadas por SHA. A primeira versão da crate usava uma biblioteca Rust (ureq + rustls, com as raízes da Mozilla dentro do exe), que não usava o proxy do sistema nem os certificados do Windows: atrás de um proxy de empresa a consulta falhava (medido com um proxy local: `UnknownIssuer`). Essa versão nunca foi publicada no Jay-C. A crate fixada agora (`60de872`) usa o WinHTTP, com o proxy e os certificados do Windows, como até a 0.5.2; uma raiz instalada pelo administrador da máquina é aceita, igual a um navegador. Medido na crate, por um proxy local: a consulta passa pelo proxy, e um certificado de raiz desconhecida é recusado. Não medido: PAC/WPAD, raiz de empresa instalada e proxy com senha (NTLM/Kerberos). `cargo audit` no `Cargo.lock` novo: 486 crates (eram 485 na 0.5.2), nenhuma vulnerabilidade e os mesmos 5 avisos permitidos de antes (crates sem manutenção ou inseguras do build Linux do Tauri: proc-macro-error, zbus_names, zvariant, zvariant_derive, glib).
+9. **Exposição de rede:** só HTTPS de saída, sob demanda, para `api.github.com` e `github.com`/`objects.githubusercontent.com`: uma consulta por execução, mais o download. Nenhuma porta aberta. Medido: leitura do código. Não medido: tráfego capturado.
+10. **Testes adversariais e critérios de release:** a crate tem testes próprios para endereços, `digest`, tamanhos e nomes ruins; o teste do Jay-C cobre o mapeamento; o `installer.test.js` prende as flags e as `MessageBox`. `npm test`: 50/50 (servidor) e 136/136 (frontend); `cargo test`: 21 passaram, 3 ignorados. **Não exercitados:** uma atualização de verdade de ponta a ponta e o workflow no GitHub Actions. Isso fica para a primeira tag com o setup.
+
+**Medido:** builds locais de release, antes (0.5.2, WinHTTP) e depois (0.5.4, `jay-i`). O `jay-c.exe` foi de 5 824 000 para 5 843 456 bytes (+19 KB) e o NSIS, de 2 437 561 para 2 444 953 bytes (+7 KB). Com a primeira versão da crate (ureq + rustls) eram 6 973 440 e 2 993 293 bytes. O setup do Jay-I com o NSIS dentro, montado pelo passo do workflow rodado à mão ainda com aquela primeira versão: 6 221 312 bytes (5,9 MB, abaixo dos 15 MB; o NSIS está dentro byte a byte); não medido de novo com a crate atual. As medidas de memória a seguir também são daquela primeira versão. Memória no lobby, 25 s depois de abrir, três rodadas de cada: o `jay-c.exe` ficou em ~58 MB de *working set* (antes ~61 MB); a árvore com o WebView2 variou de 169 a 276 MB privados nas duas versões, sem diferença acima do ruído. Não conferido nessas rodadas: se a consulta ao GitHub chegou a terminar.
+**Não medido:** a atualização real (setup abrindo, NSIS em silêncio, Jay-C reabrindo), o workflow no GitHub Actions e o comportamento atrás de um proxy que inspeciona TLS.
+
+### Jay-C 0.5: servidores com salas, canais de texto e arquivos (pedido do usuário, depois da 0.4.3)
+
+O plano está em `tasks/plan.md` e o acompanhamento, com o que foi medido em cada tarefa, em `tasks/todo.md`.
+
+- **Servidor no estilo Discord:** coluna de servidores (os endereços salvos), lista de salas de call e canais de texto, a área principal e os membros à direita. No celular, as duas colunas viram gavetas (botões e deslizar o dedo).
+- **Salas fixas** (`DATA_DIR/rooms.json`), com senha (cadeado) e invisíveis (só pelo nome); gerenciadas no app por quem tem a `ADMIN_KEY`. A "Chamada direta" entra numa sala pelo nome, como antes.
+- **Canais de texto** com histórico (as últimas 500 mensagens de cada um) e a call encaixada: dá para ler um canal enquanto fala.
+- **Arquivos nos chats:** imagens, GIFs e vídeos, guardados no servidor (`DATA_DIR/media`), com a localização tirada antes de subir; GIFs recentes no clipe.
+- **Call:** mute e deafen ficam salvos entre calls; o deafen cala só as vozes, não as lives; destacar e dar zoom na câmera de alguém.
+- **Android:** Voltar e fechar o PiP mandam o app para segundo plano com a call seguindo (um serviço em primeiro plano do tipo microfone, com notificação).
+- **Convivência com a 0.4:** o app lê as `features` do servidor; com um servidor 0.4, ele mostra só a "Chamada direta". Um app 0.4 num servidor 0.5 entra nas salas pelo nome, como antes.

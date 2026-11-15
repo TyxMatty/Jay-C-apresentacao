@@ -1,0 +1,42 @@
+node_modules/
+dist/
+# A local server's data (rooms, channels, history, pictures and files): never in a commit, whether
+# the server runs from signaling-server/ (npm run server) or from the repository root.
+signaling-server/data/
+/data/
+*.log
+.env
+.env.*
+!.env.example
+
+# Rust / Tauri
+target/
+frontend/src-tauri/gen/schemas/
+
+# Android / iOS build output
+*.apk
+*.aab
+.gradle/
+local.properties
+xcuserdata/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# Local Claude Code tooling
+.claude/
+
+# Instructions for AI coding agents (kept on each machine, not in the repo)
+CLAUDE.md
+CLAUDE.local.md
+AGENTS.md
+GEMINI.md
+.github/copilot-instructions.md
+
+# Machine-local Cargo config (target-dir outside OneDrive)
+/.cargo/
