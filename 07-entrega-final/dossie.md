@@ -16,57 +16,57 @@
 
 ## Sumário
 
-**4.1 Identificação e contextualização**
-1. Introdução
-2. Problema
-3. Público-alvo
-4. Objetivos
-5. Limites do sistema
-6. Justificativa
+**[4.1 Identificação e contextualização](#41-identificação-e-contextualização)**
+1. [Introdução](#1-introdução)
+2. [Problema](#2-problema)
+3. [Público-alvo](#3-público-alvo)
+4. [Objetivos](#4-objetivos)
+5. [Limites do sistema](#5-limites-do-sistema)
+6. [Justificativa](#6-justificativa)
 
-**4.2 Stakeholders e levantamento de requisitos**
-7. Stakeholders
-8. Levantamento de requisitos
-9. Requisitos funcionais
-10. Requisitos não funcionais
-11. Regras de negócio
-12. Conflitos, ambiguidades e restrições
+**[4.2 Stakeholders e levantamento de requisitos](#42-stakeholders-e-levantamento-de-requisitos)**
+7. [Stakeholders](#7-stakeholders)
+8. [Levantamento de requisitos](#8-levantamento-de-requisitos)
+9. [Requisitos funcionais](#9-requisitos-funcionais)
+10. [Requisitos não funcionais](#10-requisitos-não-funcionais)
+11. [Regras de negócio](#11-regras-de-negócio)
+12. [Conflitos, ambiguidades e restrições](#12-conflitos-ambiguidades-e-restrições)
 
-**4.3 Modelagem de análise**
-13. Diagrama de casos de uso
-14. Descrição dos casos de uso
-15. Diagrama de classes de domínio
-16. Como os modelos representam os requisitos e as regras
+**[4.3 Modelagem de análise](#43-modelagem-de-análise)**
+13. [Diagrama de casos de uso](#13-diagrama-de-casos-de-uso)
+14. [Descrição dos casos de uso](#14-descrição-dos-casos-de-uso)
+15. [Diagrama de classes de domínio](#15-diagrama-de-classes-de-domínio)
+16. [Como os modelos representam os requisitos e as regras](#16-como-os-modelos-representam-os-requisitos-e-as-regras)
 
-**4.4 Projeto e arquitetura**
-17. Visão arquitetural
-18. Princípios de projeto
-19. Coesão e acoplamento
-20. Refinamento de uma funcionalidade
-21. Refatoração futura proposta
-22. Telas e navegação
+**[4.4 Projeto e arquitetura](#44-projeto-e-arquitetura)**
+17. [Visão arquitetural](#17-visão-arquitetural)
+18. [Princípios de projeto](#18-princípios-de-projeto)
+19. [Coesão e acoplamento](#19-coesão-e-acoplamento)
+20. [Refinamento de uma funcionalidade](#20-refinamento-de-uma-funcionalidade)
+21. [Refatoração futura proposta](#21-refatoração-futura-proposta)
+22. [Telas e navegação](#22-telas-e-navegação)
 
-**4.5 Processo e organização do desenvolvimento**
-23. Abordagem de processo: incremental, com protótipos de risco
-24. Plano simplificado de execução
-25. Controle de versões, mudanças e rastreabilidade
+**[4.5 Processo e organização do desenvolvimento](#45-processo-e-organização-do-desenvolvimento)**
+23. [Abordagem de processo: incremental, com protótipos de risco](#23-abordagem-de-processo-incremental-com-protótipos-de-risco)
+24. [Plano simplificado de execução](#24-plano-simplificado-de-execução)
+25. [Controle de versões, mudanças e rastreabilidade](#25-controle-de-versões-mudanças-e-rastreabilidade)
 
-**4.6 Qualidade, verificação e validação**
-26. Atributos de qualidade
-27. Casos de teste
-28. Verificação e validação
-29. Matriz de rastreabilidade
+**[4.6 Qualidade, verificação e validação](#46-qualidade-verificação-e-validação)**
+26. [Atributos de qualidade](#26-atributos-de-qualidade)
+27. [Casos de teste](#27-casos-de-teste)
+28. [Verificação e validação](#28-verificação-e-validação)
+29. [Matriz de rastreabilidade](#29-matriz-de-rastreabilidade)
 
-**4.7 Manutenção e evolução**
-30. Mudanças futuras por tipo de manutenção
-31. Análise de impacto
-32. Riscos técnicos e mitigação
+**[4.7 Manutenção e evolução](#47-manutenção-e-evolução)**
+30. [Mudanças futuras por tipo de manutenção](#30-mudanças-futuras-por-tipo-de-manutenção)
+31. [Análise de impacto](#31-análise-de-impacto)
+32. [Riscos técnicos e mitigação](#32-riscos-técnicos-e-mitigação)
 
-**4.8 Conclusão e referências**
-33. Conclusão
-34. Referências
-35. Quadro de contribuição individual
-36. Declaração de participação
+**[4.8 Conclusão e referências](#48-conclusão-e-referências)**
+33. [Conclusão](#33-conclusão)
+34. [Referências](#34-referências)
+35. [Quadro de contribuição individual](#35-quadro-de-contribuição-individual)
+36. [Declaração de participação](#36-declaração-de-participação)
 
 
 ---
@@ -146,7 +146,7 @@ As perguntas de investigação seriam estas:
 
 ## 9. Requisitos funcionais
 
-Prioridade: Alta (essencial para a primeira versão), Média (importante, mas o sistema funciona sem), Baixa (desejável). Pelo método MoSCoW, da apostila da disciplina, Alta corresponde a *Must have*, Média a *Should have* e Baixa a *Could have*; o que ficou fora do escopo (seção 5, "o que o Jay-C não faz") é *Won't have now*.
+Prioridade: Alta (essencial para a primeira versão), Média (importante, mas o sistema funciona sem), Baixa (desejável). Pelo método MoSCoW, da apostila da disciplina, Alta corresponde a *Must have*, Média a *Should have* e Baixa a *Could have*; o que ficou fora do escopo ([seção 5](#5-limites-do-sistema), "o que o Jay-C não faz") é *Won't have now*.
 
 | ID | Descrição | Ator | Prioridade | Critério de aceitação |
 |---|---|---|---|---|
@@ -271,22 +271,22 @@ flowchart LR
   UC12 -. "«include»" .-> UC13
 ```
 
-O ator principal é o Participante. Transmissor e Administrador são especializações dele, já que qualquer participante pode abrir uma live ou administrar o servidor se tiver a chave. Como não existem contas no Jay-C (seção 5), ser administrador depende só de informar a chave certa, então `UC11` e `UC12` sempre incluem `UC13`. Já conectar ao servidor (`UC01`) acontece uma vez quando o app abre e vira pré-condição pro resto (tipo entrar numa sala no `UC02`, mandar msg em canal ou administrar), por isso não usamos `<<include>>` pra ele. O caso `UC02b` (informar senha) e o `UC08` (anexar mídia) só rodam quando existe senha na sala ou arquivo anexado, então entram como `<<extend>>`.
+O ator principal é o Participante. Transmissor e Administrador são especializações dele, já que qualquer participante pode abrir uma live ou administrar o servidor se tiver a chave. Como não existem contas no Jay-C ([seção 5](#5-limites-do-sistema)), ser administrador depende só de informar a chave certa, então `UC11` e `UC12` sempre incluem `UC13`. Já conectar ao servidor (`UC01`) acontece uma vez quando o app abre e vira pré-condição pro resto (tipo entrar numa sala no [`UC02`](#uc02--entrar-em-uma-sala), mandar msg em canal ou administrar), por isso não usamos `<<include>>` pra ele. O caso `UC02b` (informar senha) e o `UC08` (anexar mídia) só rodam quando existe senha na sala ou arquivo anexado, então entram como `<<extend>>`.
 
 | Caso de uso | Requisitos |
 |---|---|
 | UC01 Conectar a um servidor | RF001, RF002, RNF007 |
-| UC02 Entrar em uma sala | RF003, RF004 |
+| [UC02 Entrar em uma sala](#uc02--entrar-em-uma-sala) | RF003, RF004 |
 | UC02b Informar senha | RF004 |
 | UC03 Participar da chamada | RF005, RF006, RF020 |
-| UC04 Transmitir a tela | RF007, RF008, RNF010 |
+| [UC04 Transmitir a tela](#uc04--transmitir-a-tela) | RF007, RF008, RNF010 |
 | UC05 Assistir em PiP | RF017 |
 | UC06 Conversar no chat da chamada | RF009 |
 | UC07 Conversar nos canais de texto | RF011, RF012 |
 | UC08 Enviar imagem, GIF ou vídeo | RF010, RNF004, RNF005 |
 | UC09 Personalizar perfil e aparência | RF013, RF018, RNF009 |
 | UC10 Consultar o guia | RF019 |
-| UC11 Gerenciar salas | RF014, RF016 |
+| [UC11 Gerenciar salas](#uc11--gerenciar-salas) | RF014, RF016 |
 | UC12 Gerenciar canais de texto | RF015 |
 | UC13 Validar chave de administrador | RNF002 |
 
@@ -390,7 +390,7 @@ classDiagram
     id
     nomeDoAutor
     corDoAutor
-    texto {0..500 caracteres}
+    texto [0..500 caracteres]
     dataHora
   }
   class MensagemDeChamada
@@ -428,19 +428,19 @@ Separamos `Mensagem` em duas subclasses porque o comportameto é diferente: a da
 
 | Elemento do modelo | Requisito ou regra |
 |---|---|
-| Multiplicidade `0..16` entre Sala e Participante; `Sala.limite` e `estaCheia()`; fluxo alternativo C do UC02 | RN001, RNF001 |
+| Multiplicidade `0..16` entre Sala e Participante; `Sala.limite` e `estaCheia()`; fluxo alternativo C do [UC02](#uc02--entrar-em-uma-sala) | RN001, RNF001 |
 | `Sala.senhaHash [0..1]` e `entrar(participante, senha)`; UC02b `<<extend>>` | RF004, RN002 |
-| `Sala.oculta` e `Servidor.listarSalasVisiveis()`; fluxo alternativo B do UC02 | RF016, RN003 |
-| `Servidor.validarChave()`; UC13 incluído por UC11 e UC12 | RF014, RF015, RNF002, RN004 |
-| Atributo `texto {0..500 caracteres}` | RN005 |
+| `Sala.oculta` e `Servidor.listarSalasVisiveis()`; fluxo alternativo B do [UC02](#uc02--entrar-em-uma-sala) | RF016, RN003 |
+| `Servidor.validarChave()`; UC13 incluído por [UC11](#uc11--gerenciar-salas) e UC12 | RF014, RF015, RNF002, RN004 |
+| Atributo `texto [0..500 caracteres]` | RN005 |
 | Composição `CanalDeTexto "1" *-- "0..500" MensagemDeCanal` | RF011, RN006 |
 | `historico(antesDe)` devolvendo `MensagemDeCanal[0..50]` | RN007 |
 | Auto-associação `respondeA`, só entre mensagens de canal | RF012, RN012 |
 | Classe Arquivo com `tipo`, `tamanho` e `removerLocalizacao()`; UC08 | RF010, RNF004, RNF005, RN008 |
 | Arquivo ligado a uma mensagem, que pertence a uma sala ou a um canal | RN009, RNF003 (o arquivo só é visível nesse escopo) |
-| Associação Participante–Transmissão e seus atributos de qualidade; UC04 | RF007, RF008, RNF010 |
+| Associação Participante–Transmissão e seus atributos de qualidade; [UC04](#uc04--transmitir-a-tela) | RF007, RF008, RNF010 |
 | Atributos `cor` e `foto` do Participante; UC09 | RF013, RN011 |
-| Fluxo alternativo D do UC11 (renomear sala ocupada) | RN010 |
+| Fluxo alternativo D do [UC11](#uc11--gerenciar-salas) (renomear sala ocupada) | RN010 |
 
 ---
 
@@ -483,12 +483,12 @@ flowchart TB
 
 | Componente | Responsabilidade |
 |---|---|
-| Apresentação (`frontend/src/ui`) | Desenha as telas (lista de salas e canais, chat, chamada, configurações) e repassa as ações do usuário para a lógica. Não fala com o servidor. |
-| Lógica do cliente (`frontend/src/core`, `store`) | A classe `Call` coordena a chamada; `signaling` fala o protocolo com o servidor e reconecta; `attachments` prepara os arquivos; `settings` guarda as preferências. |
-| Camada nativa (`src-tauri`, `plugins`) | Faz em Rust o que o navegador não faz bem: microfone com cancelamento de eco sem abafar os outros apps, captura do som por aplicativo, transmissão da tela com codificação na placa de vídeo, janela de PiP e atualização. |
-| Sinalização (`signaling-server/src/server.js`) | Recebe as mensagens JSON, confere permissões e limites, e avisa os outros participantes. |
-| Domínio do servidor (`rooms`, `directory`, `channels`, `media`, `avatars`, `rate-limit`) | As regras de negócio: lotação da sala, senhas, salas ocultas, histórico dos canais, validação de arquivos. |
-| SFU (`sfu.js`, `sfu-room.js`) | Recebe e repassa áudio e vídeo de todos, escolhendo a qualidade de cada vídeo conforme quem assiste. |
+| Apresentação ([`frontend/src/ui`](../frontend/src/ui)) | Desenha as telas (lista de salas e canais, chat, chamada, configurações) e repassa as ações do usuário para a lógica. Não fala com o servidor. |
+| Lógica do cliente ([`frontend/src/core`](../frontend/src/core), [`store`](../frontend/src/store)) | A classe `Call` coordena a chamada; `signaling` fala o protocolo com o servidor e reconecta; `attachments` prepara os arquivos; `settings` guarda as preferências. |
+| Camada nativa ([`src-tauri`](../frontend/src-tauri), [`plugins`](../plugins)) | Faz em Rust o que o navegador não faz bem: microfone com cancelamento de eco sem abafar os outros apps, captura do som por aplicativo, transmissão da tela com codificação na placa de vídeo, janela de PiP e atualização. |
+| Sinalização ([`signaling-server/src/server.js`](../signaling-server/src/server.js)) | Recebe as mensagens JSON, confere permissões e limites, e avisa os outros participantes. |
+| Domínio do servidor ([`rooms`](../signaling-server/src/rooms.js), [`directory`](../signaling-server/src/directory.js), [`channels`](../signaling-server/src/channels.js), [`media`](../signaling-server/src/media.js), [`avatars`](../signaling-server/src/avatars.js), [`rate-limit`](../signaling-server/src/rate-limit.js)) | As regras de negócio: lotação da sala, senhas, salas ocultas, histórico dos canais, validação de arquivos. |
+| SFU ([`sfu.js`](../signaling-server/src/sfu.js), [`sfu-room.js`](../signaling-server/src/sfu-room.js)) | Recebe e repassa áudio e vídeo de todos, escolhendo a qualidade de cada vídeo conforme quem assiste. |
 | Dados (`DATA_DIR`) | Salas, canais, histórico, fotos e arquivos em JSON e em arquivos, sem banco de dados. |
 
 | Interface | O que passa por ela |
@@ -532,15 +532,15 @@ O fluxo mostra por que o upload vai primeiro por HTTP: antes de mandar qualquer 
 
 Na parte visual do app (`ui/`), as telas não sabem nada de WebRTC nem de como a rede funciona por baixo. A interface só chama operações diretas, tipo `call.join()`, `call.toggleMic()`, `call.startScreenShare()` e `call.sendChat()`. Como a mídia é negociada, quais transportes existem ou se a live tá saindo pelo navegador ou pela camada nativa em Rust, tudo isso fica escondido dentro da classe `Call` (abstração).
 
-No servidor a modularidade aparece bem fácil de ver: cada assunto do domínio virou um arquivo separado com sua própria suíte em `signaling-server/test/`. O `rooms.js` cuida da lotação das salas, o `directory.js` das salas fixas e senhas, o `channels.js` do histórico e o `media.js` dos arquivos. Já o que só existe em um sistema operacional, como o microfone nativo e o som por janela no Windows, foi isolado em plugins separados.
+No servidor a modularidade aparece bem fácil de ver: cada assunto do domínio virou um arquivo separado com sua própria suíte em [`signaling-server/test/`](../signaling-server/test/). O [`rooms.js`](../signaling-server/src/rooms.js) cuida da lotação das salas, o [`directory.js`](../signaling-server/src/directory.js) das salas fixas e senhas, o [`channels.js`](../signaling-server/src/channels.js) do histórico e o [`media.js`](../signaling-server/src/media.js) dos arquivos. Já o que só existe em um sistema operacional, como o microfone nativo e o som por janela no Windows, foi isolado em plugins separados.
 
 A gente também manteve separação de interesses em camadas: interface, lógica do cliente e código nativo ficam em pastas próprias (com a parte nativa em Rust). No servidor, a sinalização das mensagens corre separada do SFU, que só repassa os pacotes de áudio e vídeo sem nunca decodificar nada. E pro estado interno não virar bagunça, usamos campos e métodos privados do JS mesmo (`#closeTransports()` em `Call`, `#reconnectTimer` em `SignalingClient`), senhas guardadas apenas como *hash* com *salt*, e acesso ao histórico só pelas operações `post()`, `history()` e `quote()` do módulo de canais (encapsulamento).
 
 ## 19. Coesão e acoplamento
 
-Começando pela coesão, que é o quanto as partes de um módulo combinam entre si. Um bom exemplo é o `frontend/src/core/attachments.js`: tudo nele trata de um único assunto, reconhecer o tipo de um arquivo e tirar dele os dados de localização antes do envio. As funções recebem bytes e devolvem bytes, sem mexer na tela nem na rede, o que permite testar tudo isoladamente (`frontend/test/attachments.test.js`). Outro exemplo é o `signaling-server/src/channels.js`, que concentra tudo dos canais de texto: a lista, o histórico de 500 mensagens, as páginas de 50, a citação usada nas respostas e a gravação em disco. Se a política do histórico mudar (RN006, RN007), só esse arquivo muda.
+Começando pela coesão, que é o quanto as partes de um módulo combinam entre si. Um bom exemplo é o [`frontend/src/core/attachments.js`](../frontend/src/core/attachments.js): tudo nele trata de um único assunto, reconhecer o tipo de um arquivo e tirar dele os dados de localização antes do envio. As funções recebem bytes e devolvem bytes, sem mexer na tela nem na rede, o que permite testar tudo isoladamente ([`frontend/test/attachments.test.js`](../frontend/test/attachments.test.js)). Outro exemplo é o [`signaling-server/src/channels.js`](../signaling-server/src/channels.js), que concentra tudo dos canais de texto: a lista, o histórico de 500 mensagens, as páginas de 50, a citação usada nas respostas e a gravação em disco. Se a política do histórico mudar (RN006, RN007), só esse arquivo muda.
 
-Também vale mostrar um caso de coesão mais baixa, o `frontend/src/core/call.js`. A classe `Call` tem por volta de 1 100 linhas e cuida de entrar e sair da sala, microfone, câmera, transmissão, chat, estatísticas e reconexão da mídia. É tudo relacionado à chamada, mas várias dessas partes poderiam ser módulos próprios, e é isso que a refatoração da seção 21 propõe.
+Também vale mostrar um caso de coesão mais baixa, o [`frontend/src/core/call.js`](../frontend/src/core/call.js). A classe `Call` tem por volta de 1 100 linhas e cuida de entrar e sair da sala, microfone, câmera, transmissão, chat, estatísticas e reconexão da mídia. É tudo relacionado à chamada, mas várias dessas partes poderiam ser módulos próprios, e é isso que a refatoração da [seção 21](#21-refatoração-futura-proposta) propõe.
 
 No acoplamento, que é o quanto um módulo depende de outro, o melhor exemplo é a relação entre o app e o servidor. Os dois só compartilham o formato das mensagens JSON (I1), não compartilham código. Além disso, o servidor avisa quais recursos tem (as `features`, na resposta da entrada) e o app só usa o que ele oferece, então um app novo funciona com um servidor um pouco mais antigo. O limite é que uma mensagem nova, como a `profile`, é recusada por um servidor antigo, e aí o servidor tem que ser atualizado junto. O segundo exemplo está entre o domínio do servidor e a configuração: a classe `Rooms` recebe o limite de pessoas no construtor (`new Rooms({ maxPeersPerRoom })`) em vez de ler a variável de ambiente, e com isso os testes criam salas com outros limites sem mexer no ambiente.
 
@@ -555,14 +555,14 @@ Refinamento do RF010 — enviar imagens, GIFs e vídeos nos chats, do requisito 
 | Requisito | RF010: o usuário envia imagens, GIFs e vídeos nos chats das chamadas e nos canais. Restrições: RNF004 (tipos e tamanhos), RNF005 (localização removida), RN008 (8 MB e 50 MB), RN009 (só quem está no escopo vê). |
 | Caso de uso | UC08 Enviar imagem, GIF ou vídeo, que estende UC06 e UC07. |
 | Passos | 1. Escolher, arrastar ou colar o arquivo. 2. Conferir o tipo e o tamanho no próprio app, para avisar antes de enviar. 3. Remover os dados de localização. 4. Enviar por HTTP com o token da sessão, mostrando o progresso. 5. O servidor confere de novo o tipo (pelos primeiros bytes, não pelo nome) e o tamanho. 6. Enviar a mensagem com o id do arquivo. 7. O servidor liga o arquivo ao canal ou à sala da mensagem. 8. Quem está no escopo baixa e vê o arquivo; os outros recebem erro. |
-| Componentes | Passo 1: `ui/attach.js`. Passos 2–3: `core/attachments.js`. Passo 4: `core/attachment-net.js`. Passos 5 e 7: `signaling-server/src/media.js`. Passo 6: `server.js` (`channel-send` ou `chat`). Passo 8: `ui/chat-media.js` e a rota `/media/<id>` do servidor. |
-| Testes | `frontend/test/attachments.test.js`, `frontend/test/media.test.js` e `signaling-server/test/media.test.js`. |
+| Componentes | Passo 1: [`ui/attach.js`](../frontend/src/ui/attach.js). Passos 2–3: [`core/attachments.js`](../frontend/src/core/attachments.js). Passo 4: [`core/attachment-net.js`](../frontend/src/core/attachment-net.js). Passos 5 e 7: [`signaling-server/src/media.js`](../signaling-server/src/media.js). Passo 6: [`server.js`](../signaling-server/src/server.js) (`channel-send` ou `chat`). Passo 8: [`ui/chat-media.js`](../frontend/src/ui/chat-media.js) e a rota `/media/<id>` do servidor. |
+| Testes | [`frontend/test/attachments.test.js`](../frontend/test/attachments.test.js), [`frontend/test/media.test.js`](../frontend/test/media.test.js) e [`signaling-server/test/media.test.js`](../signaling-server/test/media.test.js). |
 
 A validação acontece duas vezes de propósito, nos passos 2 e 5: no app, para avisar rápido, e no servidor, porque o servidor não pode confiar no que o app manda.
 
 ## 21. Refatoração futura proposta
 
-Como vimos na seção 19, a classe `Call` (`core/call.js`, por volta de 1 100 linhas) junta responsabilidades demais. No servidor acontece algo parecido: o tratamento das mensagens em `server.js` (umas 700 linhas) é uma sequência comprida de `if (msg.type === …) … else if …`.
+Como vimos na [seção 19](#19-coesão-e-acoplamento), a classe `Call` ([`core/call.js`](../frontend/src/core/call.js), por volta de 1 100 linhas) junta responsabilidades demais. No servidor acontece algo parecido: o tratamento das mensagens em [`server.js`](../signaling-server/src/server.js) (umas 700 linhas) é uma sequência comprida de `if (msg.type === …) … else if …`.
 
 A proposta é dividir a `Call` em partes menores, cada uma com uma responsabilidade: `MicController` para o microfone e seus filtros, `ScreenShare` para a transmissão (do navegador ou nativa), `CallChat` para o chat da chamada e `MediaSession` para os transportes, *producers* e *consumers*. A `Call` continuaria existindo como fachada (padrão *Facade*), então a interface continua chamando `call.toggleMic()`, e por dentro a chamada é repassada para o `MicController`. No servidor, o `if/else` viraria um mapa de tratadores, algo como `const handlers = { join, chat, 'channel-send': channelSend, … }`, com cada tratador no arquivo do seu assunto.
 
@@ -570,7 +570,7 @@ Com isso cada parte pode ser testada sozinha, mexer na transmissão não arrisca
 
 ## 22. Telas e navegação
 
-As telas abaixo são de média fidelidade: em tons de cinza, sem as cores do app, mostrando a disposição e o conteúdo. Os números nos círculos são citados na explicação de cada tela. Arquivos: `03-arquitetura/telas/`.
+As telas abaixo são de média fidelidade: em tons de cinza, sem as cores do app, mostrando a disposição e o conteúdo. Os números nos círculos são citados na explicação de cada tela. Arquivos: [`03-arquitetura/telas/`](../03-arquitetura/telas/).
 
 **Figura 5 — Tela 1: Configurações do servidor (administrador).**
 
@@ -630,7 +630,7 @@ O participante passa quase todo o tempo na Tela 2. Entrar numa sala leva à Tela
 
 O Jay-C foi feito de forma incremental. Cada etapa entrega alguma coisa funcionando e testável, com um critério de "pronto quando…" definido antes de começar. No meio disso a gente usa práticas ágeis simples: lista de tarefas priorizada, revisão quando fecha uma fase e ajuste de rumo se os testers acharem algum problema.
 
-Um modelo em cascata com tudo fechado desde o começo não ia funcionar aqui. Logo no início havia partes de risco técnico alto — tipo capturar o som de um único app no Windows ou repassar vídeo pra 16 pessoas — que podiam simplesmente não dar certo na prática. Então fizemos protótipos de risco (*spikes*) bem cedo, antes de muito código depender deles (a etapa 6 tá documentada em `docs/spikes/`). Além disso, dava pra testar valor real cedo: em poucas etapas já existia chamada rodando, e depois foram entrando transmissão, áudio do app, PiP e os canais. Vários requisitos inclusive apareceram só depois que gente de fora usou, como responder mensagem nos canais (`RF012`), e dividir em ciclos curtos ajuda uma equipe pequena a ir entregando e conferindo sem travar.
+Um modelo em cascata com tudo fechado desde o começo não ia funcionar aqui. Logo no início havia partes de risco técnico alto — tipo capturar o som de um único app no Windows ou repassar vídeo pra 16 pessoas — que podiam simplesmente não dar certo na prática. Então fizemos protótipos de risco (*spikes*) bem cedo, antes de muito código depender deles (a etapa 6 tá documentada em [`docs/spikes/`](../docs/spikes/)). Além disso, dava pra testar valor real cedo: em poucas etapas já existia chamada rodando, e depois foram entrando transmissão, áudio do app, PiP e os canais. Vários requisitos inclusive apareceram só depois que gente de fora usou, como responder mensagem nos canais (`RF012`), e dividir em ciclos curtos ajuda uma equipe pequena a ir entregando e conferindo sem travar.
 
 **Figura 9 — Ciclo de cada etapa.** As setas pra frente mostram a ordem normal de cada ciclo; as setas de volta mostram o que acontece quando um teste falha ou quando os testers pedem ajuste.
 
@@ -663,9 +663,9 @@ Cada etapa fecha um incremento testável: primeiro escolhemos o escopo da lista,
 | Papel | Responsabilidades | Entregáveis | Integrante |
 |---|---|---|---|
 | Requisitos | Levantar e escrever os requisitos funcionais, não funcionais e as regras de negócio, com prioridade | Tabela de requisitos e regras | Cristofer Dvorecky Oliveira |
-| Modelagem | Casos de uso, descrições dos casos de uso e diagrama de classes de domínio | Diagramas e descrições (seção 4.3) | Guilherme Perpétuo |
-| Verificação e validação | Revisar os requisitos e os modelos, diferenciar e conduzir verificação e validação, conferir a rastreabilidade | Revisão dos artefatos, seção de verificação e validação | Augusto do Amarante |
-| Testes e manutenção | Atributos de qualidade, casos de teste, matriz de rastreabilidade, mudanças futuras, análise de impacto e riscos | Seções 4.6 e 4.7 | Henrique Augusto |
+| Modelagem | Casos de uso, descrições dos casos de uso e diagrama de classes de domínio | Diagramas e descrições ([seção 4.3](#43-modelagem-de-análise)) | Guilherme Perpétuo |
+| Verificação e validação | Revisar os requisitos e os modelos, diferenciar e conduzir verificação e validação, conferir a rastreabilidade | Revisão dos artefatos, [seção 28](#28-verificação-e-validação) | Augusto do Amarante |
+| Testes e manutenção | Atributos de qualidade, casos de teste, matriz de rastreabilidade, mudanças futuras, análise de impacto e riscos | [Seções 4.6](#46-qualidade-verificação-e-validação) e [4.7](#47-manutenção-e-evolução) | Henrique Augusto |
 | Desenvolvimento e verificação final | Desenvolver o aplicativo e o servidor; conferir todos os artefatos contra o sistema real | Jay-C (código, instalador, APK); revisão final do dossiê | Mateus Valenga |
 
 ## 24. Plano simplificado de execução
@@ -723,7 +723,7 @@ flowchart LR
 
 Para o controle de versões usamos Git e GitHub. Fica tudo num repositório só (monorepo): o app, o servidor, os plugins e a documentação. Assim, quando o protocolo muda, o servidor e o app mudam no mesmo commit. Os commits são pequenos, cada um com um assunto e um corpo explicando o que mudou, por quê e o que foi verificado, e um commit não mistura duas mudanças sem relação entre si.
 
-O ramo principal (`main`) precisa estar sempre funcionando. A cada envio, a integração contínua (`.github/workflows/ci.yml`) roda os testes de JavaScript do servidor e do app, os testes de Rust no Windows e o build da imagem Docker. Mudança maior ou arriscada é feita num ramo separado e só entra no `main` depois de testada. As versões seguem o versionamento semântico (`MAIOR.MENOR.CORREÇÃO`): da 0.5.4 para a 0.5.5 foi só uma correção, já da 0.4 para a 0.5 vieram os servidores com canais. Cada versão ganha uma tag (`v0.5.5`), e a tag dispara o build do instalador, que fica num rascunho de release até alguém escrever as notas e publicar. Algumas coisas nunca vão para o repositório: a chave que assina o APK, senhas e os dados reais do servidor, como salas, histórico e endereços de IP.
+O ramo principal (`main`) precisa estar sempre funcionando. A cada envio, a integração contínua ([`.github/workflows/ci.yml`](../.github/workflows/ci.yml)) roda os testes de JavaScript do servidor e do app, os testes de Rust no Windows e o build da imagem Docker. Mudança maior ou arriscada é feita num ramo separado e só entra no `main` depois de testada. As versões seguem o versionamento semântico (`MAIOR.MENOR.CORREÇÃO`): da 0.5.4 para a 0.5.5 foi só uma correção, já da 0.4 para a 0.5 vieram os servidores com canais. Cada versão ganha uma tag (`v0.5.5`), e a tag dispara o build do instalador, que fica num rascunho de release até alguém escrever as notas e publicar. Algumas coisas nunca vão para o repositório: a chave que assina o APK, senhas e os dados reais do servidor, como salas, histórico e endereços de IP.
 
 Para controlar as mudanças, seguimos o fluxo da Figura 11.
 
@@ -742,9 +742,9 @@ flowchart LR
 
 Antes de sair codando qualquer pedido novo, ele passa pela lista de tarefas e pela análise do que vai mexer (requisitos, modelos e testes). Se não for prioridade agora, fica registrado pra depois; se entrar, a documentação atualiza junto com o código e o commit leva o ID da tarefa.
 
-Um exemplo real: os testers da versão 0.5.1 pediram, entre outras coisas, para poder responder mensagens nos canais. O pedido entrou na lista de tarefas (na parte "Sugestões dos testers", em `tasks/todo.md`), virou o requisito RF012 e a regra RN012, foi implementado com testes e saiu na versão 0.5.2.
+Um exemplo real: os testers da versão 0.5.1 pediram, entre outras coisas, para poder responder mensagens nos canais. O pedido entrou na lista de tarefas (na parte "Sugestões dos testers", em [`tasks/todo.md`](../tasks/todo.md)), virou o requisito RF012 e a regra RN012, foi implementado com testes e saiu na versão 0.5.2.
 
-A rastreabilidade se apoia nos IDs. Cada requisito, regra, caso de uso e caso de teste tem um ID único (RF, RNF, RN, UC, CT). Os casos de uso e os elementos dos modelos citam os IDs que representam (seções 13 e 16), o refinamento liga os componentes aos requisitos (seção 20) e as tarefas do plano dizem quais requisitos entregam (seção 24). Os commits também citam o ID da tarefa, como em "APK de release assinado (14.B)", e assim o código chega até a tarefa e, por ela, ao requisito. A matriz de rastreabilidade da seção 29 fecha o ciclo, indo do requisito ao componente e daí ao caso de teste. Quando um requisito muda, é por ela que sabemos o que revisar.
+A rastreabilidade se apoia nos IDs. Cada requisito, regra, caso de uso e caso de teste tem um ID único (RF, RNF, RN, UC, CT). Os casos de uso e os elementos dos modelos citam os IDs que representam ([seções 13](#13-diagrama-de-casos-de-uso) e [16](#16-como-os-modelos-representam-os-requisitos-e-as-regras)), o refinamento liga os componentes aos requisitos ([seção 20](#20-refinamento-de-uma-funcionalidade)) e as tarefas do plano dizem quais requisitos entregam ([seção 24](#24-plano-simplificado-de-execução)). Os commits também citam o ID da tarefa, como em "APK de release assinado (14.B)", e assim o código chega até a tarefa e, por ela, ao requisito. A matriz de rastreabilidade da [seção 29](#29-matriz-de-rastreabilidade) fecha o ciclo, indo do requisito ao componente e daí ao caso de teste. Quando um requisito muda, é por ela que sabemos o que revisar.
 
 ---
 
@@ -760,8 +760,8 @@ Seleção e avaliação de quatro atributos seguindo o FURPS visto em aula (Dese
 |---|---|---|
 | Desempenho | Manter áudio e vídeo fluindo sem engasgos mesmo com 16 pessoas na sala, além de transmissão de tela em 1080p60 sem travar o PC. | Teste com 16 participantes simultâneos (RNF001) e conferência das estatísticas `inbound-rtp` (resolução e qps) e uso de CPU durante a live nativa (RNF010). |
 | Confiabilidade | Se a rede cair ou o servidor reiniciar, o app tenta voltar sozinho para a chamada e o servidor não corrompe as salas nem o histórico salvo. | Derrubar e religar o servidor no meio de uma call para validar a reconexão automática (RNF007) e testar a gravação atômica de `rooms.json` e dos canais após reinício. |
-| Usabilidade | Interface direta de usar no desktop e no celular, com contraste legível entre texto e fundo nos dois temas e nos três estilos visuais. | Auditoria automatizada de contraste WCAG ≥ 4,5:1 via `contrast-audit.js` / `npm test` nos 6 combos (RNF009) e sessões reais de uso com testers. |
-| Suportabilidade (Manutenibilidade) | Código separado por responsabilidade e fácil de testar e atualizar sem quebrar o que já funciona. | Execução contínua da suíte `npm test` (servidor e frontend) e `cargo test` no CI (`.github/workflows/ci.yml`), além da separação em módulos pequenos (`rooms.js`, `channels.js`, `attachments.js`). |
+| Usabilidade | Interface direta de usar no desktop e no celular, com contraste legível entre texto e fundo nos dois temas e nos três estilos visuais. | Auditoria automatizada de contraste WCAG ≥ 4,5:1 via [`contrast-audit.js`](../scripts/contrast-audit.js) / `npm test` nos 6 combos (RNF009) e sessões reais de uso com testers. |
+| Suportabilidade (Manutenibilidade) | Código separado por responsabilidade e fácil de testar e atualizar sem quebrar o que já funciona. | Execução contínua da suíte `npm test` (servidor e frontend) e `cargo test` no CI ([`.github/workflows/ci.yml`](../.github/workflows/ci.yml)), além da separação em módulos pequenos ([`rooms.js`](../signaling-server/src/rooms.js), [`channels.js`](../signaling-server/src/channels.js), [`attachments.js`](../frontend/src/core/attachments.js)). |
 
 ## 27. Casos de teste
 
@@ -805,36 +805,36 @@ Diferenciação entre Verificação e Validação
 
 | Requisito | Componente / Módulo | Casos de Teste |
 |---|---|---|
-| RF001 — Configuração de Servidor | `core/server-address.js`, `core/signaling.js` (UC01) | CT01 |
-| RF002 — Visualizar salas e canais | `ui/channel-list.js`, `directory.js` (UC01) | CT01, CT10 |
-| RF003 — Entrada em Salas | `core/call.js`, `rooms.js` (UC02) | CT02, CT03 |
-| RF004 — Salas Protegidas por Senha | `ui/lobby.js`, `directory.js` (UC02 / UC02b) | CT04 |
-| RF005 — Chamadas de voz e vídeo | `core/call.js`, `sfu-room.js` (UC03) | CT02 |
-| RF006 — Microfone e câmera | `core/call.js`, `ui/control-bar.js` (UC03) | CT17 |
-| RF007 — Transmissão de tela | `core/call.js`, `native_live`, plugin `system-audio` (UC04) | CT13 |
-| RF008 — Qualidade da transmissão | `ui/share-panel.js`, `core/media.js` (UC04) | CT13 |
-| RF009 — Mensagens de Chat | `ui/chat-panel.js`, `server.js` (UC06) | CT05, CT06 |
-| RF010 — Envio de Mídia | `ui/attach.js`, `core/attachments.js`, `media.js` (UC08) | CT07, CT12, CT19 |
-| RF011 — Canais com histórico | `ui/text-channel.js`, `channels.js` (UC07) | CT14 |
-| RF012 — Responder mensagens | `ui/text-channel.js`, `channels.js` (UC07) | CT14 |
-| RF013 — Perfil | `ui/avatar-editor.js`, `avatars.js` (UC09) | — |
-| RF014 — Gestão Administrativa de salas | `ui/server-settings-modal.js`, `directory.js` (UC11) | CT08 |
-| RF015 — Gestão de canais | `ui/server-settings-modal.js`, `channels.js` (UC12) | CT18 |
-| RF016 — Senha e sala oculta | `directory.js` (UC11) | CT10 |
-| RF017 — PiP | `core/pip.js`, plugin `pip` (UC05) | — |
-| RF018 — Temas | `core/style.js`, `ui/theme.js` (UC09) | CT15 |
-| RF019 — Guia | `ui/setup-guide-modal.js`, `ui/welcome-modal.js` (UC10) | — |
-| RF020 — Sair da sala | `core/call.js` (UC03) | CT17 |
-| RNF001 — 16 participantes | `rooms.js`, `sfu-room.js` | CT02 |
-| RNF002 — Chave de administrador | `server.js`, `ui/admin-key-field.js` (UC13) | CT08, CT18 |
-| RNF003 — Acesso aos arquivos | `media.js` | CT11 |
-| RNF004 — Tipos e tamanhos | `media.js`, `ui/attach.js` | CT07, CT19 |
-| RNF005 — Localização removida | `core/attachments.js` | CT12 |
-| RNF006 — `/health` | `server.js` | CT16 |
-| RNF007 — Reconexão | `core/signaling.js`, `core/call.js` | CT09 |
+| RF001 — Configuração de Servidor | [`core/server-address.js`](../frontend/src/core/server-address.js), [`core/signaling.js`](../frontend/src/core/signaling.js) (UC01) | CT01 |
+| RF002 — Visualizar salas e canais | [`ui/channel-list.js`](../frontend/src/ui/channel-list.js), [`directory.js`](../signaling-server/src/directory.js) (UC01) | CT01, CT10 |
+| RF003 — Entrada em Salas | [`core/call.js`](../frontend/src/core/call.js), [`rooms.js`](../signaling-server/src/rooms.js) ([UC02](#uc02--entrar-em-uma-sala)) | CT02, CT03 |
+| RF004 — Salas Protegidas por Senha | [`ui/lobby.js`](../frontend/src/ui/lobby.js), [`directory.js`](../signaling-server/src/directory.js) ([UC02](#uc02--entrar-em-uma-sala) / UC02b) | CT04 |
+| RF005 — Chamadas de voz e vídeo | [`core/call.js`](../frontend/src/core/call.js), [`sfu-room.js`](../signaling-server/src/sfu-room.js) (UC03) | CT02 |
+| RF006 — Microfone e câmera | [`core/call.js`](../frontend/src/core/call.js), [`ui/control-bar.js`](../frontend/src/ui/control-bar.js) (UC03) | CT17 |
+| RF007 — Transmissão de tela | [`core/call.js`](../frontend/src/core/call.js), [`native_live`](../frontend/src-tauri/src/native_live/), plugin [`system-audio`](../plugins/tauri-plugin-system-audio/) ([UC04](#uc04--transmitir-a-tela)) | CT13 |
+| RF008 — Qualidade da transmissão | [`ui/share-panel.js`](../frontend/src/ui/share-panel.js), [`core/media.js`](../frontend/src/core/media.js) ([UC04](#uc04--transmitir-a-tela)) | CT13 |
+| RF009 — Mensagens de Chat | [`ui/chat-panel.js`](../frontend/src/ui/chat-panel.js), [`server.js`](../signaling-server/src/server.js) (UC06) | CT05, CT06 |
+| RF010 — Envio de Mídia | [`ui/attach.js`](../frontend/src/ui/attach.js), [`core/attachments.js`](../frontend/src/core/attachments.js), [`media.js`](../signaling-server/src/media.js) (UC08) | CT07, CT12, CT19 |
+| RF011 — Canais com histórico | [`ui/text-channel.js`](../frontend/src/ui/text-channel.js), [`channels.js`](../signaling-server/src/channels.js) (UC07) | CT14 |
+| RF012 — Responder mensagens | [`ui/text-channel.js`](../frontend/src/ui/text-channel.js), [`channels.js`](../signaling-server/src/channels.js) (UC07) | CT14 |
+| RF013 — Perfil | [`ui/avatar-editor.js`](../frontend/src/ui/avatar-editor.js), [`avatars.js`](../signaling-server/src/avatars.js) (UC09) | — |
+| RF014 — Gestão Administrativa de salas | [`ui/server-settings-modal.js`](../frontend/src/ui/server-settings-modal.js), [`directory.js`](../signaling-server/src/directory.js) ([UC11](#uc11--gerenciar-salas)) | CT08 |
+| RF015 — Gestão de canais | [`ui/server-settings-modal.js`](../frontend/src/ui/server-settings-modal.js), [`channels.js`](../signaling-server/src/channels.js) (UC12) | CT18 |
+| RF016 — Senha e sala oculta | [`directory.js`](../signaling-server/src/directory.js) ([UC11](#uc11--gerenciar-salas)) | CT10 |
+| RF017 — PiP | [`core/pip.js`](../frontend/src/core/pip.js), plugin [`pip`](../plugins/tauri-plugin-pip/) (UC05) | — |
+| RF018 — Temas | [`core/style.js`](../frontend/src/core/style.js), [`ui/theme.js`](../frontend/src/ui/theme.js) (UC09) | CT15 |
+| RF019 — Guia | [`ui/setup-guide-modal.js`](../frontend/src/ui/setup-guide-modal.js), [`ui/welcome-modal.js`](../frontend/src/ui/welcome-modal.js) (UC10) | — |
+| RF020 — Sair da sala | [`core/call.js`](../frontend/src/core/call.js) (UC03) | CT17 |
+| RNF001 — 16 participantes | [`rooms.js`](../signaling-server/src/rooms.js), [`sfu-room.js`](../signaling-server/src/sfu-room.js) | CT02 |
+| RNF002 — Chave de administrador | [`server.js`](../signaling-server/src/server.js), [`ui/admin-key-field.js`](../frontend/src/ui/admin-key-field.js) (UC13) | CT08, CT18 |
+| RNF003 — Acesso aos arquivos | [`media.js`](../signaling-server/src/media.js) | CT11 |
+| RNF004 — Tipos e tamanhos | [`media.js`](../signaling-server/src/media.js), [`ui/attach.js`](../frontend/src/ui/attach.js) | CT07, CT19 |
+| RNF005 — Localização removida | [`core/attachments.js`](../frontend/src/core/attachments.js) | CT12 |
+| RNF006 — `/health` | [`server.js`](../signaling-server/src/server.js) | CT16 |
+| RNF007 — Reconexão | [`core/signaling.js`](../frontend/src/core/signaling.js), [`core/call.js`](../frontend/src/core/call.js) | CT09 |
 | RNF008 — Plataformas | instalador e APK | teste manual |
-| RNF009 — Temas legíveis | `styles/theme.css` | CT15 |
-| RNF010 — 1080p60 | `core/media.js`, `native_live` | CT13 |
+| RNF009 — Temas legíveis | [`styles/theme.css`](../frontend/src/styles/theme.css) | CT15 |
+| RNF010 — 1080p60 | [`core/media.js`](../frontend/src/core/media.js), [`native_live`](../frontend/src-tauri/src/native_live/) | CT13 |
 
 As regras de negócio seguem pelos requisitos: RN001 → CT02, CT03; RN002 → CT04; RN003 → CT10; RN004 → CT08, CT18; RN005 → CT05, CT06; RN008 → CT07, CT19; RN009 → CT11; RN012 → CT14. As RN006, RN007, RN010 e RN011 são cobertas pelos testes automáticos do servidor. Os poucos casos com "—" (`RF013`, `RF017`, `RF019`) são verificados manualmente nas builds de Windows e Android.
 
@@ -857,7 +857,7 @@ As regras de negócio seguem pelos requisitos: RN001 → CT02, CT03; RN002 → C
 - Justificativa: melhora um recurso que já existe no app e deixa o uso dos canais mais prático. Notificações *push* com o app fechado ficam de fora porque pediriam um servidor central.
 
 **Manutenção Preventiva**
-- Proposta: aplicar a refatoração planejada na seção 21 — quebrar a classe `Call` (`core/call.js`, ~1 100 linhas) em módulos menores por trás de uma fachada, transformar o `if/else` de `server.js` num mapa de tratadores e isolar a leitura/gravação de `directory.js` e `channels.js` numa interface única de persistência em disco.
+- Proposta: aplicar a refatoração planejada na [seção 21](#21-refatoração-futura-proposta) — quebrar a classe `Call` ([`core/call.js`](../frontend/src/core/call.js), ~1 100 linhas) em módulos menores por trás de uma fachada, transformar o `if/else` de [`server.js`](../signaling-server/src/server.js) num mapa de tratadores e isolar a leitura/gravação de [`directory.js`](../signaling-server/src/directory.js) e [`channels.js`](../signaling-server/src/channels.js) numa interface única de persistência em disco.
 - Justificativa: reduz acoplamento antes que novas features deixem esses arquivos difíceis de mexer e facilita manter os testes automatizados sem alterar o que o usuário vê hoje.
 
 ## 31. Análise de impacto
@@ -865,7 +865,7 @@ As regras de negócio seguem pelos requisitos: RN001 → CT02, CT03; RN002 → C
 A inclusão dos Alertas Configuráveis por Canal mexe com os seguintes pontos do projeto:
 
 - Requisitos: entra um Requisito Funcional novo (`RF021`, escolher o nível de alerta por canal e ignorar mensagens enviadas pelo próprio usuário) e um Não Funcional (`RNF011`, o alerta sonoro toca em até 1 segundo após a mensagem chegar).
-- Arquitetura: altera o módulo que já existe (`core/mention-alert.js`) e o armazenamento de preferências (`store/settings.js`), além da UI do canal (`ui/text-channel.js`). Tudo fica local no app; o servidor e o protocolo não mudam.
+- Arquitetura: altera o módulo que já existe ([`core/mention-alert.js`](../frontend/src/core/mention-alert.js)) e o armazenamento de preferências ([`store/settings.js`](../frontend/src/store/settings.js)), além da UI do canal ([`ui/text-channel.js`](../frontend/src/ui/text-channel.js)). Tudo fica local no app; o servidor e o protocolo não mudam.
 - Diagramas: no Diagrama de Classes de domínio, entra a classe `PreferenciaDeAlerta` ligada a `CanalDeTexto`; nos Casos de Uso, entra um novo caso estendendo `UC07`; e vale criar um Diagrama de Sequência mostrando a consulta da preferência quando uma mensagem chega.
 - Testes: criar casos de teste pros três modos de alerta e conferir que a própria mensagem nunca dispara som. O `CT14` segue rodando como teste de regressão.
 
@@ -883,13 +883,13 @@ A inclusão dos Alertas Configuráveis por Canal mexe com os seguintes pontos do
 
 ## 33. Conclusão
 
-Olhando pro problema lá da seção 2, o Jay-C resolveu o principal por quatro escolhas que fomos fechando durante o projeto. Tirar contas e deixar o servidor na mão do próprio grupo tirou a dependência de plataforma centralizada — o controle de quem entra vem só da senha da sala, das salas ocultas e da chave de administrador. Em vez de ligar todo mundo com todo mundo (o que mataria o upload de quem hospeda), colocamos um SFU no servidor pra cada participante enviar seu vídeo uma vez só, aguentando 16 pessoas e live em pelo menos 1080p60. E onde o navegador não deu conta, como no microfone que abafava outros apps e na captura de som por janela, descemos pra uma camada nativa em Rust, guiada por um processo incremental com protótipos de risco pra testar cedo o que podia dar errado.
+Olhando pro problema lá da [seção 2](#2-problema), o Jay-C resolveu o principal por quatro escolhas que fomos fechando durante o projeto. Tirar contas e deixar o servidor na mão do próprio grupo tirou a dependência de plataforma centralizada — o controle de quem entra vem só da senha da sala, das salas ocultas e da chave de administrador. Em vez de ligar todo mundo com todo mundo (o que mataria o upload de quem hospeda), colocamos um SFU no servidor pra cada participante enviar seu vídeo uma vez só, aguentando 16 pessoas e live em pelo menos 1080p60. E onde o navegador não deu conta, como no microfone que abafava outros apps e na captura de som por janela, descemos pra uma camada nativa em Rust, guiada por um processo incremental com protótipos de risco pra testar cedo o que podia dar errado.
 
-Não faltaram perrengues no caminho. Em vários notebooks o microfone do navegador jogava o Windows pro "modo chamada" e derrubava o volume dos outros programas em uns 65 dB, então tivemos que escrever um microfone nativo com cancelamento de eco próprio (`docs/spikes/09-som-abafado.md`). A captura do som de um único app dependia de uma API pouco documentada do Windows, que só deu pra entender na prática medindo (`docs/spikes/06-transmissoes.md`). Na transmissão nativa, quadros-chave grandes demais travavam quem tava em rede pior, obrigando a limitar o codificador e adaptar a qualidade (`docs/spikes/10-live-nativa.md`). Tambem teve problema que só apareceu fora da máquina de dev, como notebook com duas placas de vídeo falhando na live nativa e um enrosco de proxy segurando a publicação de uma versão.
+Não faltaram perrengues no caminho. Em vários notebooks o microfone do navegador jogava o Windows pro "modo chamada" e derrubava o volume dos outros programas em uns 65 dB, então tivemos que escrever um microfone nativo com cancelamento de eco próprio ([`docs/spikes/09-som-abafado.md`](../docs/spikes/09-som-abafado.md)). A captura do som de um único app dependia de uma API pouco documentada do Windows, que só deu pra entender na prática medindo ([`docs/spikes/06-transmissoes.md`](../docs/spikes/06-transmissoes.md)). Na transmissão nativa, quadros-chave grandes demais travavam quem tava em rede pior, obrigando a limitar o codificador e adaptar a qualidade ([`docs/spikes/10-live-nativa.md`](../docs/spikes/10-live-nativa.md)). Tambem teve problema que só apareceu fora da máquina de dev, como notebook com duas placas de vídeo falhando na live nativa e um enrosco de proxy segurando a publicação de uma versão.
 
 O maior aprendizado foi medir antes de assumir qualquer coisa. Várias certezas que a gente tinha ("o som tá saindo certo" ou "o codificador respeita o limite") estavam erradas, e só os testes e medições mostraram. Também ficou claro que testar os spikes cedo salva retrabalho na arquitetura, que usuários reais acham coisa que teste automático nenhum pega (o `RF012` e o bug do áudio pra quem entra depois vieram deles) e que amarrar requisitos, modelos e testes por ID deixa qualquer análise de impacto bem mais tranquila.
 
-Mesmo assim o sistema tem limitações claras. Não existe criptografia de ponta a ponta, então todo mundo da sala precisa confiar em quem hospeda o servidor. Ainda não tem versão pra iOS, macOS ou Linux, e o áudio por programa na transmissão é exclusivo do Windows. O instalador do Windows não tem certificado pago de assinatura de código, por isso o SmartScreen mostra aviso na primeira execução. Além disso, quem hospeda precisa de upload bom (uma live em 1080p60 pra 15 pessoas pede uns 90 Mbps de saída do servidor), tem o defeito em aberto citado na seção 30, e testes como o `CT02` com 16 pessoas ou o `RNF008` nas duas plataformas dependem de execução manual com várias máquinas.
+Mesmo assim o sistema tem limitações claras. Não existe criptografia de ponta a ponta, então todo mundo da sala precisa confiar em quem hospeda o servidor. Ainda não tem versão pra iOS, macOS ou Linux, e o áudio por programa na transmissão é exclusivo do Windows. O instalador do Windows não tem certificado pago de assinatura de código, por isso o SmartScreen mostra aviso na primeira execução. Além disso, quem hospeda precisa de upload bom (uma live em 1080p60 pra 15 pessoas pede uns 90 Mbps de saída do servidor), tem o defeito em aberto citado na [seção 30](#30-mudanças-futuras-por-tipo-de-manutenção), e testes como o `CT02` com 16 pessoas ou o `RNF008` nas duas plataformas dependem de execução manual com várias máquinas.
 
 ## 34. Referências
 
@@ -913,21 +913,21 @@ Mesmo assim o sistema tem limitações claras. Não existe criptografia de ponta
 - MERMAID. *Mermaid: diagramming and charting tool*. Disponível em: https://mermaid.js.org/. Acesso em: 15 nov. 2026.
 
 **Fontes do próprio projeto:**
-- VALENGA, Mateus. *Jay-C*. Repositório GitHub. Disponível em: https://github.com/TyxMatty/Jay-C (código, `docs/ARQUITETURA.md`, `docs/spikes/`, `tasks/todo.md` e notas das versões). Acesso em: 15 nov. 2026.
+- VALENGA, Mateus. *Jay-C*. Repositório GitHub. Disponível em: https://github.com/TyxMatty/Jay-C (código, [`docs/ARQUITETURA.md`](../docs/ARQUITETURA.md), [`docs/spikes/`](../docs/spikes/), [`tasks/todo.md`](../tasks/todo.md) e notas das versões). Acesso em: 15 nov. 2026.
 
 **Ferramentas:** Git e GitHub (versões e integração contínua), Mermaid (diagramas), [preencher: editor do documento e ferramenta usada para gerar o PDF].
 
-**Uso de inteligência artificial.** Usamos o Claude (Anthropic) como apoio durante o desenvolvimento do Jay-C e na organização deste dossiê. Os requisitos vieram da planilha levantada pelo Cristofer (`TabelaRequisitos.xlsx`), a modelagem da parte do Guilherme, os testes e manutenção da base escrita pelo Henrique e o código/documentação técnica do sistema do Mateus; a IA ajudou a estruturar as seções em Markdown, revisar o texto e conferir os números e fluxos contra o código-fonte. Todo o conteúdo gerado ou ajustado foi revisado criticamente pela equipe.
+**Uso de inteligência artificial.** Usamos o Claude (Anthropic) como apoio durante o desenvolvimento do Jay-C e na organização deste dossiê. Os requisitos vieram da planilha levantada pelo Cristofer ([`TabelaRequisitos.xlsx`](../TabelaRequisitos.xlsx)), a modelagem da parte do Guilherme, os testes e manutenção da base escrita pelo Henrique e o código/documentação técnica do sistema do Mateus; a IA ajudou a estruturar as seções em Markdown, revisar o texto e conferir os números e fluxos contra o código-fonte. Todo o conteúdo gerado ou ajustado foi revisado criticamente pela equipe.
 
 ## 35. Quadro de contribuição individual
 
 | Integrante | Atividades | Evidências |
 |---|---|---|
-| Augusto do Amarante (GitHub: @gusg543) | Verificação e validação: revisão dos requisitos e modelos, diferença entre verificação e validação com exemplos do sistema (seção 28) | [preencher: documento ou revisão entregue] |
-| Cristofer Dvorecky Oliveira (GitHub: @CristoferDOliveira) | Tabela de requisitos: requisitos funcionais, não funcionais e regras de negócio (seções 9 a 11) | `TabelaRequisitos.xlsx` |
-| Guilherme Perpétuo (GitHub: @Gui135-dev) | Modelagem: casos de uso, descrições e diagrama de classes (seções 13 a 16) | [preencher: diagramas entregues] |
-| Henrique Augusto (GitHub: @Henrique_Dutr4) | Testes e manutenção: atributos de qualidade, CT01–CT08, matriz de rastreabilidade (base da seção 4.6); tipos de manutenção, análise de impacto e riscos (base da seção 4.7) | Documentos "Testes do Sistema — JAY-C" e "Manutenção do Sistema e Mudanças Futuras" |
-| Mateus Valenga (GitHub: @TyxMatty) | Desenvolvimento do Jay-C (aplicativo e servidor); verificação final de todos os artefatos contra o sistema real | Histórico de commits e versões publicadas no repositório |
+| Augusto do Amarante (GitHub: @gusg543) | Verificação e validação: revisão dos requisitos e modelos, diferença entre verificação e validação com exemplos do sistema ([seção 28](#28-verificação-e-validação)) | [preencher: documento ou revisão entregue] |
+| Cristofer Dvorecky Oliveira (GitHub: @CristoferDOliveira) | Tabela de requisitos: requisitos funcionais, não funcionais e regras de negócio ([seções 9 a 11](#9-requisitos-funcionais)) | [`TabelaRequisitos.xlsx`](../TabelaRequisitos.xlsx) |
+| Guilherme Perpétuo (GitHub: @Gui135-dev) | Modelagem: casos de uso, descrições e diagrama de classes ([seções 13 a 16](#13-diagrama-de-casos-de-uso)) | [preencher: diagramas entregues] |
+| Henrique Augusto (GitHub: @Henrique_Dutr4) | Testes e manutenção: atributos de qualidade, CT01–CT08, matriz de rastreabilidade (base da [seção 4.6](#46-qualidade-verificação-e-validação)); tipos de manutenção, análise de impacto e riscos (base da [seção 4.7](#47-manutenção-e-evolução)) | Documentos "Testes do Sistema — JAY-C" e "Manutenção do Sistema e Mudanças Futuras" |
+| Mateus Valenga (GitHub: @TyxMatty) | Desenvolvimento do Jay-C (aplicativo e servidor); verificação final de todos os artefatos contra o sistema real | Histórico de commits e versões publicadas no repositório e desenvolvimento de todo produto "Jay-C" |
 
 ## 36. Declaração de participação
 
@@ -939,4 +939,4 @@ Declaramos que todos os integrantes listados na capa participaram da elaboraçã
 | Cristofer Dvorecky Oliveira | |
 | Guilherme Perpétuo | |
 | Henrique Augusto | |
-| Mateus Valenga | |
+| Mateus Valenga | MvSa |
