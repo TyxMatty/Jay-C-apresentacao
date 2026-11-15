@@ -1,6 +1,6 @@
 # 05 — Testes
 
-Os 16 casos de teste do dossiê (CT01 a CT16) ficam na seção 4.6: [`07-entrega-final/dossie.md`](../07-entrega-final/dossie.md#27-casos-de-teste). Base de CT01 a CT08 escrita por Henrique Augusto.
+Os 19 casos de teste do dossiê (CT01 a CT19) ficam na seção 4.6: [`07-entrega-final/dossie.md`](../07-entrega-final/dossie.md#27-casos-de-teste). Base de CT01 a CT08 escrita por Henrique Augusto.
 
 Os testes automatizados ficam junto do código:
 - `signaling-server/test/`: servidor (salas, canais, arquivos, permissões de admin).

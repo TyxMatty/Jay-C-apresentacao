@@ -18,7 +18,7 @@ Propor uma solução de software leve e open-source para chamadas de voz e víde
 
 ## Funcionalidades principais
 - Chamadas de voz e vídeo com até 16 pessoas por sala
-- Transmissão da tela inteira ou de uma janela, com o som, em até 1080p60
+- Transmissão da tela inteira ou de uma janela, com o som (Windows), em pelo menos 1080p60 (até 1440p)
 - Servidores com salas (com senha ou ocultas) e canais de texto com histórico
 - Chat com imagens, GIFs e vídeos, respostas e menções com @
 - Administração de salas e canais por chave de administrador
