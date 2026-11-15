@@ -936,7 +936,7 @@ Declaramos que todos os integrantes listados na capa participaram da elaboraçã
 | Integrante | Assinatura |
 |---|---|
 | Augusto do Amarante | |
-| Cristofer Dvorecky Oliveira | |
+| Cristofer Dvorecky Oliveira | Cristofer D. Oliveira |
 | Guilherme Perpétuo | |
 | Henrique Augusto | |
 | Mateus Valenga | MvSa |
