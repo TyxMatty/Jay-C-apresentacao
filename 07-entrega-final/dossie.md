@@ -91,16 +91,16 @@ O foco principal são quatro perfis bem próximos do nosso dia a dia. Grupos de 
 
 ## 4. Objetivos
 
-O objetivo geral é entregar chamadas de voz e vídeo, transmissão de tela e chat para grupos pequenos, rodando em um servidor do próprio grupo, sem contas, sem anúncios e sem custo de licença.
+A ideia central do Jay-C é entregar chamadas de voz e vídeo, transmissão de tela e chat pra grupos pequenos, rodando num servidor próprio sem conta, sem propaganda e sem custo de licença.
 
-Mais especificamente, o sistema busca:
+Na prática, o sistema precisa dar conta de:
 
-1. Fazer chamadas de voz e vídeo com até 16 pessoas na mesma sala.
-2. Compartilhar a tela inteira ou uma janela específica, levando o som junto (no Windows), em pelo menos 1080p a 60 qps e podendo chegar a 1440p ou à resolução original.
-3. Organizar o servidor com salas de chamada (abertas, com senha ou ocultas) e canais de texto que guardam histórico.
-4. Deixar os participantes mandarem imagens, GIFs e vídeos nos chats, limpando os dados de localização dos arquivos antes do envio.
-5. Dar a quem administra o servidor o controle pra criar, editar e excluir salas e canais usando uma chave de administrador.
-6. Rodar no Windows e no Android com instalação direta, sem complicação.
+1. Chamadas de voz e vídeo com até 16 pessoas juntas na mesma sala.
+2. Compartilhar a tela inteira ou uma janela específica com o som junto (no Windows), segurando pelo menos 1080p a 60 qps — e podendo subir até 1440p ou a resolução nativa do monitor.
+3. Organizar o servidor com salas de voz (abertas, protegidas por senha ou ocultas) e canais de texto com histórico salvo.
+4. Deixar o pessoal mandar imagens, GIFs e vídeos no chat, mas tirando os dados de localização dos arquivos antes deles subirem pro servidor.
+5. Quem administra o servidor poder criar, editar e apagar salas e canais usando uma chave de administrador.
+6. Instalação direta no Windows e no Android, sem precisar configurar muita coisa.
 
 ## 5. Limites do sistema
 
@@ -134,19 +134,19 @@ Com o Jay-C, as conversas, os arquivos e o controle de acesso ficam na máquina 
 
 Para levantar os requisitos usaríamos três técnicas em ciclos curtos: conversar em entrevistas com quem já faz chamadas e transmissões (S1, S2 e S4) e com quem cuidaria da hospedagem (S3), aplicar um questionário rápido online pra medir frequência de uso e tamanho dos grupos, e observar gente usando versões de teste de verdade. Essa última parte o projeto já colocou em prática faz tempo — várias sugestões dos testers viraram requisito direto, tipo o chat da chamada do lado do vídeo e poder responder mensagens nos canais.
 
-As perguntas de investigação seriam estas:
+As perguntas usadas pra investigar isso seriam:
 
-1. Quantas pessoas costumam participar das suas chamadas ao mesmo tempo, e qual o máximo que já teve?
-2. Que aplicativo vocês usam hoje para chamadas e transmissões, e o que mais incomoda nele (conta, anúncios, limites de qualidade, privacidade)?
-3. Quando você transmite a tela, o que mostra (um jogo, uma janela, a tela inteira)? Precisa transmitir o som junto?
-4. Vocês precisam guardar o histórico das conversas e dos arquivos? Por quanto tempo, e quem deve poder ver?
-5. Alguém do grupo teria como deixar um computador ou servidor ligado para hospedar o sistema? Com que conhecimento técnico?
-6. Você participaria pelo celular? O que precisa continuar funcionando quando sai do app (ouvir, ver a transmissão)?
-7. Algumas salas precisam ser privadas, com senha ou invisíveis na lista?
+1. Quantas pessoas costumam entrar nas chamadas de vocês ao mesmo tempo, e qual foi o máximo que já deu?
+2. O que vocês usam hoje pra call e live, e o que mais enche o saco neles (ter que criar conta, anúncio, limite de qualidade, privacidade)?
+3. Quando alguém transmite a tela, costuma mostrar o quê — um jogo, uma janela só ou o monitor todo? O som do app precisa ir junto?
+4. Faz falta guardar histórico de mensagem e arquivo? Por quanto tempo, e quem deveria conseguir ver?
+5. Tem alguém no grupo que conseguiria deixar um PC ou servidor ligado pra rodar o sistema? Quanto essa pessoa manja de rede/Docker?
+6. Pelo celular, o que precisa continuar rodando quando a pessoa sai do app — só o áudio ou ver a live também?
+7. Vocês precisam de sala fechada com senha, ou até sala que nem aparece na lista?
 
 ## 9. Requisitos funcionais
 
-Prioridade: Alta (essencial para a primeira versão), Média (importante, mas o sistema funciona sem), Baixa (desejável). Pelo método MoSCoW, da apostila da disciplina, Alta corresponde a *Must have*, Média a *Should have* e Baixa a *Could have*; o que ficou fora do escopo ([seção 5](#5-limites-do-sistema), "o que o Jay-C não faz") é *Won't have now*.
+Prioridade: Alta (obrigatório na primeira versão), Média (importante, mas dá pra rodar sem), Baixa (desejável). Pelo MoSCoW da apostila da disciplina, Alta equivale a *Must have*, Média a *Should have* e Baixa a *Could have*; tudo que ficou de fora ([seção 5](#5-limites-do-sistema)) entra como *Won't have now*.
 
 | ID | Descrição | Ator | Prioridade | Critério de aceitação |
 |---|---|---|---|---|
@@ -179,7 +179,7 @@ Prioridade: Alta (essencial para a primeira versão), Média (importante, mas o 
 | RNF002 | Segurança | O sistema deve restringir o acesso às funções administrativas por meio de uma chave de administrador. | Alta | Operações administrativas sem chave ou com chave errada são recusadas com o erro "not-admin"; com a chave válida, são aceitas. |
 | RNF003 | Segurança | O sistema deve proteger o acesso aos arquivos compartilhados, permitindo sua visualização somente aos participantes autorizados da chamada ou da sessão do servidor. | Alta | Pedir um arquivo sem o token da sessão, ou com um token de outra sessão, retorna erro em vez do arquivo. |
 | RNF004 | Segurança | O sistema deve validar os tipos e tamanhos dos arquivos enviados, impedindo o recebimento de formatos não permitidos. | Alta | Arquivos válidos são aceitos; formato não permitido retorna erro 415; arquivo acima do limite retorna erro 413. |
-| RNF005 | Privacidade | O sistema deve remover informações de localização e metadados de fotos (JPEG, PNG, WebP) e vídeos MP4 antes do envio. | Média | Uma foto JPEG com GPS no EXIF chega ao servidor sem os dados de localização (conferido com um leitor de metadados). |
+| RNF005 | Privacidade | O sistema deve remover informações de localização e metadados de fotos (JPEG, PNG, WebP) e vídeos MP4 antes do envio. | Média | Uma foto JPEG com GPS no EXIF e um MP4 com tag de localização chegam ao servidor sem esses dados (conferido num leitor de metadados). |
 | RNF006 | Disponibilidade | O servidor deve disponibilizar um mecanismo de verificação de funcionamento por meio de um endpoint de saúde. | Média | `GET /health` responde 200 enquanto o servidor está no ar. |
 | RNF007 | Confiabilidade | O aplicativo deve tentar restabelecer automaticamente a conexão com o servidor em caso de interrupção. | Alta | Ao derrubar e religar o servidor, o app mostra "reconectando", tenta de novo (1, 2, 4, 8 e depois a cada 10 s) e volta à sala sozinho. |
 | RNF008 | Compatibilidade | O aplicativo deve funcionar no Windows 10 e 11 (64 bits) e no Android 7.0 ou superior, respeitando as limitações de cada sistema. | Alta | O instalador e o APK instalam e entram numa chamada nas duas plataformas; recursos exclusivos (ex.: som da transmissão só no Windows) estão documentados. |
@@ -207,9 +207,9 @@ Prioridade: Alta (essencial para a primeira versão), Média (importante, mas o 
 
 | # | Tipo | Situação | Como foi resolvido |
 |---|---|---|---|
-| C1 | Conflito | Privacidade × simplicidade: S3 quer controlar o acesso, mas S1 não quer criar conta. | Sem contas. O controle vem de senhas por sala, salas ocultas e da chave de administrador (RN002–RN004). |
-| C2 | Conflito | Qualidade × leveza: S2 quer transmitir em 1080p60, mas a transmissão não pode pesar o computador nem a rede de quem assiste. | Codificação de vídeo na placa de vídeo e qualidade configurável (RF008), com a transmissão se adaptando à rede de quem assiste. |
-| C3 | Conflito | Histórico × espaço em disco: S1 quer o histórico completo, mas S3 roda o servidor numa máquina modesta. | Limite de 500 mensagens por canal (RN006) e de tamanho por arquivo (RN008), configuráveis pelo administrador. |
+| C1 | Conflito | Quem hospeda (S3) precisa controlar quem entra, só que o pessoal (S1) não quer criar conta nem fazer login. | Ficou sem conta mesmo. O controle vem por senha na sala, sala oculta e chave de administrador (RN002–RN004). |
+| C2 | Conflito | O transmissor (S2) quer mandar live em 1080p60, mas isso não pode derreter o PC nem travar a internet de quem tá assistindo. | Codificação na placa de vídeo, qualidade ajustável (RF008) e adaptação automática pra rede de cada espectador. |
+| C3 | Conflito | Os usuários (S1) queriam histórico infinito, enquanto S3 muitas vezes roda o servidor num PC ou VPS modesta. | Teto de 500 mensagens por canal (RN006) e limite de tamanho nos arquivos (RN008), que o admin consegue mudar na config. |
 | A1 | Ambiguidade | "Suportar 16 participantes" (RNF001): todos com câmera e transmitindo ao mesmo tempo? | Definido como 16 pessoas na sala, cada uma podendo ligar a câmera; a qualidade de cada vídeo se ajusta à rede (o servidor escolhe a camada de vídeo adequada para cada um). |
 | A2 | Ambiguidade | "Plataformas previstas" (RNF008) era vago. | Especificado: Windows 10/11 64 bits e Android 7.0+. |
 | A3 | Ambiguidade | No rascunho inicial, RNF005 dizia "metadados de determinados arquivos", sem dizer quais. | Fechado como localização e metadados de fotos (EXIF/XMP/blocos de texto em JPEG, PNG e WebP) e localização em vídeos MP4. |
@@ -271,12 +271,12 @@ flowchart LR
   UC12 -. "«include»" .-> UC13
 ```
 
-O ator principal é o Participante. Transmissor e Administrador são especializações dele, já que qualquer participante pode abrir uma live ou administrar o servidor se tiver a chave. Como não existem contas no Jay-C ([seção 5](#5-limites-do-sistema)), ser administrador depende só de informar a chave certa, então `UC11` e `UC12` sempre incluem `UC13`. Já conectar ao servidor (`UC01`) acontece uma vez quando o app abre e vira pré-condição pro resto (tipo entrar numa sala no [`UC02`](#uc02--entrar-em-uma-sala), mandar msg em canal ou administrar), por isso não usamos `<<include>>` pra ele. O caso `UC02b` (informar senha) e o `UC08` (anexar mídia) só rodam quando existe senha na sala ou arquivo anexado, então entram como `<<extend>>`.
+O ator principal é o Participante. Transmissor e Administrador são especializações dele, já que qualquer participante pode abrir uma live (Transmissor) e qualquer um que tiver a chave pode administrar o servidor (Administrador). Como não existem contas no Jay-C ([seção 5](#5-limites-do-sistema)), ser administrador depende só de informar a chave certa, então `UC11` e `UC12` sempre incluem `UC13`. Já conectar ao servidor (`UC01`) acontece uma vez quando o app abre e vira pré-condição pro resto (tipo entrar numa sala no [`UC02`](#uc02--entrar-em-uma-sala), mandar msg em canal ou administrar), por isso não usamos `<<include>>` pra ele. O caso `UC02b` (informar senha) e o `UC08` (anexar mídia) só rodam quando existe senha na sala ou arquivo anexado, então entram como `<<extend>>`.
 
 | Caso de uso | Requisitos |
 |---|---|
 | UC01 Conectar a um servidor | RF001, RF002, RNF007 |
-| [UC02 Entrar em uma sala](#uc02--entrar-em-uma-sala) | RF003, RF004 |
+| [UC02 Entrar em uma sala](#uc02--entrar-em-uma-sala) | RF002, RF003, RF004 |
 | UC02b Informar senha | RF004 |
 | UC03 Participar da chamada | RF005, RF006, RF020 |
 | [UC04 Transmitir a tela](#uc04--transmitir-a-tela) | RF007, RF008, RNF010 |
@@ -339,7 +339,7 @@ O ator principal é o Participante. Transmissor e Administrador são especializa
 
 ## 15. Diagrama de classes de domínio
 
-**Figura 2 — Classes de domínio do Jay-C.** Mostra os conceitos do problema, não as classes do código. Os números nas associações são as multiplicidades.
+**Figura 2 — Classes de domínio do Jay-C.** Mostra os conceitos do problema, não as classes do código. Os números nas pontas são as multiplicidades; losango cheio (`*--`) é composição, losango vazio (`o--`) é agregação e a seta aberta (`<|--`) marca herança.
 
 ```mermaid
 classDiagram
@@ -450,7 +450,7 @@ Separamos `Mensagem` em duas subclasses porque o comportameto é diferente: a da
 
 O Jay-C é um sistema cliente-servidor. O aplicativo roda no computador ou no celular de cada participante; o servidor roda na máquina do grupo, num contêiner Docker. A mídia não vai direto de um participante para o outro: passa por um **SFU** (*Selective Forwarding Unit*) no servidor, que recebe cada vídeo uma vez e o repassa a quem assiste, sem decodificar.
 
-**Figura 3 — Componentes, camadas e interfaces.** Setas simples mostram dependência interna, setas duplas (`<-->`) são protocolo/HTTP na porta 3000, setas grossas (`<==>`) são mídia WebRTC cifrada na porta 40000 (`I3`, tanto vinda do JS quanto da camada nativa) e o cilindro representa os arquivos gravados em disco no servidor.
+**Figura 3 — Componentes, camadas e interfaces.** Setas simples mostram dependência interna, setas duplas (`<-->`) são protocolo/HTTP na porta 3000 ou comandos/eventos entre JS e Rust (`I4`), setas grossas (`<==>`) são mídia WebRTC cifrada na porta 40000 (`I3`, tanto vinda do JS quanto da camada nativa), a seta tracejada indica busca de atualização externa e o cilindro representa os arquivos gravados em disco no servidor.
 
 ```mermaid
 flowchart TB
@@ -460,7 +460,7 @@ flowchart TB
     CORE["Lógica do cliente<br/>chamada, sinalização, chat, configurações (core/, store/)"]
     NAT["Camada nativa (Rust)<br/>microfone, som da transmissão,<br/>transmissão da tela, PiP, atualização"]
     UI --> CORE
-    CORE -- "I4: comandos e eventos do Tauri" --> NAT
+    CORE <-- "I4: comandos e eventos do Tauri" --> NAT
   end
 
   subgraph SRV["Servidor Jay-C (Docker)"]
@@ -532,7 +532,7 @@ O fluxo mostra por que o upload vai primeiro por HTTP: antes de mandar qualquer 
 
 Na parte visual do app (`ui/`), as telas não sabem nada de WebRTC nem de como a rede funciona por baixo. A interface só chama operações diretas, tipo `call.join()`, `call.toggleMic()`, `call.startScreenShare()` e `call.sendChat()`. Como a mídia é negociada, quais transportes existem ou se a live tá saindo pelo navegador ou pela camada nativa em Rust, tudo isso fica escondido dentro da classe `Call` (abstração).
 
-No servidor a modularidade aparece bem fácil de ver: cada assunto do domínio virou um arquivo separado com sua própria suíte em [`signaling-server/test/`](../signaling-server/test/). O [`rooms.js`](../signaling-server/src/rooms.js) cuida da lotação das salas, o [`directory.js`](../signaling-server/src/directory.js) das salas fixas e senhas, o [`channels.js`](../signaling-server/src/channels.js) do histórico e o [`media.js`](../signaling-server/src/media.js) dos arquivos. Já o que só existe em um sistema operacional, como o microfone nativo e o som por janela no Windows, foi isolado em plugins separados.
+No servidor dá pra ver a modularidade direto na árvore de arquivos: cada assunto do domínio virou um módulo separado com sua própria suíte em [`signaling-server/test/`](../signaling-server/test/). O [`rooms.js`](../signaling-server/src/rooms.js) cuida da lotação das salas, [`directory.js`](../signaling-server/src/directory.js) segura salas fixas e senhas, [`channels.js`](../signaling-server/src/channels.js) trata do histórico e [`media.js`](../signaling-server/src/media.js) valida os arquivos. Tudo que depende de um sistema só — tipo o microfone nativo e o som por janela no Windows — foi isolado em plugins próprios.
 
 A gente também manteve separação de interesses em camadas: interface, lógica do cliente e código nativo ficam em pastas próprias (com a parte nativa em Rust). No servidor, a sinalização das mensagens corre separada do SFU, que só repassa os pacotes de áudio e vídeo sem nunca decodificar nada. E pro estado interno não virar bagunça, usamos campos e métodos privados do JS mesmo (`#closeTransports()` em `Call`, `#reconnectTimer` em `SignalingClient`), senhas guardadas apenas como *hash* com *salt*, e acesso ao histórico só pelas operações `post()`, `history()` e `quote()` do módulo de canais (encapsulamento).
 
@@ -564,9 +564,9 @@ A validação acontece duas vezes de propósito, nos passos 2 e 5: no app, para 
 
 Como vimos na [seção 19](#19-coesão-e-acoplamento), a classe `Call` ([`core/call.js`](../frontend/src/core/call.js), por volta de 1 100 linhas) junta responsabilidades demais. No servidor acontece algo parecido: o tratamento das mensagens em [`server.js`](../signaling-server/src/server.js) (umas 700 linhas) é uma sequência comprida de `if (msg.type === …) … else if …`.
 
-A proposta é dividir a `Call` em partes menores, cada uma com uma responsabilidade: `MicController` para o microfone e seus filtros, `ScreenShare` para a transmissão (do navegador ou nativa), `CallChat` para o chat da chamada e `MediaSession` para os transportes, *producers* e *consumers*. A `Call` continuaria existindo como fachada (padrão *Facade*), então a interface continua chamando `call.toggleMic()`, e por dentro a chamada é repassada para o `MicController`. No servidor, o `if/else` viraria um mapa de tratadores, algo como `const handlers = { join, chat, 'channel-send': channelSend, … }`, com cada tratador no arquivo do seu assunto.
+A ideia é fatiar a `Call` em peças com menos reponsabilidade cada: um `MicController` só pro microfone e filtros, `ScreenShare` cuidando da transmissão (seja navegador ou nativa), `CallChat` pro chat dentro da call e `MediaSession` pra lidar com transportes, *producers* e *consumers*. Mesmo assim a `Call` continuaria lá como fachada (padrão *Facade*), entao a UI segue chamando `call.toggleMic()` normal e por baixo a chamada cai no `MicController`. No servidor, aquele bloco de `if/else` viraria um mapa direto de tratadores, tipo `const handlers = { join, chat, 'channel-send': channelSend, … }`, jogando cada tratador pro arquivo do seu assunto.
 
-Com isso cada parte pode ser testada sozinha, mexer na transmissão não arrisca quebrar o chat e um tipo novo de mensagem vira só um tratador novo, sem tocar nos outros. A mudança também é segura: como a fachada mantém os mesmos métodos, a interface e os testes que já existem continuam valendo e mostram que o comportamento não mudou.
+Com isso dá pra testar cada pedaço separado: mexer na live não arrisca quebrar o chat, e um tipo novo de mensagem vira só uma entrada nova no mapa sem encostar no resto. Como a fachada segura os mesmos métodos, a interface e os testes de `npm test` que já existem continuam valendo pra provar que nada mudou de comportamento.
 
 ## 22. Telas e navegação
 
@@ -602,7 +602,7 @@ As telas abaixo são de média fidelidade: em tons de cinza, sem as cores do app
 4. Cards dos participantes, com a câmera ou as iniciais (RF005, RF013).
 5. Barra de controles: microfone, som, câmera, transmitir, chat, janela flutuante (PiP) e sair (RF006, RF007, RF009, RF017, RF020).
 
-**Figura 8 — Navegação entre as telas.**
+**Figura 8 — Navegação entre as telas.** Retângulos mostram telas ou ações, losangos são decisões do fluxo e as setas indicam pra onde o usuário vai a partir de cada clique.
 
 ```mermaid
 flowchart LR
@@ -630,7 +630,7 @@ O participante passa quase todo o tempo na Tela 2. Entrar numa sala leva à Tela
 
 O Jay-C foi feito de forma incremental. Cada etapa entrega alguma coisa funcionando e testável, com um critério de "pronto quando…" definido antes de começar. No meio disso a gente usa práticas ágeis simples: lista de tarefas priorizada, revisão quando fecha uma fase e ajuste de rumo se os testers acharem algum problema.
 
-Um modelo em cascata com tudo fechado desde o começo não ia funcionar aqui. Logo no início havia partes de risco técnico alto — tipo capturar o som de um único app no Windows ou repassar vídeo pra 16 pessoas — que podiam simplesmente não dar certo na prática. Então fizemos protótipos de risco (*spikes*) bem cedo, antes de muito código depender deles (a etapa 6 tá documentada em [`docs/spikes/`](../docs/spikes/)). Além disso, dava pra testar valor real cedo: em poucas etapas já existia chamada rodando, e depois foram entrando transmissão, áudio do app, PiP e os canais. Vários requisitos inclusive apareceram só depois que gente de fora usou, como responder mensagem nos canais (`RF012`), e dividir em ciclos curtos ajuda uma equipe pequena a ir entregando e conferindo sem travar.
+Um modelo em cascata com tudo fechado desde o começo não ia funcionar aqui. Logo no início havia partes de risco técnico alto — tipo capturar o som de um único app no Windows ou repassar vídeo pra 16 pessoas — que podiam simplesmente não dar certo na prática. Então fizemos protótipos de risco (*spikes*) bem cedo, antes de muito código depender deles (os spikes estão documentados em [`docs/spikes/`](../docs/spikes/)). Além disso, dava pra testar valor real cedo: em poucas etapas já existia chamada rodando, e depois foram entrando transmissão, áudio do app, PiP e os canais. Vários requisitos inclusive apareceram só depois que gente de fora usou, como responder mensagem nos canais (`RF012`), e dividir em ciclos curtos ajuda uma equipe pequena a ir entregando e conferindo sem travar.
 
 **Figura 9 — Ciclo de cada etapa.** As setas pra frente mostram a ordem normal de cada ciclo; as setas de volta mostram o que acontece quando um teste falha ou quando os testers pedem ajuste.
 
@@ -723,7 +723,7 @@ flowchart LR
 
 Para o controle de versões usamos Git e GitHub. Fica tudo num repositório só (monorepo): o app, o servidor, os plugins e a documentação. Assim, quando o protocolo muda, o servidor e o app mudam no mesmo commit. Os commits são pequenos, cada um com um assunto e um corpo explicando o que mudou, por quê e o que foi verificado, e um commit não mistura duas mudanças sem relação entre si.
 
-O ramo principal (`main`) precisa estar sempre funcionando. A cada envio, a integração contínua ([`.github/workflows/ci.yml`](../.github/workflows/ci.yml)) roda os testes de JavaScript do servidor e do app, os testes de Rust no Windows e o build da imagem Docker. Mudança maior ou arriscada é feita num ramo separado e só entra no `main` depois de testada. As versões seguem o versionamento semântico (`MAIOR.MENOR.CORREÇÃO`): da 0.5.4 para a 0.5.5 foi só uma correção, já da 0.4 para a 0.5 vieram os servidores com canais. Cada versão ganha uma tag (`v0.5.5`), e a tag dispara o build do instalador, que fica num rascunho de release até alguém escrever as notas e publicar. Algumas coisas nunca vão para o repositório: a chave que assina o APK, senhas e os dados reais do servidor, como salas, histórico e endereços de IP.
+O ramo principal (`main`) precisa estar sempre funcionando. A cada envio, a integração contínua ([`.github/workflows/ci.yml`](../.github/workflows/ci.yml)) roda `npm test` (os testes em JavaScript do servidor e do app), os testes de Rust no Windows e o build da imagem Docker. Mudança maior ou arriscada é feita num ramo separado e só entra no `main` depois de testada. As versões seguem o versionamento semântico (`MAIOR.MENOR.CORREÇÃO`): da 0.5.4 para a 0.5.5 foi só uma correção, já da 0.4 para a 0.5 vieram os servidores com canais. Cada versão ganha uma tag (`v0.5.5`), e a tag dispara o build do instalador, que fica num rascunho de release até alguém escrever as notas e publicar. Algumas coisas nunca vão para o repositório: a chave que assina o APK, senhas e os dados reais do servidor, como salas, histórico e endereços de IP.
 
 Para controlar as mudanças, seguimos o fluxo da Figura 11.
 
@@ -750,22 +750,22 @@ A rastreabilidade se apoia nos IDs. Cada requisito, regra, caso de uso e caso de
 
 # 4.6 Qualidade, verificação e validação
 
-> Base de 4.6 e 4.7 escrita por Henrique Augusto. Na revisão final, alinhamos os testes, atributos, matriz e riscos com o comportamento real do Jay-C e incluímos os casos complementares CT09 a CT19.
+> Base de 4.6 e 4.7 escrita por Henrique Augusto. Na revisão final, alinhamos os testes, atributos, matriz e riscos com o comportamento real do Jay-C e incluímos os casos complementares CT09 a CT23.
 
 ## 26. Atributos de qualidade
 
-Seleção e avaliação de quatro atributos seguindo o FURPS visto em aula (Desempenho, Confiabilidade, Usabilidade e Suportabilidade):
+Seguindo o modelo FURPS visto na disciplina, escolhemos quatro atributos que pesam direto no uso do Jay-C:
 
-| Atributo | Descrição | Método de Avaliação |
+| Atributo | O que significa no projeto | Como avaliamos |
 |---|---|---|
-| Desempenho | Manter áudio e vídeo fluindo sem engasgos mesmo com 16 pessoas na sala, além de transmissão de tela em 1080p60 sem travar o PC. | Teste com 16 participantes simultâneos (RNF001) e conferência das estatísticas `inbound-rtp` (resolução e qps) e uso de CPU durante a live nativa (RNF010). |
-| Confiabilidade | Se a rede cair ou o servidor reiniciar, o app tenta voltar sozinho para a chamada e o servidor não corrompe as salas nem o histórico salvo. | Derrubar e religar o servidor no meio de uma call para validar a reconexão automática (RNF007) e testar a gravação atômica de `rooms.json` e dos canais após reinício. |
-| Usabilidade | Interface direta de usar no desktop e no celular, com contraste legível entre texto e fundo nos dois temas e nos três estilos visuais. | Auditoria automatizada de contraste WCAG ≥ 4,5:1 via [`contrast-audit.js`](../scripts/contrast-audit.js) / `npm test` nos 6 combos (RNF009) e sessões reais de uso com testers. |
-| Suportabilidade (Manutenibilidade) | Código separado por responsabilidade e fácil de testar e atualizar sem quebrar o que já funciona. | Execução contínua da suíte `npm test` (servidor e frontend) e `cargo test` no CI ([`.github/workflows/ci.yml`](../.github/workflows/ci.yml)), além da separação em módulos pequenos ([`rooms.js`](../signaling-server/src/rooms.js), [`channels.js`](../signaling-server/src/channels.js), [`attachments.js`](../frontend/src/core/attachments.js)). |
+| Desempenho | Áudio e vídeo rodando liso mesmo com 16 pessoas na sala, além de live em pelo menos 1080p60 sem travar a máquina. | Teste com 16 participantes ligados juntos (RNF001) e leitura das estatísticas `inbound-rtp` (resolução, qps) e uso de CPU durante a live nativa (RNF010). |
+| Confiabilidade | Se a internet piscar ou o servidor reiniciar, o app tenta voltar sozinho pra chamada e os arquivos de salas/canais não corrompem no disco. | Derrubar e subir o servidor no meio de uma call pra conferir a reconexão automática (RNF007) e testar gravação atômica de `rooms.json` e histórico após reinício. |
+| Usabilidade | Interface simples tanto no PC quanto no celular, com texto legível e contraste suficiente em qualquer tema ou estilo visual. | Auditoria automática de contraste WCAG ≥ 4,5:1 rodando [`contrast-audit.js`](../scripts/contrast-audit.js) via `npm test` nos 6 combos (RNF009), somada aos testes reais com usuários. |
+| Suportabilidade (Manutenibilidade) | Código dividido por assunto, fácil de testar separado e de mexer sem quebrar o resto. | Suíte contínua com `npm test` (app e servidor) e `cargo test` no CI ([`.github/workflows/ci.yml`](../.github/workflows/ci.yml)), além da separação em módulos pequenos tipo [`rooms.js`](../signaling-server/src/rooms.js), [`channels.js`](../signaling-server/src/channels.js) e [`attachments.js`](../frontend/src/core/attachments.js). |
 
 ## 27. Casos de teste
 
-Especificação dos Casos de Teste
+Casos principais levantados pra validar requisitos funcionais, regras e limites:
 
 | ID | Requisito Alvo | Tipo | Dados de Entrada | Passos de Execução | Resultado Esperado |
 |---|---|---|---|---|---|
@@ -778,65 +778,85 @@ Especificação dos Casos de Teste
 | CT07 | RF010 / RNF004 / RN008 | Negativo (Limite) | Arquivo de imagem com 8.5 MB | 1. Tentar anexar imagem de 8.5 MB no chat. | O app barra antes de subir avisando o limite de 8 MB; se enviado direto por HTTP, o servidor retorna 413. |
 | CT08 | RF014 / RNF002 / RN004 | Segurança | Tentativa sem chave; depois chave de admin válida e nome de sala | 1. Tentar criar/excluir sala sem chave. 2. Repetir informando a chave válida. | Sem chave o servidor recusa com `not-admin` (1); com a chave válida cria/exclui e atualiza a lista para todos os conectados (2). |
 
-Casos complementares, para cobrir os requisitos não funcionais e os demais fluxos de prioridade alta:
+Casos complementares, cobrindo os demais requisitos não funcionais e fluxos de prioridade alta:
 
 | ID | Requisito Alvo | Tipo | Dados de Entrada | Passos de Execução | Resultado Esperado |
 |---|---|---|---|---|---|
 | CT09 | RNF007 | Positivo | Servidor reiniciado durante a chamada | 1. Com dois participantes numa sala, parar o servidor. 2. Religar depois de alguns segundos. | O app mostra "reconectando", tenta nos intervalos configurados (1, 2, 4, 8 e 10 s) e volta para a sala sozinho. |
-| CT10 | RF002 / RF016 / RN003 | Negativo e positivo | Sala oculta sem senha e com senha | 1. Criar sala oculta sem senha. 2. Criar com senha. 3. Outro participante procura na lista e depois digita o nome e a senha. | 1. Recusada. 2. Criada. 3. Não aparece na lista pública, mas ele entra digitando nome e senha. |
+| CT10 | RF002 / RF004 / RF016 / RN003 | Negativo e positivo | Sala oculta sem senha e com senha | 1. Criar sala oculta sem senha. 2. Criar com senha. 3. Outro participante procura na lista e depois digita o nome e a senha. | 1. Recusada. 2. Criada. 3. Não aparece na lista pública, mas ele entra digitando nome e senha. |
 | CT11 | RNF003 / RN009 | Segurança | Endereço de um arquivo enviado numa sala | 1. Pedir o arquivo sem o token da sessão. 2. Pedir com o token de outra sala. | O servidor responde 404 nos dois casos, sem revelar que o arquivo existe. |
 | CT12 | RF010 / RNF005 | Positivo | Foto JPEG com GPS no EXIF | 1. Enviar a foto num canal. 2. Baixar a recebida e ler os metadados. | A foto recebida aparece no canal sem os dados de localização. |
 | CT13 | RF007 / RF008 / RNF010 | Positivo (Limite) | Transmissão em 1080p e 60 qps no Windows | 1. No Windows, escolher 1080p e 60 qps. 2. Transmitir a tela com algo em movimento. 3. Conferir as estatísticas de quem assiste. | Estatísticas mostram 1920×1080 e taxa próxima de 60 qps (≥ 55 qps), com som do app transmitido. |
-| CT14 | RF011 / RF012 / RN012 | Positivo e negativo | Resposta a uma mensagem; resposta a uma mensagem inexistente | 1. Responder a uma mensagem. 2. Sair e voltar ao servidor. 3. Mandar ao servidor uma resposta a uma mensagem que não existe. | 1. A resposta aparece com a citação. 2. As duas continuam no histórico. 3. Vira mensagem comum, sem citação forjada. |
+| CT14 | RF011 / RF012 / RN012 | Positivo e negativo | Resposta a uma mensagem; resposta com ID inexistente ou de outro canal | 1. Responder a uma mensagem em `#papo`. 2. Sair e voltar ao servidor. 3. Mandar via protocolo um `replyTo` inexistente ou referente a outro canal. | 1. A resposta aparece com a citação. 2. As duas continuam no histórico. 3. O servidor não copia citação de outro canal (IDs são por canal) e, se o ID não existir, salva como mensagem comum sem citação forjada. |
 | CT15 | RF018 / RNF009 | Positivo | Os 6 combos de estilo e tema | 1. Rodar o teste de contraste (`npm test`). 2. Trocar estilo e tema e reabrir o app. | Contraste ≥ 4,5:1 em todo texto; a escolha continua depois de reabrir. |
 | CT16 | RNF006 | Positivo | Servidor no ar | 1. Acessar `http://<servidor>:3000/health`. | Resposta HTTP 200. |
 | CT17 | RF006 / RF020 | Positivo | Participante conectado em chamada | 1. Desligar e ligar microfone e câmera. 2. Clicar em "Sair". | Os outros participantes veem o ícone de mudo/iniciais no passo 1; ao sair, áudio/vídeo encerram e o usuário some da sala em até 2 s. |
 | CT18 | RF015 / RN004 | Positivo e negativo | Nome de canal de texto; chave de admin válida e ausente | 1. Tentar criar um canal sem chave de admin. 2. Repetir com chave válida, renomear e excluir o canal. | Sem chave retorna `not-admin`; com chave, a lista de canais atualiza na hora para todos conectados. |
 | CT19 | RNF004 / RN008 | Negativo (Limite) | Arquivo `.exe` (ou `.html`) renomeado pra `.png`; vídeo MP4 de 52 MB | 1. Enviar o arquivo mascarado como imagem. 2. Enviar o vídeo de 52 MB. | O servidor recusa o formato falso pelos primeiros bytes com HTTP 415 e barra o vídeo acima de 50 MB com HTTP 413. |
+| CT20 | RF013 / RN011 | Positivo e negativo | Foto PNG/JPEG/WebP dentro de 32 000 caracteres e payload acima de 32 000 | 1. Escolher foto e cor no perfil e entrar numa sala. 2. Mandar foto acima de 32 000 caracteres ou SVG pelo protocolo. | 1. Foto e cor aparecem no card da call e nas mensagens do canal pros outros. 2. Servidor recusa com `bad-message`. |
+| CT21 | RF017 | Positivo | Transmissão ativa na sala | 1. Ativar o Picture-in-Picture (PiP) com uma live em destaque. 2. Alternar pra outra janela no Windows ou sair pra tela inicial no Android. | O vídeo continua numa janela flutuante por cima dos outros apps (e se parar a live, cai pra câmera se tiver alguma ligada). |
+| CT22 | RF019 | Positivo | Primeira abertura do app / menu Ajuda | 1. Abrir o app limpo sem ter visto o tour. 2. Depois, abrir Configurações › Ajuda. | 1. O tour de boas-vindas aparece na primeira entrada. 2. O guia mostra o passo a passo pra subir o servidor e abrir as portas. |
+| CT23 | RNF008 | Positivo | Instalador do Windows (x64) e APK do Android 7.0+ | 1. Instalar o app no Windows 10/11 e o APK num celular Android. 2. Conectar os dois ao mesmo servidor e entrar em call. | Os dois instalam sem erro e conversam na mesma sala; no Windows tem som da live por app, no Android fica documentado que não tem. |
 
 ## 28. Verificação e validação
 
-Diferenciação entre Verificação e Validação
+Pelo livro-base (Pressman, 2011), verificação e validação respondem perguntas diferentes, e misturar as duas atrapalha na hora de fechar o que já tá garantido:
 
-- Verificação (*"Estamos construindo o produto da maneira certa?"*): conferir tecnicamente se o software respeita especificações, arquitetura e requisitos documentados. No Jay-C, isso acontece nos testes automatizados que rodam a cada envio no CI: conferir se o servidor barra o 17º participante (`RN001`), recusa sala oculta sem senha (`RN003`), rejeita mensagem acima de 500 caracteres (`RN005`), responde 415/413 para arquivos fora da regra (`RNF004`) e mantém contraste ≥ 4,5:1 nos temas (`RNF009`).
-- Validação (*"Estamos construindo o produto certo?"*): checar se o sistema resolve o problema real de quem usa. No Jay-C, fazemos isso em sessões práticas com testers em chamadas reais jogando e transmitindo tela. Foi nessas sessões que surgiu o pedido de responder mensagens nos canais (`RF012`) e onde apareceu o defeito de quem entra depois numa sala às vezes não ouvir quem já estava lá.
+- **Verificação** (*"Estamos construindo o produto da maneira certa?"*): conferir tecnicamente se o código bate com os requisitos, regras e arquitetura combinados. No Jay-C, isso passa pela análise estática e pela suíte automática no CI: checar se o servidor barra o 17º participante (`RN001`), recusa sala oculta sem senha (`RN003`), rejeita texto acima de 500 caracteres (`RN005`), devolve 415/413 pra arquivo fora da regra (`RNF004`) e segura contraste ≥ 4,5:1 nos temas (`RNF009`).
+- **Validação** (*"Estamos construindo o produto certo?"*): ver se o sistema resolve de fato o problema de quem usa na prática. Isso a gente faz em chamadas reais com testers jogando e transmitindo tela. Foi desse uso real que veio o pedido de responder mensagens nos canais (`RF012`) e onde apareceu o bug de quem entra numa sala andando às vezes não ouvir quem já estava lá.
+
+### Análise dos testes automatizados (verificação — versão 0.5.5)
+
+Pra fechar essa parte sem achismo, o Augusto inspecionou os arquivos de teste e o workflow de CI do repositório do Jay-C (v0.5.5) e cruzou tudo com os requisitos e regras do projeto.
+
+No JavaScript, o comando `npm test` na raiz (`npm test --workspaces --if-present`) dispara `node --test` (recurso nativo do Node.js 22+) nos dois workspaces e junta **47 arquivos de teste** — 41 no frontend (`frontend/test/`) e 6 no servidor (`signaling-server/test/`). Alem disso tem **45 testes unitários em Rust** espalhados pelo plugin de áudio (`plugins/tauri-plugin-system-audio`) e pelo app (`frontend/src-tauri`). No GitHub Actions ([`.github/workflows/ci.yml`](../.github/workflows/ci.yml)), cada push dispara três frentes: `npm test` rodando no Linux pros testes JS do servidor e do app; `cargo test --lib` (plugin) e `cargo test` (app) no Windows, porque captura WASAPI e live nativa dependem da API do Windows; e o build da imagem Docker do servidor subindo um container pra ver se `GET /health` responde 200.
+
+Um detalhe importante de transparência: essa checagem foi uma inspeção da cobertura dos arquivos e do CI — sem rodar uma bateria independente em várias máquinas físicas pra validar áudio e vídeo ao vivo. Inclusive, num clone limpo sem `npm install` / `npm ci`, rodar `npm test` direto só passa os testes puros (regras de canal, diretório, contraste, parser de endereço, limpeza de metadados), enquanto os testes de integração que importam `ws` ou `@tauri-apps/api` falham até instalar as dependências. Isso tudo é evidência de **verificação** de código, não substitui teste manual nem a **validação** com gente usando.
+
+Olhando o que os testes `npm test` e `cargo test` cobrem hoje contra o que ainda precisa de mão na massa:
+
+- **Lógica coberta nos testes automatizados:** validação de endereço (`server-address.test.js`, `RF001`), listagem de salas/canais e senhas (`directory.test.js`, `channels.test.js`, `server.test.js` cobrindo `RF002`, `RF004`, `RN002`), chat da call e histórico/paginação/respostas em canais (`RF009`, `RF011`, `RF012`, `RN006`, `RN007`, `RN012` em `server.test.js`, `channels.test.js`, `text-channels.test.js`), upload e verificação de mídia com remoção de GPS em PNG, JPEG, WebP e MP4 (`RF010`, `RNF003`, `RNF004`, `RNF005`, `RN009` em `attachments.test.js` e `media.test.js` — WebM segue sem limpeza de metadados, mas ficou fora do escopo do `RNF005`). Perfil (`RF013`) tá coberto em `avatar.test.js`, `profile-color.test.js` e `server.test.js`. Operações de admin, salas ocultas e bloqueio de renomear sala ocupada aparecem em `admin-key.test.js`, `directory.test.js`, `channels.test.js` e `server.test.js` (`RF014`–`RF016`, `RNF002`, `RN004`, `RN010`). Temas e contraste WCAG ≥ 4,5:1 rodam em `appearance.test.js` e `theme-contrast.test.js` (`RF018`, `RNF009`), e ainda tem saída da sala (`RF020`), lotação de 16 pessoas (`RNF001`, `RN001`), `/health` (`RNF006`) e reconexão automática (`RNF007` em `signaling.test.js`).
+- **O que tá parcial e pede checagem manual/hardware:** a parte de mídia ao vivo (`RF003`, `RF005`–`RF008`, `RNF010`) tem testes unitários pra sinalização, controle do microfone nativo, parâmetros RTP e curva de qualidade (`native-live.test.js`, `native-mic.test.js`, `sfu-room.test.js`), só que não testa microfone físico, placa de captura nem live real em pelo menos 1080p60 (até 1440p). No PiP (`RF017`), `pip.test.js` testa a seleção da faixa de vídeo (`pickPipTrack`), mas a janela flutuante do sistema só dá pra conferir abrindo o app. Já no guia (`RF019`), `welcome.test.js` garante as etapas do tour inicial, enquanto o modal do guia de instalação (`setup-guide-modal.js`) não tem teste unitário próprio. E pro `RNF008` (Windows 10/11 e Android 7.0+), `installer.test.js` confere estaticamente as flags do script NSIS e o workflow da release, sem instalar de fato no Windows nem rodar APK no celular (iOS, macOS e Linux não entram aqui porque ficaram fora do escopo na [seção 5](#5-limites-do-sistema)).
+- **Lacunas de fronteira encontradas nas regras:** em `RN005`, o `server.test.js` testa string vazia, espaços em branco, `501` caracteres e envio só com mídia, mas não tem caso explícito cravado em `1` e `500` caracteres exatos; em `RN008`, o `media.test.js` usa tetos reduzidos de teste (`64 KB` e `256 KB`) pro CI rodar rápido, sem exercitar `8 MB` e `50 MB` exatos em bytes; e na `RN011`, o servidor rejeita uma foto de `40 000` caracteres, faltando testar a borda certinha entre `32 000` e `32 001`.
+
+Fechando a conta: a suíte via `npm test` + `cargo test` segura bem a lógica de servidor, canais, permissões e arquivos, mas **não dá pra chamar o sistema de validado só olhando pra ela**. Áudio e vídeo com hardware real, instalação nas duas plataformas e essas bordas numéricas continuam dependendo dos testes manuais (`CT02`, `CT13`, `CT23`) e das sessões práticas com testers.
 
 ## 29. Matriz de rastreabilidade
 
-| Requisito | Componente / Módulo | Casos de Teste |
-|---|---|---|
-| RF001 — Configuração de Servidor | [`core/server-address.js`](../frontend/src/core/server-address.js), [`core/signaling.js`](../frontend/src/core/signaling.js) (UC01) | CT01 |
-| RF002 — Visualizar salas e canais | [`ui/channel-list.js`](../frontend/src/ui/channel-list.js), [`directory.js`](../signaling-server/src/directory.js) (UC01) | CT01, CT10 |
-| RF003 — Entrada em Salas | [`core/call.js`](../frontend/src/core/call.js), [`rooms.js`](../signaling-server/src/rooms.js) ([UC02](#uc02--entrar-em-uma-sala)) | CT02, CT03 |
-| RF004 — Salas Protegidas por Senha | [`ui/lobby.js`](../frontend/src/ui/lobby.js), [`directory.js`](../signaling-server/src/directory.js) ([UC02](#uc02--entrar-em-uma-sala) / UC02b) | CT04 |
-| RF005 — Chamadas de voz e vídeo | [`core/call.js`](../frontend/src/core/call.js), [`sfu-room.js`](../signaling-server/src/sfu-room.js) (UC03) | CT02 |
-| RF006 — Microfone e câmera | [`core/call.js`](../frontend/src/core/call.js), [`ui/control-bar.js`](../frontend/src/ui/control-bar.js) (UC03) | CT17 |
-| RF007 — Transmissão de tela | [`core/call.js`](../frontend/src/core/call.js), [`native_live`](../frontend/src-tauri/src/native_live/), plugin [`system-audio`](../plugins/tauri-plugin-system-audio/) ([UC04](#uc04--transmitir-a-tela)) | CT13 |
-| RF008 — Qualidade da transmissão | [`ui/share-panel.js`](../frontend/src/ui/share-panel.js), [`core/media.js`](../frontend/src/core/media.js) ([UC04](#uc04--transmitir-a-tela)) | CT13 |
-| RF009 — Mensagens de Chat | [`ui/chat-panel.js`](../frontend/src/ui/chat-panel.js), [`server.js`](../signaling-server/src/server.js) (UC06) | CT05, CT06 |
-| RF010 — Envio de Mídia | [`ui/attach.js`](../frontend/src/ui/attach.js), [`core/attachments.js`](../frontend/src/core/attachments.js), [`media.js`](../signaling-server/src/media.js) (UC08) | CT07, CT12, CT19 |
-| RF011 — Canais com histórico | [`ui/text-channel.js`](../frontend/src/ui/text-channel.js), [`channels.js`](../signaling-server/src/channels.js) (UC07) | CT14 |
-| RF012 — Responder mensagens | [`ui/text-channel.js`](../frontend/src/ui/text-channel.js), [`channels.js`](../signaling-server/src/channels.js) (UC07) | CT14 |
-| RF013 — Perfil | [`ui/avatar-editor.js`](../frontend/src/ui/avatar-editor.js), [`avatars.js`](../signaling-server/src/avatars.js) (UC09) | — |
-| RF014 — Gestão Administrativa de salas | [`ui/server-settings-modal.js`](../frontend/src/ui/server-settings-modal.js), [`directory.js`](../signaling-server/src/directory.js) ([UC11](#uc11--gerenciar-salas)) | CT08 |
-| RF015 — Gestão de canais | [`ui/server-settings-modal.js`](../frontend/src/ui/server-settings-modal.js), [`channels.js`](../signaling-server/src/channels.js) (UC12) | CT18 |
-| RF016 — Senha e sala oculta | [`directory.js`](../signaling-server/src/directory.js) ([UC11](#uc11--gerenciar-salas)) | CT10 |
-| RF017 — PiP | [`core/pip.js`](../frontend/src/core/pip.js), plugin [`pip`](../plugins/tauri-plugin-pip/) (UC05) | — |
-| RF018 — Temas | [`core/style.js`](../frontend/src/core/style.js), [`ui/theme.js`](../frontend/src/ui/theme.js) (UC09) | CT15 |
-| RF019 — Guia | [`ui/setup-guide-modal.js`](../frontend/src/ui/setup-guide-modal.js), [`ui/welcome-modal.js`](../frontend/src/ui/welcome-modal.js) (UC10) | — |
-| RF020 — Sair da sala | [`core/call.js`](../frontend/src/core/call.js) (UC03) | CT17 |
-| RNF001 — 16 participantes | [`rooms.js`](../signaling-server/src/rooms.js), [`sfu-room.js`](../signaling-server/src/sfu-room.js) | CT02 |
-| RNF002 — Chave de administrador | [`server.js`](../signaling-server/src/server.js), [`ui/admin-key-field.js`](../frontend/src/ui/admin-key-field.js) (UC13) | CT08, CT18 |
-| RNF003 — Acesso aos arquivos | [`media.js`](../signaling-server/src/media.js) | CT11 |
-| RNF004 — Tipos e tamanhos | [`media.js`](../signaling-server/src/media.js), [`ui/attach.js`](../frontend/src/ui/attach.js) | CT07, CT19 |
-| RNF005 — Localização removida | [`core/attachments.js`](../frontend/src/core/attachments.js) | CT12 |
-| RNF006 — `/health` | [`server.js`](../signaling-server/src/server.js) | CT16 |
-| RNF007 — Reconexão | [`core/signaling.js`](../frontend/src/core/signaling.js), [`core/call.js`](../frontend/src/core/call.js) | CT09 |
-| RNF008 — Plataformas | instalador e APK | teste manual |
-| RNF009 — Temas legíveis | [`styles/theme.css`](../frontend/src/styles/theme.css) | CT15 |
-| RNF010 — 1080p60 | [`core/media.js`](../frontend/src/core/media.js), [`native_live`](../frontend/src-tauri/src/native_live/) | CT13 |
+| Requisito | Regras de negócio | Caso de uso / Componente | Casos de Teste / Verificação |
+|---|---|---|---|
+| RF001 — Configuração de Servidor | — | UC01 / [`core/server-address.js`](../frontend/src/core/server-address.js), [`core/signaling.js`](../frontend/src/core/signaling.js) | CT01 (`server-address.test.js`) |
+| RF002 — Visualizar salas e canais | RN003 | UC01, [UC02](#uc02--entrar-em-uma-sala) / [`ui/channel-list.js`](../frontend/src/ui/channel-list.js), [`directory.js`](../signaling-server/src/directory.js) | CT01, CT10 |
+| RF003 — Entrada em Salas | RN001 | [UC02](#uc02--entrar-em-uma-sala) / [`core/call.js`](../frontend/src/core/call.js), [`rooms.js`](../signaling-server/src/rooms.js) | CT02, CT03 |
+| RF004 — Salas Protegidas por Senha | RN002 | [UC02](#uc02--entrar-em-uma-sala), UC02b / [`ui/lobby.js`](../frontend/src/ui/lobby.js), [`directory.js`](../signaling-server/src/directory.js) | CT04, CT10 |
+| RF005 — Chamadas de voz e vídeo | RN001 | UC03 / [`core/call.js`](../frontend/src/core/call.js), [`sfu-room.js`](../signaling-server/src/sfu-room.js) | CT02 |
+| RF006 — Microfone e câmera | — | UC03 / [`core/call.js`](../frontend/src/core/call.js), [`ui/control-bar.js`](../frontend/src/ui/control-bar.js) | CT17 |
+| RF007 — Transmissão de tela | — | [UC04](#uc04--transmitir-a-tela) / [`core/call.js`](../frontend/src/core/call.js), [`native_live`](../frontend/src-tauri/src/native_live/), [`system-audio`](../plugins/tauri-plugin-system-audio/) | CT13 |
+| RF008 — Qualidade da transmissão | — | [UC04](#uc04--transmitir-a-tela) / [`ui/share-panel.js`](../frontend/src/ui/share-panel.js), [`core/media.js`](../frontend/src/core/media.js) | CT13 (`native-live.test.js`) |
+| RF009 — Mensagens de Chat | RN005 | UC06 / [`ui/chat-panel.js`](../frontend/src/ui/chat-panel.js), [`server.js`](../signaling-server/src/server.js) | CT05, CT06 |
+| RF010 — Envio de Mídia | RN005, RN008, RN009 | UC08 / [`ui/attach.js`](../frontend/src/ui/attach.js), [`core/attachments.js`](../frontend/src/core/attachments.js), [`media.js`](../signaling-server/src/media.js) | CT07, CT12, CT19 |
+| RF011 — Canais com histórico | RN005, RN006, RN007 | UC07 / [`ui/text-channel.js`](../frontend/src/ui/text-channel.js), [`channels.js`](../signaling-server/src/channels.js) | CT14 (`channels.test.js`) |
+| RF012 — Responder mensagens | RN012 | UC07 / [`ui/text-channel.js`](../frontend/src/ui/text-channel.js), [`channels.js`](../signaling-server/src/channels.js) | CT14 (`server.test.js`) |
+| RF013 — Perfil | RN011 | UC09 / [`ui/avatar-editor.js`](../frontend/src/ui/avatar-editor.js), [`avatars.js`](../signaling-server/src/avatars.js) | CT20 (`avatar.test.js`, `profile-color.test.js`, `server.test.js`) |
+| RF014 — Gestão Administrativa de salas | RN004, RN010 | [UC11](#uc11--gerenciar-salas) / [`ui/server-settings-modal.js`](../frontend/src/ui/server-settings-modal.js), [`directory.js`](../signaling-server/src/directory.js) | CT08 (`directory.test.js`, `server.test.js`) |
+| RF015 — Gestão de canais | RN004 | UC12 / [`ui/server-settings-modal.js`](../frontend/src/ui/server-settings-modal.js), [`channels.js`](../signaling-server/src/channels.js) | CT18 |
+| RF016 — Senha e sala oculta | RN002, RN003, RN004 | [UC11](#uc11--gerenciar-salas) / [`directory.js`](../signaling-server/src/directory.js) | CT10 |
+| RF017 — PiP | — | UC05 / [`core/pip.js`](../frontend/src/core/pip.js), plugin [`pip`](../plugins/tauri-plugin-pip/) | CT21 (`pip.test.js` + manual) |
+| RF018 — Temas | — | UC09 / [`core/style.js`](../frontend/src/core/style.js), [`ui/theme.js`](../frontend/src/ui/theme.js) | CT15 |
+| RF019 — Guia | — | UC10 / [`ui/setup-guide-modal.js`](../frontend/src/ui/setup-guide-modal.js), [`ui/welcome-modal.js`](../frontend/src/ui/welcome-modal.js) | CT22 (`welcome.test.js` + manual) |
+| RF020 — Sair da sala | — | UC03 / [`core/call.js`](../frontend/src/core/call.js) | CT17 |
+| RNF001 — 16 participantes | RN001 | UC03 / [`rooms.js`](../signaling-server/src/rooms.js), [`sfu-room.js`](../signaling-server/src/sfu-room.js) | CT02 |
+| RNF002 — Chave de administrador | RN004 | UC13 / [`server.js`](../signaling-server/src/server.js), [`ui/admin-key-field.js`](../frontend/src/ui/admin-key-field.js) | CT08, CT18 |
+| RNF003 — Acesso aos arquivos | RN009 | UC08 / [`media.js`](../signaling-server/src/media.js) | CT11 |
+| RNF004 — Tipos e tamanhos | RN008 | UC08 / [`media.js`](../signaling-server/src/media.js), [`ui/attach.js`](../frontend/src/ui/attach.js) | CT07, CT19 |
+| RNF005 — Localização removida | — | UC08 / [`core/attachments.js`](../frontend/src/core/attachments.js) | CT12 (`attachments.test.js`) |
+| RNF006 — `/health` | — | [`server.js`](../signaling-server/src/server.js) | CT16 |
+| RNF007 — Reconexão | — | UC01 / [`core/signaling.js`](../frontend/src/core/signaling.js), [`core/call.js`](../frontend/src/core/call.js) | CT09 |
+| RNF008 — Plataformas | — | Build Windows (instalador) e Android (APK) | CT23 (`installer.test.js` + manual) |
+| RNF009 — Temas legíveis | — | UC09 / [`styles/theme.css`](../frontend/src/styles/theme.css) | CT15 |
+| RNF010 — Pelo menos 1080p60 | — | [UC04](#uc04--transmitir-a-tela) / [`core/media.js`](../frontend/src/core/media.js), [`native_live`](../frontend/src-tauri/src/native_live/) | CT13 |
 
-As regras de negócio seguem pelos requisitos: RN001 → CT02, CT03; RN002 → CT04; RN003 → CT10; RN004 → CT08, CT18; RN005 → CT05, CT06; RN008 → CT07, CT19; RN009 → CT11; RN012 → CT14. As RN006, RN007, RN010 e RN011 são cobertas pelos testes automáticos do servidor. Os poucos casos com "—" (`RF013`, `RF017`, `RF019`) são verificados manualmente nas builds de Windows e Android.
+Cada regra de negócio (`RN001` a `RN012`) aparece na coluna ao lado dos requisitos que ela restringe: assim, mudar qualquer regra já aponta na hora quais módulos e testes precisam ser revisados.
 
 ---
 
@@ -844,38 +864,30 @@ As regras de negócio seguem pelos requisitos: RN001 → CT02, CT03; RN002 → C
 
 ## 30. Mudanças futuras por tipo de manutenção
 
-**Manutenção Corretiva**
-- Proposta: corrigir o defeito em que quem entra numa sala já em andamento às vezes não ouve quem já estava nela.
-- Justificativa: elimina uma falha real achada pelos testers que quebra o RF005 em silêncio, sem avisar nada na tela.
+**Manutenção Corretiva** — O principal defeito em aberto hoje é quando alguém entra numa sala que já tá em andamento e, em alguns casos, não escuta quem já estava lá dentro. Isso quebra o `RF005` sem dar nenhum aviso na tela pro usuário, então corrigir essa falha de sincronização no início da chamada entra como prioridade corretiva.
 
-**Manutenção Adaptativa**
-- Proposta: atualizar as dependências do Tauri, WebView2, Android SDK e `mediasoup` quando saírem novas versões dos sistemas operacionais.
-- Justificativa: adapta o app e o servidor às mudanças externas do Windows e do Android (RNF008) sem mexer nas funcionalidades principais.
+**Manutenção Adaptativa** — Como o app depende do Tauri, WebView2, Android SDK e `mediasoup`, cada atualização grande do Windows ou do Android obriga a atualizar essas dependências e revisar o build. Essa manutenção adapta o sistema às mudanças de ambiente externo (`RNF008`) sem mexer no que o app faz pro usuário.
 
-**Manutenção Perfectiva**
-- Proposta: ampliar os alertas sonoros e notificações (que hoje avisam só menções e respostas) pra cada pessoa escolher por canal se quer alerta de todas as mensagens, só menções ou nada, com opção de som diferente.
-- Justificativa: melhora um recurso que já existe no app e deixa o uso dos canais mais prático. Notificações *push* com o app fechado ficam de fora porque pediriam um servidor central.
+**Manutenção Perfectiva** — Hoje o Jay-C só toca alerta sonoro e notificação pra menções e respostas. A melhoria prevista é deixar cada pessoa escolher por canal se quer aviso de todas as mensagens, só de menções/respostas ou nenhum alerta, inclusive mudando o som. Isso aperfeiçoa um recurso que já existe no app e torna os canais bem mais práticos no dia a dia. Notificações *push* com o app fechado ficam fora porque exigiriam um servidor central de mensagens.
 
-**Manutenção Preventiva**
-- Proposta: aplicar a refatoração planejada na [seção 21](#21-refatoração-futura-proposta) — quebrar a classe `Call` ([`core/call.js`](../frontend/src/core/call.js), ~1 100 linhas) em módulos menores por trás de uma fachada, transformar o `if/else` de [`server.js`](../signaling-server/src/server.js) num mapa de tratadores e isolar a leitura/gravação de [`directory.js`](../signaling-server/src/directory.js) e [`channels.js`](../signaling-server/src/channels.js) numa interface única de persistência em disco.
-- Justificativa: reduz acoplamento antes que novas features deixem esses arquivos difíceis de mexer e facilita manter os testes automatizados sem alterar o que o usuário vê hoje.
+**Manutenção Preventiva** — Antes que novas funcionalidades deixem o código difícil de mexer, a ideia é aplicar a refatoração da [seção 21](#21-refatoração-futura-proposta): quebrar a classe `Call` ([`core/call.js`](../frontend/src/core/call.js), ~1 100 linhas) em módulos menores atrás de uma fachada, trocar o `if/else` comprido de [`server.js`](../signaling-server/src/server.js) por um mapa de tratadores e isolar a leitura/gravação de [`directory.js`](../signaling-server/src/directory.js) e [`channels.js`](../signaling-server/src/channels.js) numa camada única de persistência em disco. Reduz o acoplamento interno e facilita manter os testes automatizados sem alterar nada visível pra quem usa.
 
 ## 31. Análise de impacto
 
-A inclusão dos Alertas Configuráveis por Canal mexe com os seguintes pontos do projeto:
+Botar os Alertas Configuráveis por Canal pra funcionar mexe nos seguintes pontos do projeto:
 
-- Requisitos: entra um Requisito Funcional novo (`RF021`, escolher o nível de alerta por canal e ignorar mensagens enviadas pelo próprio usuário) e um Não Funcional (`RNF011`, o alerta sonoro toca em até 1 segundo após a mensagem chegar).
-- Arquitetura: altera o módulo que já existe ([`core/mention-alert.js`](../frontend/src/core/mention-alert.js)) e o armazenamento de preferências ([`store/settings.js`](../frontend/src/store/settings.js)), além da UI do canal ([`ui/text-channel.js`](../frontend/src/ui/text-channel.js)). Tudo fica local no app; o servidor e o protocolo não mudam.
-- Diagramas: no Diagrama de Classes de domínio, entra a classe `PreferenciaDeAlerta` ligada a `CanalDeTexto`; nos Casos de Uso, entra um novo caso estendendo `UC07`; e vale criar um Diagrama de Sequência mostrando a consulta da preferência quando uma mensagem chega.
-- Testes: criar casos de teste pros três modos de alerta e conferir que a própria mensagem nunca dispara som. O `CT14` segue rodando como teste de regressão.
+- **Requisitos:** entra um Requisito Funcional novo (`RF021`, escolher o nível de alerta por canal e nunca disparar alerta pra mensagem do próprio usuário) e um Não Funcional (`RNF011`, o som tocar em até 1 segundo depois que a mensagem chega).
+- **Arquitetura:** muda o módulo que já cuida dos avisos ([`core/mention-alert.js`](../frontend/src/core/mention-alert.js)), o armazenamento local de preferências ([`store/settings.js`](../frontend/src/store/settings.js)) e a interface do canal ([`ui/text-channel.js`](../frontend/src/ui/text-channel.js)). Como tudo fica salvo no dispositivo do usuário, nem o servidor nem o protocolo WebSocket mudam.
+- **Diagramas:** no Diagrama de Classes de domínio, entra uma classe `PreferenciaDeAlerta` no lado local do cliente associada ao canal (`CanalDeTexto`, por nome do canal); nos Casos de Uso, entra um caso novo estendendo `UC07`; e vale adicionar um Diagrama de Sequência mostrando a consulta da preferência quando uma mensagem chega.
+- **Testes:** criar casos pros três modos de alerta e conferir que mensagem da própria pessoa nunca dispara som, mantendo o `CT14` rodando como regressão.
 
 ## 32. Riscos técnicos e mitigação
 
 | Risco Identificado | Impacto no Projeto | Ação de Mitigação |
 |---|---|---|
-| 1. Perda de compatibilidade em atualizações | Falha de build ou quebra de recurso nativo (captura de som/tela, WebView) depois de atualizar dependências de terceiros. | Travar versões exatas no `package-lock.json` e `Cargo.lock`, e rodar `npm test` + `cargo test` no CI antes de aceitar qualquer atualização. |
-| 2. Corrupção de arquivos locais ou do `DATA_DIR` | Perda da lista de salas fixas, histórico dos canais ou preferências do usuário após queda de energia ou mudança de formato. | Manter gravação atômica (arquivo temporário + rename, como já existe em `directory.js`) e versionar o formato dos JSON para migrar com segurança ao iniciar. |
-| 3. Saturação de upload do servidor ou sobrecarga na live | Travamento do vídeo ou queda de quadros quando muita gente assiste a uma transmissão em 1080p60 (15 espectadores pedem ~90 Mbps do host) ou em PCs com GPU mais fraca. | Usar simulcast e adaptação automática de bitrate à rede de quem assiste, limitar o tamanho dos quadros-chave no codificador e deixar o requisito de upload claro no guia de hospedagem. |
+| 1. Perda de compatibilidade em atualizações | O build pode falhar ou algum recurso nativo (captura de som/tela, WebView) quebrar depois de subir versão de dependência externa. | Travar versões exatas no `package-lock.json` e `Cargo.lock`, e só aceitar atualização depois de passar `npm test` + `cargo test` no CI. |
+| 2. Corrupção de arquivos locais ou do `DATA_DIR` | Queda de energia ou mudança no formato do JSON apagar salas fixas, histórico dos canais ou preferências salvas. | Manter gravação atômica (arquivo temporário + rename, como já rola em `directory.js`) e versionar o formato dos JSON pra migrar com segurança ao iniciar. |
+| 3. Saturação de upload do servidor ou sobrecarga na live | Vídeo travando ou queda de FPS quando muita gente assiste a uma live em 1080p60 (15 espectadores pedem ~90 Mbps do host) ou em PC com GPU mais fraca. | Usar simulcast e adaptação automática de bitrate pra rede de quem assiste, limitar o tamanho dos quadros-chave no codificador e deixar o requisito de upload claro no guia de hospedagem. |
 
 ---
 
@@ -923,7 +935,7 @@ Mesmo assim o sistema tem limitações claras. Não existe criptografia de ponta
 
 | Integrante | Atividades | Evidências |
 |---|---|---|
-| Augusto do Amarante (GitHub: @gusg543) | Verificação e validação: revisão dos requisitos e modelos, diferença entre verificação e validação com exemplos do sistema ([seção 28](#28-verificação-e-validação)) | [preencher: documento ou revisão entregue] |
+| Augusto do Amarante (GitHub: @gusg543) | Verificação e validação: diferença entre verificação e validação com exemplos do sistema e análise dos testes automatizados do repositório ([seção 28](#28-verificação-e-validação)) | Relatório "Verificação e Validação — Análise dos Testes Automatizados" (integrado na [seção 28](#28-verificação-e-validação)) |
 | Cristofer Dvorecky Oliveira (GitHub: @CristoferDOliveira) | Tabela de requisitos: requisitos funcionais, não funcionais e regras de negócio ([seções 9 a 11](#9-requisitos-funcionais)) | [`TabelaRequisitos.xlsx`](../TabelaRequisitos.xlsx) |
 | Guilherme Perpétuo (GitHub: @Gui135-dev) | Modelagem: casos de uso, descrições e diagrama de classes ([seções 13 a 16](#13-diagrama-de-casos-de-uso)) | [preencher: diagramas entregues] |
 | Henrique Augusto (GitHub: @Henrique_Dutr4) | Testes e manutenção: atributos de qualidade, CT01–CT08, matriz de rastreabilidade (base da [seção 4.6](#46-qualidade-verificação-e-validação)); tipos de manutenção, análise de impacto e riscos (base da [seção 4.7](#47-manutenção-e-evolução)) | Documentos "Testes do Sistema — JAY-C" e "Manutenção do Sistema e Mudanças Futuras" |
