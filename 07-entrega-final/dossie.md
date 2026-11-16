@@ -75,46 +75,46 @@
 
 ## 1. Introdução
 
-O Jay-C é um app de chamadas de voz, vídeo e transmissão de tela pensado pra grupos pequenos. Ele é dividido em duas partes: o aplicativo em si (que roda no Windows e no Android) e o servidor, que o próprio grupo sobe num PC ou numa VPS usando Docker. Não tem cadastro, login nem propaganda. Quem tiver o endereço do servidor entra só colocando um nome, e o código todo é aberto sob licença MIT.
+O Jay-C é um app de chamadas de voz, vídeo e transmissão de tela feito pra grupos pequenos, e ele é dividido em duas partes: o aplicativo em si, que roda no Windows e no Android, e o servidor que o próprio grupo sobe num PC ou numa VPS usando Docker. Não tem cadastro, não tem login nem propaganda, então quem tiver o endereço do servidor entra só colocando um nome e pronto, e todo o código tá aberto sob licença MIT.
 
-Aqui neste dossiê a gente aplica ao Jay-C o que foi visto na disciplina: do problema inicial e dos requisitos até a modelagem, arquitetura, processo, testes e manutenção.
+Neste dossiê a gente pega tudo que foi visto na disciplina e aplica em cima do Jay-C — desde o problema inicial e levantamento de requisitos até os modelos, arquitetura, processo, testes e manutenção futura.
 
 ## 2. Problema
 
-Hoje em dia, qualquer grupo de amigos, turma de faculdade ou equipe pequena que quer conversar por voz e mostrar a tela acaba preso em alguma plataforma grande e centralizada. Pra usar, todo mundo precisa criar conta com e-mail ou telefone. Fora isso, várias dessas plataformas empurram assinatura paga ou mostram anúncio, guardam as conversas e arquivos em servidores de terceiros e limitam a qualidade da transmissão ou o tamanho dos arquivos se você não pagar.
+Hoje em dia, qualquer grupo de amigos, turma de faculdade ou equipe pequena que quer conversar por voz e mostrar a tela acaba preso em alguma plataforma grande e centralizada, onde todo mundo precisa criar conta com e-mail ou telefone só pra conseguir entrar numa sala. Fora isso, várias dessas plataformas empurram assinatura paga ou ficam mostrando anúncio, guardam as conversas e arquivos em servidores de terceiros e ainda capam a qualidade da transmissão ou o tamanho dos arquivos se ninguém pagar.
 
-Falta uma opção simples, gratuita e local, onde o próprio grupo roda o servidor, decide quem entra e fica com os próprios dados.
+O que falta é uma opção simples, gratuita e local onde o próprio grupo roda o servidor, decide quem entra e fica com os próprios dados sem depender de empresa nenhuma no meio.
 
 ## 3. Público-alvo
 
-O foco principal são quatro perfis bem próximos do nosso dia a dia. Grupos de amigos que jogam ou assistem coisas juntos e querem transmitir a tela com o som do jogo. Turmas e grupos de estudo que precisam de call e de um chat onde as mensagens e arquivos fiquem salvos. Equipes pequenas ou comunidades que não querem depender de servidor externo. E, claro, a pessoa do grupo que vai subir e cuidar do servidor, que não precisa ser especialista, só saber instalar o Docker e abrir duas portas no firewall.
+O foco principal são quatro perfis bem próximos do nosso dia a dia, começando por grupos de amigos que jogam ou assistem coisa juntos e querem transmitir a tela levando o som do jogo sem complicação. Também entra turma de faculdade e grupo de estudo que precisa de call junto com um chat onde mensagens e arquivos fiquem salvos, além de equipes pequenas ou comunidades que preferem não depender de servidor externo. E tem a pessoa do grupo que vai subir e cuidar do servidor — que nem precisa ser especialista em redes, basta saber instalar o Docker e liberar duas portas no firewall.
 
 ## 4. Objetivos
 
-A ideia central do Jay-C é entregar chamadas de voz e vídeo, transmissão de tela e chat pra grupos pequenos, rodando num servidor próprio sem conta, sem propaganda e sem custo de licença.
+A ideia do Jay-C é entregar chamada de voz e vídeo, transmissão de tela e chat pra grupos pequenos rodando num servidor próprio, sem conta, sem propaganda e sem custo de licença.
 
-Na prática, o sistema precisa dar conta de:
+Na prática, o sistema busca resolver isso aqui:
 
-1. Chamadas de voz e vídeo com até 16 pessoas juntas na mesma sala.
-2. Compartilhar a tela inteira ou uma janela específica com o som junto (no Windows), segurando pelo menos 1080p a 60 qps — e podendo subir até 1440p ou a resolução nativa do monitor.
-3. Organizar o servidor com salas de voz (abertas, protegidas por senha ou ocultas) e canais de texto com histórico salvo.
+1. Aguentar chamadas de voz e vídeo com até 16 pessoas juntas na mesma sala.
+2. Compartilhar a tela inteira ou só uma janela específica levando o som junto (no Windows), segurando pelo menos 1080p a 60 qps e podendo subir até 1440p ou a resolução nativa do monitor.
+3. Organizar o servidor com salas de voz (abertas, com senha ou ocultas) e canais de texto onde o histórico fica salvo.
 4. Deixar o pessoal mandar imagens, GIFs e vídeos no chat, mas tirando os dados de localização dos arquivos antes deles subirem pro servidor.
-5. Quem administra o servidor poder criar, editar e apagar salas e canais usando uma chave de administrador.
-6. Instalação direta no Windows e no Android, sem precisar configurar muita coisa.
+5. Quem administra o servidor conseguir criar, editar e apagar salas e canais usando uma chave de administrador.
+6. Instalação direta no Windows e no Android sem precisar de configuração complicada.
 
 ## 5. Limites do sistema
 
 O escopo do Jay-C cobre chamadas, transmissão de tela, chat dentro da chamada, canais de texto com histórico, envio de imagens e vídeos, administração de salas e canais, janela flutuante (PiP), troca de temas e um perfil básico com nome, cor e foto.
 
-Várias coisas ficaram fora de propósito. Não existe conta, senha de usuário nem lista de amigos: sua identidade é só o nome escolhido na hora de entrar. Também não tem mensagem privada (DM) fora das salas. A mídia viaja cifrada entre o app e o servidor porque o WebRTC já faz isso, mas não há criptografia de ponta a ponta (o servidor do grupo precisa receber e repassar os pacotes de vídeo), então o servidor tem que ser de confiança de quem usa. A equipe não mantém nenhum servidor central, cada grupo hospeda o seu. E nesta versão o app roda só em Windows e Android, sem suporte a iOS, macOS ou Linux.
+Várias coisas ficaram de fora de propósito porque não faziam sentido pro projeto: não existe conta, senha de usuário nem lista de amigos, então sua identidade é só o nome escolhido na hora de entrar, e também não tem mensagem privada (DM) fora das salas. A mídia viaja cifrada entre o app e o servidor porque o WebRTC já faz isso por padrão, mas não há criptografia de ponta a ponta já que o servidor do grupo precisa receber e repassar os pacotes de vídeo, entao quem usa precisa confiar no servidor em que tá entrando. A equipe não mantém nenhum servidor central (cada grupo hospeda o seu), e nessa versão o app roda só em Windows e Android, sem suporte a iOS, macOS ou Linux.
 
-No servidor também existem alguns limites numéricos que o administrador pode ajustar na configuração: 16 pessoas por sala, mensagens de até 500 caracteres, 500 mensagens salvas por canal de texto, imagens e GIFs de até 8 MB e vídeos de até 50 MB.
+No servidor tambem existem alguns limites numéricos que o administrador pode ajustar na configuração se precisar: 16 pessoas por sala, mensagens de até 500 caracteres, 500 mensagens salvas por canal de texto, imagens e GIFs de até 8 MB e vídeos de até 50 MB.
 
 ## 6. Justificativa
 
-Faz sentido construir o Jay-C porque as alternativas populares trocam a "gratuidade" pelos dados e pela atenção do usuário, e um grupo pequeno não precisa de toda a estrutura dessas plataformas gigantes.
+Faz sentido construir o Jay-C porque as alternativas populares trocam a "gratuidade" pelos dados e pela atenção do usuário, e um grupo pequeno não precisa de toda a estrutura pesada dessas plataformas gigantes.
 
-Com o Jay-C, as conversas, os arquivos e o controle de acesso ficam na máquina do grupo. Como o app e o servidor são gratuitos e open-source, o único custo real é a máquina que hospeda (que pode ser até o PC de alguém do grupo). Pra entrar não precisa de cadastro, só o endereço do servidor e um nome. A voz também não abafa o som dos outros programas no Windows, e a live chega a pelo menos 1080p a 60 qps (indo até 1440p) com som. Além disso o app ficou leve: em vez de empacotar um navegador inteiro junto, ele usa a WebView do próprio sistema (o WebView2 no Windows), deixando o instalador com uns 5,4 MB.
+Com o Jay-C, as conversas, os arquivos e o controle de acesso ficam na máquina do grupo, e como o app e o servidor são gratuitos e open-source o único custo real acaba sendo a máquina que hospeda — que pode ser até o PC de alguém da turma. Pra entrar não precisa de cadastro, só o endereço do servidor e um nome, e a voz também não abafa o som dos outros programas no Windows enquanto a live chega em pelo menos 1080p a 60 qps (indo até 1440p) com som. Outra vantagem é que o app ficou bem leve: em vez de empacotar um navegador inteiro junto, ele usa a WebView do próprio sistema (WebView2 no Windows), deixando o instalador com uns 5,4 MB.
 
 ---
 
@@ -124,25 +124,25 @@ Com o Jay-C, as conversas, os arquivos e o controle de acesso ficam na máquina 
 
 | # | Stakeholder | Interesses |
 |---|---|---|
-| S1 | Participante (usuário comum) | Entrar rápido, sem cadastro; voz clara; ver e ouvir os outros sem travar; app leve e gratuito. |
-| S2 | Transmissor (quem compartilha a tela) | Transmitir um jogo ou uma janela com o som, em boa qualidade, sem pesar o computador nem vazar o som de outros apps. |
-| S3 | Administrador do servidor | Instalar e manter o servidor com pouco esforço; criar e proteger salas e canais; controlar quem acessa; limitar o espaço em disco usado pelos arquivos. |
-| S4 | Usuário de celular | Participar das chamadas pelo Android, continuar vendo a transmissão em janela flutuante (PiP) e gastar pouca bateria e dados. |
-| S5 | Equipe de desenvolvimento e mantenedores | Código organizado e testado, versões publicadas com segurança, atualização automática dos usuários, facilidade para corrigir e evoluir. |
+| S1 | Participante (usuário comum) | Entrar rápido sem cadastro, ter voz clara e ver/ouvir os outros sem travar, num app leve e gratuito. |
+| S2 | Transmissor (quem compartilha a tela) | Transmitir um jogo ou uma janela com o som em boa qualidade, sem pesar o PC e sem vazar o áudio dos outros programas. |
+| S3 | Administrador do servidor | Subir e manter o servidor sem dor de cabeça, criar e proteger salas e canais, controlar quem acessa e limitar o espaço em disco dos arquivos. |
+| S4 | Usuário de celular | Entrar nas chamadas pelo Android, continuar vendo a live em janela flutuante (PiP) e não torrar bateria nem dados móveis. |
+| S5 | Equipe de desenvolvimento e mantenedores | Código organizado e testado, versões publicadas com segurança, atualização automática pro pessoal e facilidade pra corrigir bugs depois. |
 
 ## 8. Levantamento de requisitos
 
-Para levantar os requisitos usaríamos três técnicas em ciclos curtos: conversar em entrevistas com quem já faz chamadas e transmissões (S1, S2 e S4) e com quem cuidaria da hospedagem (S3), aplicar um questionário rápido online pra medir frequência de uso e tamanho dos grupos, e observar gente usando versões de teste de verdade. Essa última parte o projeto já colocou em prática faz tempo — várias sugestões dos testers viraram requisito direto, tipo o chat da chamada do lado do vídeo e poder responder mensagens nos canais.
+Pra levantar os requisitos a gente pensou em três técnicas rodando em ciclos curtos: conversar em entrevistas com quem já usa call e live no dia a dia (S1, S2 e S4) e com quem cuidaria da hospedagem (S3), mandar um questionário rápido online pra medir frequência de uso e tamanho dos grupos, e observar gente usando versões de teste de verdade. Essa última parte o projeto já botou em prática faz tempo — várias sugestões dos testers viraram requisito direto, tipo o chat da chamada do lado do vídeo e poder responder mensagens nos canais.
 
 As perguntas usadas pra investigar isso seriam:
 
-1. Quantas pessoas costumam entrar nas chamadas de vocês ao mesmo tempo, e qual foi o máximo que já deu?
-2. O que vocês usam hoje pra call e live, e o que mais enche o saco neles (ter que criar conta, anúncio, limite de qualidade, privacidade)?
-3. Quando alguém transmite a tela, costuma mostrar o quê — um jogo, uma janela só ou o monitor todo? O som do app precisa ir junto?
-4. Faz falta guardar histórico de mensagem e arquivo? Por quanto tempo, e quem deveria conseguir ver?
-5. Tem alguém no grupo que conseguiria deixar um PC ou servidor ligado pra rodar o sistema? Quanto essa pessoa manja de rede/Docker?
-6. Pelo celular, o que precisa continuar rodando quando a pessoa sai do app — só o áudio ou ver a live também?
-7. Vocês precisam de sala fechada com senha, ou até sala que nem aparece na lista?
+1. Quantas pessoas costumam entrar nas chamadas de vocês ao mesmo tempo, e qual foi o máximo que já deu numa call?
+2. O que vocês usam hoje pra chamada e transmissão, e o que mais irrita nesses apps (ter que fazer conta, anúncio, limite de qualidade, privacidade)?
+3. Quando alguém compartilha a tela, costuma mostrar o quê — um jogo, uma janela só ou o monitor inteiro? O som do app precisa ir junto?
+4. Faz falta guardar histórico de mensagem e arquivo? Por quanto tempo, e quem deveria poder acessar?
+5. Tem alguém no grupo que conseguiria deixar um PC ou servidor ligado pra rodar o sistema, e quanto essa pessoa manja de rede ou Docker?
+6. Pelo celular, o que precisa continuar funcionando quando a pessoa sai do app — só ouvir a call ou ver a live também?
+7. Vocês precisam de sala fechada com senha, ou até sala escondida que nem aparece na lista pública?
 
 ## 9. Requisitos funcionais
 
@@ -271,7 +271,7 @@ flowchart LR
   UC12 -. "«include»" .-> UC13
 ```
 
-O ator principal é o Participante. Transmissor e Administrador são especializações dele, já que qualquer participante pode abrir uma live (Transmissor) e qualquer um que tiver a chave pode administrar o servidor (Administrador). Como não existem contas no Jay-C ([seção 5](#5-limites-do-sistema)), ser administrador depende só de informar a chave certa, então `UC11` e `UC12` sempre incluem `UC13`. Já conectar ao servidor (`UC01`) acontece uma vez quando o app abre e vira pré-condição pro resto (tipo entrar numa sala no [`UC02`](#uc02--entrar-em-uma-sala), mandar msg em canal ou administrar), por isso não usamos `<<include>>` pra ele. O caso `UC02b` (informar senha) e o `UC08` (anexar mídia) só rodam quando existe senha na sala ou arquivo anexado, então entram como `<<extend>>`.
+O ator principal é o Participante, e tanto Transmissor quanto Administrador são especializações dele porque qualquer pessoa na sala pode abrir uma live (virando Transmissor) e qualquer um que tiver a chave certa pode administrar o servidor (virando Administrador). Como não existe conta no Jay-C ([seção 5](#5-limites-do-sistema)), administrar depende só de informar essa chave, então `UC11` e `UC12` sempre puxam `UC13` com `<<include>>`. Já conectar ao servidor (`UC01`) acontece uma vez só quando o app abre e funciona como pré-condição pro resto — tipo entrar numa sala no [`UC02`](#uc02--entrar-em-uma-sala), mandar msg em canal ou mexer nas configurações — por isso a gente não botou `<<include>>` nele. Os casos `UC02b` (informar senha) e `UC08` (anexar mídia) só disparam quando a sala tem senha ou quando alguém anexa arquivo, então entram como `<<extend>>`.
 
 | Caso de uso | Requisitos |
 |---|---|
@@ -418,11 +418,11 @@ classDiagram
   Mensagem "1" -- "0..1" Arquivo : anexo
 ```
 
-Algumas decisões desse diagrama valem uma explicação rápida. Não existe classe Usuário ou Conta porque o sistema não tem cadastro: o participante só existe enquanto tá conectado no servidor. É por isso que `Mensagem` guarda `nomeDoAutor` e `corDoAutor` direto nela em vez de apontar pro `Participante`, senão o histórico dos canais perderia o autor depois que a pessoa saísse.
+Tem umas decisões nesse diagrama que vale explicar direto pra não parecer erro. Não tem classe Usuário nem Conta porque o sistema não tem cadastro, então o participante só existe enquanto tá conectado no servidor, e é exatamente por isso que `Mensagem` guarda `nomeDoAutor` e `corDoAutor` direto nela em vez de apontar pro `Participante` — senão o histórico dos canais ia perder o autor toda vez que a pessoa saísse da sala.
 
-O Administrador também não virou uma classe separada. Administrar aqui é só ter a chave do servidor, e quem confere isso é `Servidor.validarChave()`, então aquele ator dos casos de uso vira uma operação no servidor em vez de um objeto próprio.
+O Administrador tambem não virou uma classe separada. Administrar aqui é só ter a chave do servidor, e quem confere ela é `Servidor.validarChave()`, entao aquele ator dos casos de uso vira uma operação no servidor em vez de existir como objeto próprio.
 
-Separamos `Mensagem` em duas subclasses porque o comportameto é diferente: a da chamada morre quando a sala esvazia ou a call acaba (por isso composição com `Sala`), enquanto a do canal fica salva no histórico (composição com `CanalDeTexto`) e pode citar outra mensagem do mesmo canal (`respondeA`). Cada mensagem leva no máximo 1 anexo (`0..1`), e `texto` pode ficar vazio se tiver mídia anexada (sem anexo, exige 1 a 500 caracteres). Já a agregação (losango vazio) ficou só entre `Sala` e `Participante`, porque quando o usuário sai de uma chamada ele continua conectado ao servidor nos canais de texto. Para fechar, `Arquivo.tipo` pode ser imagem, GIF ou vídeo, e `formato` aceita PNG, JPEG, WebP, GIF, MP4 ou WebM.
+A gente separou `Mensagem` em duas subclasses porque o comportameto delas muda bastante: a da chamada morre quando a sala esvazia ou a call acaba (por isso composição com `Sala`), enquanto a do canal fica salva no histórico (composição com `CanalDeTexto`) e pode citar outra mensagem do mesmo canal (`respondeA`). Cada mensagem leva no máximo 1 anexo (`0..1`), e o `texto` pode ir vazio se tiver mídia junto (sem anexo, precisa ter de 1 a 500 caracteres). Já a agregação (losango vazio) ficou só entre `Sala` e `Participante`, porque se o usuário sair de uma chamada ele continua conectado ao servidor mexendo nos canais de texto. Pra fechar, `Arquivo.tipo` pode ser imagem, GIF ou vídeo, e `formato` aceita PNG, JPEG, WebP, GIF, MP4 ou WebM.
 
 ## 16. Como os modelos representam os requisitos e as regras
 
@@ -448,7 +448,7 @@ Separamos `Mensagem` em duas subclasses porque o comportameto é diferente: a da
 
 ## 17. Visão arquitetural
 
-O Jay-C é um sistema cliente-servidor. O aplicativo roda no computador ou no celular de cada participante; o servidor roda na máquina do grupo, num contêiner Docker. A mídia não vai direto de um participante para o outro: passa por um **SFU** (*Selective Forwarding Unit*) no servidor, que recebe cada vídeo uma vez e o repassa a quem assiste, sem decodificar.
+O Jay-C funciona no modelo cliente-servidor, com o aplicativo rodando no PC ou no celular de cada participante e o servidor rodando na máquina do grupo dentro de um contêiner Docker. A mídia não vai direto de um participante pro outro: tudo passa por um **SFU** (*Selective Forwarding Unit*) no servidor, que recebe cada vídeo uma vez só e repassa pra quem tá assistindo sem precisar decodificar.
 
 **Figura 3 — Componentes, camadas e interfaces.** Setas simples mostram dependência interna, setas duplas (`<-->`) são protocolo/HTTP na porta 3000 ou comandos/eventos entre JS e Rust (`I4`), setas grossas (`<==>`) são mídia WebRTC cifrada na porta 40000 (`I3`, tanto vinda do JS quanto da camada nativa), a seta tracejada indica busca de atualização externa e o cilindro representa os arquivos gravados em disco no servidor.
 
@@ -526,25 +526,25 @@ sequenceDiagram
   end
 ```
 
-O fluxo mostra por que o upload vai primeiro por HTTP: antes de mandar qualquer coisa, o cliente já limpa os metadados de localização e sobe o arquivo com o token da sessão. Só depois que o servidor confere os primeiros bytes e devolve o ID é que a mensagem de texto vai pelo WebSocket, ligando o arquivo ao canal e distribuindo pros outros conectados.
+Esse fluxo mostra por que o upload sobe primeiro por HTTP: antes de enviar qualquer coisa, o cliente já limpa os metadados de localização e manda o arquivo junto do token da sessão, e só depois que o servidor confere os primeiros bytes e devolve o ID é que a mensagem de texto vai pelo WebSocket ligando aquele arquivo ao canal e distribuindo pro resto do pessoal conectado.
 
 ## 18. Princípios de projeto
 
-Na parte visual do app (`ui/`), as telas não sabem nada de WebRTC nem de como a rede funciona por baixo. A interface só chama operações diretas, tipo `call.join()`, `call.toggleMic()`, `call.startScreenShare()` e `call.sendChat()`. Como a mídia é negociada, quais transportes existem ou se a live tá saindo pelo navegador ou pela camada nativa em Rust, tudo isso fica escondido dentro da classe `Call` (abstração).
+Lá na parte visual do app (`ui/`), as telas não sabem nada de WebRTC nem de como a rede funciona por baixo dos panos. A interface só dispara operações diretas, tipo `call.join()`, `call.toggleMic()`, `call.startScreenShare()` e `call.sendChat()`, enquanto como a mídia é negociada, quais transportes estão abertos ou se a live tá saindo pelo navegador ou pela camada nativa em Rust fica tudo escondido dentro da classe `Call` (abstração).
 
-No servidor dá pra ver a modularidade direto na árvore de arquivos: cada assunto do domínio virou um módulo separado com sua própria suíte em [`signaling-server/test/`](../signaling-server/test/). O [`rooms.js`](../signaling-server/src/rooms.js) cuida da lotação das salas, [`directory.js`](../signaling-server/src/directory.js) segura salas fixas e senhas, [`channels.js`](../signaling-server/src/channels.js) trata do histórico e [`media.js`](../signaling-server/src/media.js) valida os arquivos. Tudo que depende de um sistema só — tipo o microfone nativo e o som por janela no Windows — foi isolado em plugins próprios.
+No servidor dá pra ver a modularidade direto na árvore de arquivos: cada assunto do domínio virou um módulo separado com sua própria suíte em [`signaling-server/test/`](../signaling-server/test/). O [`rooms.js`](../signaling-server/src/rooms.js) segura a lotação das salas, [`directory.js`](../signaling-server/src/directory.js) cuida das salas fixas e senhas, [`channels.js`](../signaling-server/src/channels.js) trata do histórico e [`media.js`](../signaling-server/src/media.js) valida os arquivos. E tudo que depende de um sistema só — tipo o microfone nativo e o som por janela no Windows — foi isolado em plugins próprios.
 
-A gente também manteve separação de interesses em camadas: interface, lógica do cliente e código nativo ficam em pastas próprias (com a parte nativa em Rust). No servidor, a sinalização das mensagens corre separada do SFU, que só repassa os pacotes de áudio e vídeo sem nunca decodificar nada. E pro estado interno não virar bagunça, usamos campos e métodos privados do JS mesmo (`#closeTransports()` em `Call`, `#reconnectTimer` em `SignalingClient`), senhas guardadas apenas como *hash* com *salt*, e acesso ao histórico só pelas operações `post()`, `history()` e `quote()` do módulo de canais (encapsulamento).
+A gente também manteve separação de interesses em camadas, deixando interface, lógica do cliente e código nativo em pastas separadas (com a parte nativa escrita em Rust). No servidor, a sinalização das mensagens corre separada do SFU, que só repassa pacotes de áudio e vídeo sem nunca decodificar nada, e pro estado interno não virar bagunça usamos campos e métodos privados do próprio JS (`#closeTransports()` em `Call`, `#reconnectTimer` em `SignalingClient`), senhas guardadas só como *hash* com *salt* e acesso ao histórico passando apenas por `post()`, `history()` e `quote()` do módulo de canais (encapsulamento).
 
 ## 19. Coesão e acoplamento
 
-Começando pela coesão, que é o quanto as partes de um módulo combinam entre si. Um bom exemplo é o [`frontend/src/core/attachments.js`](../frontend/src/core/attachments.js): tudo nele trata de um único assunto, reconhecer o tipo de um arquivo e tirar dele os dados de localização antes do envio. As funções recebem bytes e devolvem bytes, sem mexer na tela nem na rede, o que permite testar tudo isoladamente ([`frontend/test/attachments.test.js`](../frontend/test/attachments.test.js)). Outro exemplo é o [`signaling-server/src/channels.js`](../signaling-server/src/channels.js), que concentra tudo dos canais de texto: a lista, o histórico de 500 mensagens, as páginas de 50, a citação usada nas respostas e a gravação em disco. Se a política do histórico mudar (RN006, RN007), só esse arquivo muda.
+Começando pela coesão, que mede o quanto as partes de um módulo pertencem ao mesmo assunto. Um exemplo bom é o [`frontend/src/core/attachments.js`](../frontend/src/core/attachments.js), onde tudo gira em torno de uma coisa só: descobrir o tipo real de um arquivo e arrancar os dados de localização antes de subir. As funções entram com bytes e devolvem bytes sem mexer na tela nem na rede, o que deixa fácil testar tudo isolado ([`frontend/test/attachments.test.js`](../frontend/test/attachments.test.js)). Outro caso é o [`signaling-server/src/channels.js`](../signaling-server/src/channels.js), que concentra tudo dos canais de texto — lista, histórico das últimas 500 mensagens, páginas de 50, citações nas respostas e gravação em disco — então se a regra do histórico mudar (`RN006`, `RN007`), é só nesse arquivo que a gente mexe.
 
-Também vale mostrar um caso de coesão mais baixa, o [`frontend/src/core/call.js`](../frontend/src/core/call.js). A classe `Call` tem por volta de 1 100 linhas e cuida de entrar e sair da sala, microfone, câmera, transmissão, chat, estatísticas e reconexão da mídia. É tudo relacionado à chamada, mas várias dessas partes poderiam ser módulos próprios, e é isso que a refatoração da [seção 21](#21-refatoração-futura-proposta) propõe.
+Pra mostrar o outro lado, um exemplo de coesão mais baixa é o [`frontend/src/core/call.js`](../frontend/src/core/call.js). A classe `Call` já bate umas 1 100 linhas e segura entrada e saída de sala, microfone, câmera, transmissão, chat, estatísticas e reconexão da mídia — tá tudo ligado à chamada, claro, mas várias dessas frentes podiam viver em módulos próprios, que é justamente o que a refatoração da [seção 21](#21-refatoração-futura-proposta) propõe.
 
-No acoplamento, que é o quanto um módulo depende de outro, o melhor exemplo é a relação entre o app e o servidor. Os dois só compartilham o formato das mensagens JSON (I1), não compartilham código. Além disso, o servidor avisa quais recursos tem (as `features`, na resposta da entrada) e o app só usa o que ele oferece, então um app novo funciona com um servidor um pouco mais antigo. O limite é que uma mensagem nova, como a `profile`, é recusada por um servidor antigo, e aí o servidor tem que ser atualizado junto. O segundo exemplo está entre o domínio do servidor e a configuração: a classe `Rooms` recebe o limite de pessoas no construtor (`new Rooms({ maxPeersPerRoom })`) em vez de ler a variável de ambiente, e com isso os testes criam salas com outros limites sem mexer no ambiente.
+No acoplamento (o quanto um módulo fica preso no outro), o melhor exemplo aqui é a relação entre o app e o servidor: os dois só combinam o formato das mensagens JSON (`I1`) e não compartilham código. Fora isso, o servidor manda na resposta da entrada quais recursos suporta (`features`), e o app só usa o que ele oferece — então um app mais novo consegue rodar com um servidor um pouco mais velho (o limite aparece só quando entra uma mensagem nova tipo `profile`, que um servidor antigo recusa e aí obriga a atualizar o servidor junto). O segundo exemplo fica entre o domínio do servidor e a configuração: a classe `Rooms` recebe o limite de pessoas no construtor (`new Rooms({ maxPeersPerRoom })`) em vez de ler variável de ambiente direto lá dentro, e com isso os testes sobem salas com qualquer limite sem precisar mexer no ambiente.
 
-O contraexemplo, de acoplamento alto, está na transmissão nativa. O código em Rust que codifica a tela depende de detalhes do codificador da placa da NVIDIA, como a ordem em que as configurações são passadas e o tamanho dos quadros-chave. Trocar de fabricante de placa obriga a revisar e medir esse código de novo.
+O contraexemplo, de acoplamento alto, tá na transmissão nativa. O código em Rust que codifica a tela depende de detalhes do codificador da placa da NVIDIA, tipo a ordem em que as configurações entram e o tamanho dos quadros-chave, entao se trocar de fabricante de placa precisa revisar e medir esse código todo de novo.
 
 ## 20. Refinamento de uma funcionalidade
 
@@ -620,7 +620,7 @@ flowchart LR
   H -- "fechar" --> D
 ```
 
-O participante passa quase todo o tempo na Tela 2. Entrar numa sala leva à Tela 3; abrir um canal durante a chamada volta à Tela 2 sem desligar a chamada, que continua por baixo e aparece em "Voz conectada", no canto inferior esquerdo. A Tela 1 só interessa ao administrador.
+O participante fica quase o tempo todo na Tela 2. Quando clica numa sala vai pra Tela 3, e se abrir um canal de texto durante a call ele volta pra Tela 2 sem derrubar a chamada, que segue rodando por baixo e aparece no bloco "Voz conectada" no canto inferior esquerdo — enquanto a Tela 1 fica só pro administrador mexer.
 
 ---
 
@@ -628,9 +628,9 @@ O participante passa quase todo o tempo na Tela 2. Entrar numa sala leva à Tela
 
 ## 23. Abordagem de processo: incremental, com protótipos de risco
 
-O Jay-C foi feito de forma incremental. Cada etapa entrega alguma coisa funcionando e testável, com um critério de "pronto quando…" definido antes de começar. No meio disso a gente usa práticas ágeis simples: lista de tarefas priorizada, revisão quando fecha uma fase e ajuste de rumo se os testers acharem algum problema.
+O Jay-C foi tocado de forma incremental, com cada etapa entregando alguma coisa funcionando e testável e um critério de "pronto quando…" combinado antes de começar. No meio do caminho a gente foi usando práticas ágeis simples: lista de tarefas priorizada, revisão toda vez que fecha uma fase e ajuste de rumo sempre que os testers acham algum problema ou pedem coisa nova.
 
-Um modelo em cascata com tudo fechado desde o começo não ia funcionar aqui. Logo no início havia partes de risco técnico alto — tipo capturar o som de um único app no Windows ou repassar vídeo pra 16 pessoas — que podiam simplesmente não dar certo na prática. Então fizemos protótipos de risco (*spikes*) bem cedo, antes de muito código depender deles (os spikes estão documentados em [`docs/spikes/`](../docs/spikes/)). Além disso, dava pra testar valor real cedo: em poucas etapas já existia chamada rodando, e depois foram entrando transmissão, áudio do app, PiP e os canais. Vários requisitos inclusive apareceram só depois que gente de fora usou, como responder mensagem nos canais (`RF012`), e dividir em ciclos curtos ajuda uma equipe pequena a ir entregando e conferindo sem travar.
+Modelo em cascata com tudo travado desde o começo não ia rolar aqui nem a pau. Logo na partida tinha uns pontos de risco técnico alto — tipo capturar o som de um único app no Windows ou repassar vídeo pra 16 pessoas — que podiam simplesmente falhar na prática, então fizemos protótipos de risco (*spikes*) bem cedo antes de empilhar código em cima (os spikes estão guardados em [`docs/spikes/`](../docs/spikes/)). Também dava pra testar valor real rápido: em poucas etapas já tinha chamada rodando, e depois foram entrando transmissão, áudio do app, PiP e os canais. Vários requisitos inclusive surgiram só depois que gente de fora usou, como responder mensagens nos canais (`RF012`), e quebrar em ciclos curtos ajuda uma equipe pequena a ir entregando e conferindo sem empacar.
 
 **Figura 9 — Ciclo de cada etapa.** As setas pra frente mostram a ordem normal de cada ciclo; as setas de volta mostram o que acontece quando um teste falha ou quando os testers pedem ajuste.
 
@@ -721,9 +721,9 @@ flowchart LR
 
 ## 25. Controle de versões, mudanças e rastreabilidade
 
-Para o controle de versões usamos Git e GitHub. Fica tudo num repositório só (monorepo): o app, o servidor, os plugins e a documentação. Assim, quando o protocolo muda, o servidor e o app mudam no mesmo commit. Os commits são pequenos, cada um com um assunto e um corpo explicando o que mudou, por quê e o que foi verificado, e um commit não mistura duas mudanças sem relação entre si.
+Pro controle de versões usamos Git e GitHub num repositório só (monorepo) juntando o app, o servidor, os plugins e a documentação, porque aí quando o protocolo muda o servidor e o app mudam juntos no mesmo commit. Os commits são pequenos, sempre com um assunto e um corpo explicando o que mudou, por quê e o que foi verificado, sem misturar duas coisas que não têm relação entre si.
 
-O ramo principal (`main`) precisa estar sempre funcionando. A cada envio, a integração contínua ([`.github/workflows/ci.yml`](../.github/workflows/ci.yml)) roda `npm test` (os testes em JavaScript do servidor e do app), os testes de Rust no Windows e o build da imagem Docker. Mudança maior ou arriscada é feita num ramo separado e só entra no `main` depois de testada. As versões seguem o versionamento semântico (`MAIOR.MENOR.CORREÇÃO`): da 0.5.4 para a 0.5.5 foi só uma correção, já da 0.4 para a 0.5 vieram os servidores com canais. Cada versão ganha uma tag (`v0.5.5`), e a tag dispara o build do instalador, que fica num rascunho de release até alguém escrever as notas e publicar. Algumas coisas nunca vão para o repositório: a chave que assina o APK, senhas e os dados reais do servidor, como salas, histórico e endereços de IP.
+O ramo principal (`main`) tem que estar sempre funcionando, então a cada push a integração contínua ([`.github/workflows/ci.yml`](../.github/workflows/ci.yml)) roda `npm test` (os testes em JavaScript do servidor e do app), os testes de Rust no Windows e o build da imagem Docker. Quando uma mudança é maior ou mais arriscada ela vai pra um ramo separado e só entra na `main` depois de testada. As versões seguem o versionamento semântico (`MAIOR.MENOR.CORREÇÃO`): da 0.5.4 pra 0.5.5 foi só uma correção de bug, já da 0.4 pra 0.5 entraram os servidores com canais. Cada versão leva uma tag (`v0.5.5`) que dispara o build do instalador num rascunho de release até alguém escrever as notas e publicar — e claro, tem coisa que nunca sobe pro repositório, tipo a chave que assina o APK, senhas e os dados reais de um servidor (salas, histórico e endereços de IP).
 
 Para controlar as mudanças, seguimos o fluxo da Figura 11.
 
@@ -740,11 +740,11 @@ flowchart LR
   F --> G["Entra numa versão<br/>e nas notas"]
 ```
 
-Antes de sair codando qualquer pedido novo, ele passa pela lista de tarefas e pela análise do que vai mexer (requisitos, modelos e testes). Se não for prioridade agora, fica registrado pra depois; se entrar, a documentação atualiza junto com o código e o commit leva o ID da tarefa.
+Antes de sair codando qualquer pedido novo, ele passa pela lista de tarefas e pela análise do que vai mexer em requisitos, modelos e testes. Se não for prioridade na hora, fica lá anotado pra depois; se entrar, a documentação atualiza junto do código e o commit já carrega o ID da tarefa.
 
-Um exemplo real: os testers da versão 0.5.1 pediram, entre outras coisas, para poder responder mensagens nos canais. O pedido entrou na lista de tarefas (na parte "Sugestões dos testers", em [`tasks/todo.md`](../tasks/todo.md)), virou o requisito RF012 e a regra RN012, foi implementado com testes e saiu na versão 0.5.2.
+Um caso real disso: os testers da versão 0.5.1 pediram, entre outras coisas, pra conseguir responder mensagens nos canais. O pedido entrou na lista de tarefas (lá na parte "Sugestões dos testers", em [`tasks/todo.md`](../tasks/todo.md)), virou o requisito `RF012` junto com a regra `RN012`, saiu com testes e entrou na versão 0.5.2.
 
-A rastreabilidade se apoia nos IDs. Cada requisito, regra, caso de uso e caso de teste tem um ID único (RF, RNF, RN, UC, CT). Os casos de uso e os elementos dos modelos citam os IDs que representam ([seções 13](#13-diagrama-de-casos-de-uso) e [16](#16-como-os-modelos-representam-os-requisitos-e-as-regras)), o refinamento liga os componentes aos requisitos ([seção 20](#20-refinamento-de-uma-funcionalidade)) e as tarefas do plano dizem quais requisitos entregam ([seção 24](#24-plano-simplificado-de-execução)). Os commits também citam o ID da tarefa, como em "APK de release assinado (14.B)", e assim o código chega até a tarefa e, por ela, ao requisito. A matriz de rastreabilidade da [seção 29](#29-matriz-de-rastreabilidade) fecha o ciclo, indo do requisito ao componente e daí ao caso de teste. Quando um requisito muda, é por ela que sabemos o que revisar.
+A rastreabilidade inteira se apoia nos IDs, já que todo requisito, regra, caso de uso e caso de teste tem um código único (`RF`, `RNF`, `RN`, `UC`, `CT`). Os casos de uso e os elementos dos modelos citam esses IDs ([seções 13](#13-diagrama-de-casos-de-uso) e [16](#16-como-os-modelos-representam-os-requisitos-e-as-regras)), o refinamento amarra componentes aos requisitos ([seção 20](#20-refinamento-de-uma-funcionalidade)) e cada tarefa do plano diz qual requisito entrega ([seção 24](#24-plano-simplificado-de-execução)). Até nos commits aparece o ID da tarefa — tipo em "APK de release assinado (14.B)" — ligando o código na tarefa e, por ela, no requisito. A matriz da [seção 29](#29-matriz-de-rastreabilidade) fecha a ponta indo do requisito ao componente e daí ao caso de teste, entao quando muda um requisito a gente já sabe direto o que precisa revisar.
 
 ---
 
@@ -864,22 +864,22 @@ Cada regra de negócio (`RN001` a `RN012`) aparece na coluna ao lado dos requisi
 
 ## 30. Mudanças futuras por tipo de manutenção
 
-**Manutenção Corretiva** — O principal defeito em aberto hoje é quando alguém entra numa sala que já tá em andamento e, em alguns casos, não escuta quem já estava lá dentro. Isso quebra o `RF005` sem dar nenhum aviso na tela pro usuário, então corrigir essa falha de sincronização no início da chamada entra como prioridade corretiva.
+Começando pela **Manutenção Corretiva**, o maior defeito ainda em aberto hoje acontece quando alguém entra numa sala que já tá rolando e, em alguns casos, não escuta quem já tava lá dentro antes. Isso quebra o `RF005` calado, sem dar nenhum aviso na tela pro usuário, então arrumar essa sincronização no começo da chamada entra na frente.
 
-**Manutenção Adaptativa** — Como o app depende do Tauri, WebView2, Android SDK e `mediasoup`, cada atualização grande do Windows ou do Android obriga a atualizar essas dependências e revisar o build. Essa manutenção adapta o sistema às mudanças de ambiente externo (`RNF008`) sem mexer no que o app faz pro usuário.
+Na **Manutenção Adaptativa**, como o app depende do Tauri, WebView2, Android SDK e `mediasoup`, toda atualização grande do Windows ou do Android obriga a atualizar essas dependências e verifcar o build de novo. É mudança pra adaptar o sistema ao ambiente externo (`RNF008`) sem mexer nas funções do usuário.
 
-**Manutenção Perfectiva** — Hoje o Jay-C só toca alerta sonoro e notificação pra menções e respostas. A melhoria prevista é deixar cada pessoa escolher por canal se quer aviso de todas as mensagens, só de menções/respostas ou nenhum alerta, inclusive mudando o som. Isso aperfeiçoa um recurso que já existe no app e torna os canais bem mais práticos no dia a dia. Notificações *push* com o app fechado ficam fora porque exigiriam um servidor central de mensagens.
+Na **Manutenção Perfectiva**, hoje o Jay-C só toca alerta sonoro e notificação pra menções e respostas. A melhoria planejada é deixar cada pessoa escolher por canal se quer aviso pra toda mensagem, só pra menções e respostas ou nada, podendo até trocar o som. Melhora algo que já existe e deixa os canais bem mais práticos no dia a dia, deixando de fora notificação *push* com o app fechado porque isso pediria um servidor central.
 
-**Manutenção Preventiva** — Antes que novas funcionalidades deixem o código difícil de mexer, a ideia é aplicar a refatoração da [seção 21](#21-refatoração-futura-proposta): quebrar a classe `Call` ([`core/call.js`](../frontend/src/core/call.js), ~1 100 linhas) em módulos menores atrás de uma fachada, trocar o `if/else` comprido de [`server.js`](../signaling-server/src/server.js) por um mapa de tratadores e isolar a leitura/gravação de [`directory.js`](../signaling-server/src/directory.js) e [`channels.js`](../signaling-server/src/channels.js) numa camada única de persistência em disco. Reduz o acoplamento interno e facilita manter os testes automatizados sem alterar nada visível pra quem usa.
+Por fim, na **Manutenção Preventiva**, a ideia é botar em prática a refatoração da [seção 21](#21-refatoração-futura-proposta) antes que feature nova deixe os arquivos grandes demais pra mexer: quebrar a `Call` ([`core/call.js`](../frontend/src/core/call.js), ~1 100 linhas) em módulos menores atrás da fachada, trocar o `if/else` gigante de [`server.js`](../signaling-server/src/server.js) por um mapa de tratadores e isolar leitura/gravação de [`directory.js`](../signaling-server/src/directory.js) e [`channels.js`](../signaling-server/src/channels.js) numa camada única de disco. Abaixa o acoplamento e facilita manter os testes de `npm test` sem mudar nada na tela pra quem usa.
 
 ## 31. Análise de impacto
 
-Botar os Alertas Configuráveis por Canal pra funcionar mexe nos seguintes pontos do projeto:
+Botar os Alertas Configuráveis por Canal pra funcionar mexe nisso aqui:
 
-- **Requisitos:** entra um Requisito Funcional novo (`RF021`, escolher o nível de alerta por canal e nunca disparar alerta pra mensagem do próprio usuário) e um Não Funcional (`RNF011`, o som tocar em até 1 segundo depois que a mensagem chega).
-- **Arquitetura:** muda o módulo que já cuida dos avisos ([`core/mention-alert.js`](../frontend/src/core/mention-alert.js)), o armazenamento local de preferências ([`store/settings.js`](../frontend/src/store/settings.js)) e a interface do canal ([`ui/text-channel.js`](../frontend/src/ui/text-channel.js)). Como tudo fica salvo no dispositivo do usuário, nem o servidor nem o protocolo WebSocket mudam.
-- **Diagramas:** no Diagrama de Classes de domínio, entra uma classe `PreferenciaDeAlerta` no lado local do cliente associada ao canal (`CanalDeTexto`, por nome do canal); nos Casos de Uso, entra um caso novo estendendo `UC07`; e vale adicionar um Diagrama de Sequência mostrando a consulta da preferência quando uma mensagem chega.
-- **Testes:** criar casos pros três modos de alerta e conferir que mensagem da própria pessoa nunca dispara som, mantendo o `CT14` rodando como regressão.
+- **Requisitos:** entra um Requisito Funcional novo (`RF021`, escolher o nível de alerta por canal e nunca tocar som pra mensagem sua) e um Não Funcional (`RNF011`, o alerta sonoro disparar em até 1 segundo depois que a mensagem chega).
+- **Arquitetura:** altera o módulo que já cuida dos avisos ([`core/mention-alert.js`](../frontend/src/core/mention-alert.js)), onde ficam salvas as preferências ([`store/settings.js`](../frontend/src/store/settings.js)) e a tela do canal ([`ui/text-channel.js`](../frontend/src/ui/text-channel.js)). Como tudo fica salvo no dispostivo do usuário, nem o servidor nem o protocolo WebSocket mudam nada.
+- **Diagramas:** no Diagrama de Classes de domínio, entra uma classe `PreferenciaDeAlerta` no lado do cliente ligada ao canal (`CanalDeTexto`, pelo nome do canal); nos Casos de Uso entra um caso novo estendendo `UC07`; e vale desenhar um Diagrama de Sequência mostrando a checagem da preferência quando chega uma mensagem.
+- **Testes:** escrever casos pros três modos de alerta e conferir que mensagem da própria pessoa nunca toca som, deixando o `CT14` rodando junto como regressão.
 
 ## 32. Riscos técnicos e mitigação
 
