@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 610" width="1080" height="610" font-family="Segoe UI, Arial, sans-serif" role="img" aria-label="Figura 3 — Componentes, camadas e interfaces">
+<defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#334155"/>
+    </marker>
+    <marker id="arr-start" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M 10 1 L 0 5 L 10 9 z" fill="#334155"/>
+    </marker>
+    <marker id="thick-end" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#1d4ed8"/>
+    </marker>
+    <marker id="thick-start" viewBox="0 0 10 10" refX="2" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto">
+      <path d="M 10 1 L 0 5 L 10 9 z" fill="#1d4ed8"/>
+    </marker>
+  </defs>
+<rect width="1080" height="610" fill="#ffffff"/>
+<rect x="20" y="20" width="350" height="470" rx="12" fill="#f8fafc" stroke="#2563eb" stroke-width="1.8"/>
+<text x="195" y="45" font-size="15" font-weight="700" fill="#1e3a8a" text-anchor="middle">Aplicativo Jay-C (Windows / Android)</text>
+<rect x="680" y="20" width="380" height="470" rx="12" fill="#f8fafc" stroke="#475569" stroke-width="1.8"/>
+<text x="870" y="45" font-size="15" font-weight="700" fill="#0f172a" text-anchor="middle">Servidor Jay-C (Docker)</text>
+<rect x="45" y="70" width="300" height="68" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+<text x="195" y="94" font-size="13.5" font-weight="700" fill="#0f172a" text-anchor="middle">Apresentação</text>
+<text x="195" y="114" font-size="11.8" fill="#334155" text-anchor="middle">telas e componentes (ui/)</text>
+<rect x="45" y="185" width="300" height="96" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+<text x="195" y="209" font-size="13.5" font-weight="700" fill="#0f172a" text-anchor="middle">Lógica do cliente</text>
+<text x="195" y="229" font-size="11.8" fill="#334155" text-anchor="middle">chamada, sinalização, chat,</text>
+<text x="195" y="246" font-size="11.8" fill="#334155" text-anchor="middle">configurações (core/, store/)</text>
+<rect x="45" y="345" width="300" height="118" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+<text x="195" y="369" font-size="13.5" font-weight="700" fill="#0f172a" text-anchor="middle">Camada nativa (Rust)</text>
+<text x="195" y="389" font-size="11.8" fill="#334155" text-anchor="middle">microfone, som da transmissão,</text>
+<text x="195" y="406" font-size="11.8" fill="#334155" text-anchor="middle">transmissão da tela, PiP, atualização</text>
+<rect x="95" y="535" width="200" height="52" rx="8" fill="#f1f5f9" stroke="#64748b" stroke-width="1.5"/>
+<text x="195" y="559" font-size="13.5" font-weight="700" fill="#0f172a" text-anchor="middle">GitHub Releases</text>
+<text x="195" y="579" font-size="11.8" fill="#334155" text-anchor="middle">releases e instaladores</text>
+<rect x="705" y="70" width="330" height="74" rx="8" fill="#f1f5f9" stroke="#475569" stroke-width="1.5"/>
+<text x="870" y="94" font-size="13.5" font-weight="700" fill="#0f172a" text-anchor="middle">Sinalização</text>
+<text x="870" y="114" font-size="11.8" fill="#334155" text-anchor="middle">WebSocket + HTTP, porta 3000</text>
+<rect x="705" y="195" width="185" height="108" rx="8" fill="#f1f5f9" stroke="#475569" stroke-width="1.5"/>
+<text x="797.5" y="219" font-size="13.5" font-weight="700" fill="#0f172a" text-anchor="middle">Domínio</text>
+<text x="797.5" y="239" font-size="11.8" fill="#334155" text-anchor="middle">salas, diretório, canais,</text>
+<text x="797.5" y="256" font-size="11.8" fill="#334155" text-anchor="middle">arquivos, fotos, limites</text>
+<path d="M 910 209 L 910 289 A 65 14 0 0 0 1040 289 L 1040 209" fill="#e2e8f0" stroke="#475569" stroke-width="1.5"/>
+<ellipse cx="975" cy="209" rx="65" ry="14" fill="#f1f5f9" stroke="#475569" stroke-width="1.5"/>
+<text x="975" y="251" font-size="13.5" font-weight="700" fill="#0f172a" text-anchor="middle">Dados</text>
+<text x="975" y="270" font-size="11.5" fill="#334155" text-anchor="middle">DATA_DIR: JSON</text>
+<text x="975" y="286" font-size="11.5" fill="#334155" text-anchor="middle">e arquivos</text>
+<rect x="705" y="360" width="330" height="96" rx="8" fill="#f1f5f9" stroke="#475569" stroke-width="1.5"/>
+<text x="870" y="384" font-size="13.5" font-weight="700" fill="#0f172a" text-anchor="middle">SFU mediasoup</text>
+<text x="870" y="404" font-size="11.8" fill="#334155" text-anchor="middle">porta 40000 UDP/TCP</text>
+<line x1="195" y1="138" x2="195" y2="183" stroke="#334155" stroke-width="1.6" marker-end="url(#arr)"/>
+<line x1="195" y1="283" x2="195" y2="343" stroke="#334155" stroke-width="1.8" marker-start="url(#arr-start)" marker-end="url(#arr)"/>
+<rect x="88.35000000000001" y="302" width="213.29999999999998" height="22" rx="5" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+<text x="195" y="317" font-size="11.5" font-weight="600" fill="#0f172a" text-anchor="middle">I4: comandos e eventos do Tauri</text>
+<line x1="195" y1="535" x2="195" y2="465" stroke="#475569" stroke-width="1.6" stroke-dasharray="6 4" marker-end="url(#arr)"/>
+<rect x="129.3" y="491" width="131.39999999999998" height="22" rx="5" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+<text x="195" y="506" font-size="11.5" font-weight="600" fill="#0f172a" text-anchor="middle">atualização do app</text>
+<line x1="795" y1="144" x2="795" y2="193" stroke="#334155" stroke-width="1.6" marker-end="url(#arr)"/>
+<line x1="890" y1="249" x2="908" y2="249" stroke="#334155" stroke-width="1.6" marker-end="url(#arr)"/>
+<path d="M 1035 107 L 1052 107 L 1052 408 L 1037 408" fill="none" stroke="#334155" stroke-width="1.6" marker-end="url(#arr)"/>
+<path d="M 347 205 L 405 205 L 405 92 L 703 92" fill="none" stroke="#334155" stroke-width="1.8" marker-start="url(#arr-start)" marker-end="url(#arr)"/>
+<rect x="441.5" y="81" width="207" height="22" rx="5" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+<text x="545" y="96" font-size="11.5" font-weight="600" fill="#0f172a" text-anchor="middle">I1: protocolo JSON (WebSocket)</text>
+<path d="M 347 232 L 428 232 L 428 130 L 703 130" fill="none" stroke="#334155" stroke-width="1.8" marker-start="url(#arr-start)" marker-end="url(#arr)"/>
+<rect x="467.25" y="116" width="175.5" height="36" rx="5" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+<text x="555" y="131" font-size="11.5" font-weight="600" fill="#0f172a" text-anchor="middle">I2: HTTP: enviar e baixar</text>
+<text x="555" y="146" font-size="11.5" fill="#334155" text-anchor="middle">arquivos, /health</text>
+<path d="M 348 262 L 428 262 L 428 384 L 702 384" fill="none" stroke="#1d4ed8" stroke-width="3.2" marker-start="url(#thick-start)" marker-end="url(#thick-end)"/>
+<rect x="448.35" y="373" width="213.29999999999998" height="22" rx="5" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+<text x="555" y="388" font-size="11.5" font-weight="600" fill="#0f172a" text-anchor="middle">I3: mídia WebRTC cifrada (SRTP)</text>
+<line x1="348" y1="432" x2="702" y2="432" stroke="#1d4ed8" stroke-width="3.2" marker-start="url(#thick-start)" marker-end="url(#thick-end)"/>
+<rect x="448.35" y="421" width="213.29999999999998" height="22" rx="5" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+<text x="555" y="436" font-size="11.5" font-weight="600" fill="#0f172a" text-anchor="middle">I3: transmissão nativa (WebRTC)</text>
+</svg>

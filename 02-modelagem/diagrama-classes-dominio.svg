@@ -1,0 +1,172 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1160 760" width="1160" height="760" font-family="Segoe UI, Arial, sans-serif" role="img" aria-label="Figura 2 — Classes de domínio do Jay-C">
+<defs>
+    <marker id="comp" viewBox="0 0 16 12" refX="0" refY="6" markerWidth="14" markerHeight="10" orient="auto">
+      <path d="M 0 6 L 7 1 L 14 6 L 7 11 z" fill="#1e3a8a" stroke="#1e3a8a" stroke-width="1"/>
+    </marker>
+    <marker id="aggr" viewBox="0 0 16 12" refX="0" refY="6" markerWidth="14" markerHeight="10" orient="auto">
+      <path d="M 0 6 L 7 1 L 14 6 L 7 11 z" fill="#ffffff" stroke="#1e3a8a" stroke-width="1.4"/>
+    </marker>
+    <marker id="inher" viewBox="0 0 14 14" refX="13" refY="7" markerWidth="11" markerHeight="11" orient="auto">
+      <path d="M 1 1 L 13 7 L 1 13 z" fill="#ffffff" stroke="#1e3a8a" stroke-width="1.5"/>
+    </marker>
+    <marker id="nav" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 1 1 L 9 5 L 1 9" fill="none" stroke="#1e3a8a" stroke-width="1.7"/>
+    </marker>
+  </defs>
+<rect width="1160" height="760" fill="#ffffff"/>
+<rect x="25" y="245" width="225" height="144" rx="4" fill="#ffffff" stroke="#1e3a8a" stroke-width="1.5"/>
+<rect x="25" y="245" width="225" height="30" rx="4" fill="#eff6ff" stroke="#1e3a8a" stroke-width="1.5"/>
+<line x1="25" y1="275" x2="250" y2="275" stroke="#1e3a8a" stroke-width="1.2"/>
+<text x="137.5" y="265" font-size="13.5" font-weight="700" fill="#0f172a" text-anchor="middle">Servidor</text>
+<text x="35" y="293" font-size="12" fill="#1e293b">nome</text>
+<text x="35" y="311" font-size="12" fill="#1e293b">endereco</text>
+<text x="35" y="329" font-size="12" fill="#1e293b">chaveAdminHash</text>
+<line x1="25" y1="341" x2="250" y2="341" stroke="#94a3b8" stroke-width="1"/>
+<text x="35" y="359" font-size="12" fill="#1e293b">listarSalasVisiveis()</text>
+<text x="35" y="377" font-size="12" fill="#1e293b">validarChave(chave) : bool</text>
+<rect x="360" y="245" width="225" height="180" rx="4" fill="#ffffff" stroke="#1e3a8a" stroke-width="1.5"/>
+<rect x="360" y="245" width="225" height="30" rx="4" fill="#eff6ff" stroke="#1e3a8a" stroke-width="1.5"/>
+<line x1="360" y1="275" x2="585" y2="275" stroke="#1e3a8a" stroke-width="1.2"/>
+<text x="472.5" y="265" font-size="13.5" font-weight="700" fill="#0f172a" text-anchor="middle">Sala</text>
+<text x="370" y="293" font-size="12" fill="#1e293b">nome</text>
+<text x="370" y="311" font-size="12" fill="#1e293b">senhaHash [0..1]</text>
+<text x="370" y="329" font-size="12" fill="#1e293b">oculta: bool</text>
+<text x="370" y="347" font-size="12" fill="#1e293b">limite = 16</text>
+<line x1="360" y1="359" x2="585" y2="359" stroke="#94a3b8" stroke-width="1"/>
+<text x="370" y="377" font-size="12" fill="#1e293b">entrar(participante, senha)</text>
+<text x="370" y="395" font-size="12" fill="#1e293b">sair(participante)</text>
+<text x="370" y="413" font-size="12" fill="#1e293b">estaCheia() : bool</text>
+<rect x="505" y="18" width="220" height="198" rx="4" fill="#ffffff" stroke="#1e3a8a" stroke-width="1.5"/>
+<rect x="505" y="18" width="220" height="30" rx="4" fill="#eff6ff" stroke="#1e3a8a" stroke-width="1.5"/>
+<line x1="505" y1="48" x2="725" y2="48" stroke="#1e3a8a" stroke-width="1.2"/>
+<text x="615" y="38" font-size="13.5" font-weight="700" fill="#0f172a" text-anchor="middle">Participante</text>
+<text x="515" y="66" font-size="12" fill="#1e293b">id</text>
+<text x="515" y="84" font-size="12" fill="#1e293b">nome</text>
+<text x="515" y="102" font-size="12" fill="#1e293b">cor</text>
+<text x="515" y="120" font-size="12" fill="#1e293b">foto [0..1]</text>
+<text x="515" y="138" font-size="12" fill="#1e293b">microfoneLigado: bool</text>
+<text x="515" y="156" font-size="12" fill="#1e293b">cameraLigada: bool</text>
+<line x1="505" y1="168" x2="725" y2="168" stroke="#94a3b8" stroke-width="1"/>
+<text x="515" y="186" font-size="12" fill="#1e293b">alternarMicrofone()</text>
+<text x="515" y="204" font-size="12" fill="#1e293b">alternarCamera()</text>
+<rect x="875" y="28" width="225" height="180" rx="4" fill="#ffffff" stroke="#1e3a8a" stroke-width="1.5"/>
+<rect x="875" y="28" width="225" height="30" rx="4" fill="#eff6ff" stroke="#1e3a8a" stroke-width="1.5"/>
+<line x1="875" y1="58" x2="1100" y2="58" stroke="#1e3a8a" stroke-width="1.2"/>
+<text x="987.5" y="48" font-size="13.5" font-weight="700" fill="#0f172a" text-anchor="middle">Transmissao</text>
+<text x="885" y="76" font-size="12" fill="#1e293b">resolucao</text>
+<text x="885" y="94" font-size="12" fill="#1e293b">quadrosPorSegundo</text>
+<text x="885" y="112" font-size="12" fill="#1e293b">otimizarPara</text>
+<text x="885" y="130" font-size="12" fill="#1e293b">comSom: bool</text>
+<line x1="875" y1="142" x2="1100" y2="142" stroke="#94a3b8" stroke-width="1"/>
+<text x="885" y="160" font-size="12" fill="#1e293b">iniciar()</text>
+<text x="885" y="178" font-size="12" fill="#1e293b">parar()</text>
+<text x="885" y="196" font-size="12" fill="#1e293b">mudarQualidade()</text>
+<rect x="25" y="575" width="295" height="126" rx="4" fill="#ffffff" stroke="#1e3a8a" stroke-width="1.5"/>
+<rect x="25" y="575" width="295" height="30" rx="4" fill="#eff6ff" stroke="#1e3a8a" stroke-width="1.5"/>
+<line x1="25" y1="605" x2="320" y2="605" stroke="#1e3a8a" stroke-width="1.2"/>
+<text x="172.5" y="595" font-size="13.5" font-weight="700" fill="#0f172a" text-anchor="middle">CanalDeTexto</text>
+<text x="35" y="623" font-size="12" fill="#1e293b">nome</text>
+<text x="35" y="641" font-size="12" fill="#1e293b">limiteHistorico = 500</text>
+<line x1="25" y1="653" x2="320" y2="653" stroke="#94a3b8" stroke-width="1"/>
+<text x="35" y="671" font-size="12" fill="#1e293b">enviar(mensagem)</text>
+<text x="35" y="689" font-size="12" fill="#1e293b">historico(antesDe) : MensagemDeCanal[0..50]</text>
+<rect x="645" y="355" width="225" height="144" rx="4" fill="#ffffff" stroke="#1e3a8a" stroke-width="1.5"/>
+<rect x="645" y="355" width="225" height="30" rx="4" fill="#eff6ff" stroke="#1e3a8a" stroke-width="1.5"/>
+<line x1="645" y1="385" x2="870" y2="385" stroke="#1e3a8a" stroke-width="1.2"/>
+<text x="757.5" y="375" font-size="13.5" font-weight="700" fill="#0f172a" text-anchor="middle">Mensagem</text>
+<text x="655" y="403" font-size="12" fill="#1e293b">id</text>
+<text x="655" y="421" font-size="12" fill="#1e293b">nomeDoAutor</text>
+<text x="655" y="439" font-size="12" fill="#1e293b">corDoAutor</text>
+<text x="655" y="457" font-size="12" fill="#1e293b">texto [0..500 caracteres]</text>
+<text x="655" y="475" font-size="12" fill="#1e293b">dataHora</text>
+<line x1="645" y1="487" x2="870" y2="487" stroke="#94a3b8" stroke-width="1"/>
+<rect x="955" y="355" width="180" height="180" rx="4" fill="#ffffff" stroke="#1e3a8a" stroke-width="1.5"/>
+<rect x="955" y="355" width="180" height="30" rx="4" fill="#eff6ff" stroke="#1e3a8a" stroke-width="1.5"/>
+<line x1="955" y1="385" x2="1135" y2="385" stroke="#1e3a8a" stroke-width="1.2"/>
+<text x="1045" y="375" font-size="13.5" font-weight="700" fill="#0f172a" text-anchor="middle">Arquivo</text>
+<text x="965" y="403" font-size="12" fill="#1e293b">id</text>
+<text x="965" y="421" font-size="12" fill="#1e293b">tipo</text>
+<text x="965" y="439" font-size="12" fill="#1e293b">formato</text>
+<text x="965" y="457" font-size="12" fill="#1e293b">tamanho</text>
+<text x="965" y="475" font-size="12" fill="#1e293b">largura</text>
+<text x="965" y="493" font-size="12" fill="#1e293b">altura</text>
+<line x1="955" y1="505" x2="1135" y2="505" stroke="#94a3b8" stroke-width="1"/>
+<text x="965" y="523" font-size="12" fill="#1e293b">removerLocalizacao()</text>
+<rect x="380" y="470" width="190" height="54" rx="4" fill="#ffffff" stroke="#1e3a8a" stroke-width="1.5"/>
+<rect x="380" y="470" width="190" height="30" rx="4" fill="#eff6ff" stroke="#1e3a8a" stroke-width="1.5"/>
+<line x1="380" y1="500" x2="570" y2="500" stroke="#1e3a8a" stroke-width="1.2"/>
+<text x="475" y="490" font-size="13.5" font-weight="700" fill="#0f172a" text-anchor="middle">MensagemDeChamada</text>
+<line x1="380" y1="512" x2="570" y2="512" stroke="#94a3b8" stroke-width="1"/>
+<rect x="445" y="635" width="195" height="54" rx="4" fill="#ffffff" stroke="#1e3a8a" stroke-width="1.5"/>
+<rect x="445" y="635" width="195" height="30" rx="4" fill="#eff6ff" stroke="#1e3a8a" stroke-width="1.5"/>
+<line x1="445" y1="665" x2="640" y2="665" stroke="#1e3a8a" stroke-width="1.2"/>
+<text x="542.5" y="655" font-size="13.5" font-weight="700" fill="#0f172a" text-anchor="middle">MensagemDeCanal</text>
+<line x1="445" y1="677" x2="640" y2="677" stroke="#94a3b8" stroke-width="1"/>
+<g stroke="#1e3a8a" stroke-width="1.5" fill="none">
+<path d="M 137 245 L 137 96 L 505 96"/>
+<line x1="250" y1="315" x2="360" y2="315" marker-start="url(#comp)"/>
+<line x1="137" y1="389" x2="137" y2="575" marker-start="url(#comp)"/>
+<path d="M 472 245 L 472 228 L 615 228 L 615 216" marker-start="url(#aggr)"/>
+<line x1="725" y1="100" x2="875" y2="100"/>
+<line x1="472" y1="425" x2="472" y2="470" marker-start="url(#comp)"/>
+<line x1="320" y1="658" x2="445" y2="658" marker-start="url(#comp)"/>
+<line x1="870" y1="425" x2="955" y2="425"/>
+<path d="M 570 497 L 605 497 L 605 425 L 645 425" marker-end="url(#inher)"/>
+<path d="M 640 658 L 757 658 L 757 499" marker-end="url(#inher)"/>
+<path d="M 505 689 L 505 726 L 590 726 L 590 689" marker-end="url(#nav)"/>
+</g>
+<rect x="142.75" y="222" width="14.5" height="16" rx="3" fill="#ffffff" fill-opacity="0.92"/>
+<text x="150" y="234" font-size="11.5" font-weight="500" fill="#0f172a" text-anchor="middle">1</text>
+<rect x="471" y="74" width="34" height="16" rx="3" fill="#ffffff" fill-opacity="0.92"/>
+<text x="488" y="86" font-size="11.5" font-weight="500" fill="#0f172a" text-anchor="middle">0..*</text>
+<rect x="278.5" y="76" width="73" height="16" rx="3" fill="#ffffff" fill-opacity="0.92"/>
+<text x="315" y="88" font-size="11.5" font-weight="700" fill="#0f172a" text-anchor="middle">conectados</text>
+<rect x="258.75" y="292" width="14.5" height="16" rx="3" fill="#ffffff" fill-opacity="0.92"/>
+<text x="266" y="304" font-size="11.5" font-weight="500" fill="#0f172a" text-anchor="middle">1</text>
+<rect x="327" y="292" width="34" height="16" rx="3" fill="#ffffff" fill-opacity="0.92"/>
+<text x="344" y="304" font-size="11.5" font-weight="500" fill="#0f172a" text-anchor="middle">0..*</text>
+<rect x="291.25" y="322" width="27.5" height="16" rx="3" fill="#ffffff" fill-opacity="0.92"/>
+<text x="305" y="334" font-size="11.5" font-weight="700" fill="#0f172a" text-anchor="middle">tem</text>
+<rect x="144.75" y="397" width="14.5" height="16" rx="3" fill="#ffffff" fill-opacity="0.92"/>
+<text x="152" y="409" font-size="11.5" font-weight="500" fill="#0f172a" text-anchor="middle">1</text>
+<rect x="137" y="553" width="34" height="16" rx="3" fill="#ffffff" fill-opacity="0.92"/>
+<text x="154" y="565" font-size="11.5" font-weight="500" fill="#0f172a" text-anchor="middle">0..*</text>
+<rect x="142.25" y="478" width="27.5" height="16" rx="3" fill="#ffffff" fill-opacity="0.92"/>
+<text x="156" y="490" font-size="11.5" font-weight="700" fill="#0f172a" text-anchor="middle">tem</text>
+<rect x="433" y="223" width="34" height="16" rx="3" fill="#ffffff" fill-opacity="0.92"/>
+<text x="450" y="235" font-size="11.5" font-weight="500" fill="#0f172a" text-anchor="middle">0..1</text>
+<rect x="615.75" y="220" width="40.5" height="16" rx="3" fill="#ffffff" fill-opacity="0.92"/>
+<text x="636" y="232" font-size="11.5" font-weight="500" fill="#0f172a" text-anchor="middle">0..16</text>
+<rect x="508.5" y="202" width="73" height="16" rx="3" fill="#ffffff" fill-opacity="0.92"/>
+<text x="545" y="214" font-size="11.5" font-weight="700" fill="#0f172a" text-anchor="middle">na chamada</text>
+<rect x="734.75" y="78" width="14.5" height="16" rx="3" fill="#ffffff" fill-opacity="0.92"/>
+<text x="742" y="90" font-size="11.5" font-weight="500" fill="#0f172a" text-anchor="middle">1</text>
+<rect x="841" y="78" width="34" height="16" rx="3" fill="#ffffff" fill-opacity="0.92"/>
+<text x="858" y="90" font-size="11.5" font-weight="500" fill="#0f172a" text-anchor="middle">0..1</text>
+<rect x="766.75" y="106" width="66.5" height="16" rx="3" fill="#ffffff" fill-opacity="0.92"/>
+<text x="800" y="118" font-size="11.5" font-weight="700" fill="#0f172a" text-anchor="middle">transmite</text>
+<rect x="482.75" y="430" width="14.5" height="16" rx="3" fill="#ffffff" fill-opacity="0.92"/>
+<text x="490" y="442" font-size="11.5" font-weight="500" fill="#0f172a" text-anchor="middle">1</text>
+<rect x="473" y="449" width="34" height="16" rx="3" fill="#ffffff" fill-opacity="0.92"/>
+<text x="490" y="461" font-size="11.5" font-weight="500" fill="#0f172a" text-anchor="middle">0..*</text>
+<rect x="355.25" y="436" width="105.5" height="16" rx="3" fill="#ffffff" fill-opacity="0.92"/>
+<text x="408" y="448" font-size="11.5" font-weight="700" fill="#0f172a" text-anchor="middle">chat da chamada</text>
+<rect x="330.75" y="636" width="14.5" height="16" rx="3" fill="#ffffff" fill-opacity="0.92"/>
+<text x="338" y="648" font-size="11.5" font-weight="500" fill="#0f172a" text-anchor="middle">1</text>
+<rect x="398.5" y="636" width="47" height="16" rx="3" fill="#ffffff" fill-opacity="0.92"/>
+<text x="422" y="648" font-size="11.5" font-weight="500" fill="#0f172a" text-anchor="middle">0..500</text>
+<rect x="348.75" y="665" width="66.5" height="16" rx="3" fill="#ffffff" fill-opacity="0.92"/>
+<text x="382" y="677" font-size="11.5" font-weight="700" fill="#0f172a" text-anchor="middle">histórico</text>
+<rect x="876.75" y="402" width="14.5" height="16" rx="3" fill="#ffffff" fill-opacity="0.92"/>
+<text x="884" y="414" font-size="11.5" font-weight="500" fill="#0f172a" text-anchor="middle">1</text>
+<rect x="919" y="402" width="34" height="16" rx="3" fill="#ffffff" fill-opacity="0.92"/>
+<text x="936" y="414" font-size="11.5" font-weight="500" fill="#0f172a" text-anchor="middle">0..1</text>
+<rect x="891.75" y="432" width="40.5" height="16" rx="3" fill="#ffffff" fill-opacity="0.92"/>
+<text x="912" y="444" font-size="11.5" font-weight="700" fill="#0f172a" text-anchor="middle">anexo</text>
+<rect x="473" y="696" width="34" height="16" rx="3" fill="#ffffff" fill-opacity="0.92"/>
+<text x="490" y="708" font-size="11.5" font-weight="500" fill="#0f172a" text-anchor="middle">0..*</text>
+<rect x="591" y="696" width="34" height="16" rx="3" fill="#ffffff" fill-opacity="0.92"/>
+<text x="608" y="708" font-size="11.5" font-weight="500" fill="#0f172a" text-anchor="middle">0..1</text>
+<rect x="514.75" y="732" width="66.5" height="16" rx="3" fill="#ffffff" fill-opacity="0.92"/>
+<text x="548" y="744" font-size="11.5" font-weight="700" fill="#0f172a" text-anchor="middle">respondeA</text>
+</svg>

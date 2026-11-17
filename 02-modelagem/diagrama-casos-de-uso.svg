@@ -1,0 +1,113 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 850" width="1040" height="850" font-family="Segoe UI, Arial, sans-serif" role="img" aria-label="Figura 1 — Casos de uso do Jay-C">
+<defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#334155"/>
+    </marker>
+    <marker id="gen" viewBox="0 0 14 14" refX="13" refY="7" markerWidth="11" markerHeight="11" orient="auto">
+      <path d="M 1 1 L 13 7 L 1 13 z" fill="#ffffff" stroke="#1e3a8a" stroke-width="1.6"/>
+    </marker>
+  </defs>
+<rect width="1040" height="850" fill="#ffffff"/>
+<rect x="230" y="22" width="785" height="804" rx="14" fill="#f8fafc" stroke="#64748b" stroke-width="1.8"/>
+<text x="622" y="48" font-size="16" font-weight="700" fill="#0f172a" text-anchor="middle">Sistema Jay-C</text>
+<g stroke="#1e3a8a" stroke-width="2" fill="#eff6ff">
+      <circle cx="95" cy="80" r="11"/>
+      <line x1="95" y1="91" x2="95" y2="116"/>
+      <line x1="79" y1="101" x2="111" y2="101"/>
+      <line x1="95" y1="116" x2="82" y2="134"/>
+      <line x1="95" y1="116" x2="108" y2="134"/>
+    </g>
+<text x="95" y="152" font-size="13" font-weight="700" fill="#0f172a" text-anchor="middle">Transmissor</text>
+<g stroke="#1e3a8a" stroke-width="2" fill="#eff6ff">
+      <circle cx="95" cy="400" r="11"/>
+      <line x1="95" y1="411" x2="95" y2="436"/>
+      <line x1="79" y1="421" x2="111" y2="421"/>
+      <line x1="95" y1="436" x2="82" y2="454"/>
+      <line x1="95" y1="436" x2="108" y2="454"/>
+    </g>
+<text x="95" y="472" font-size="13" font-weight="700" fill="#0f172a" text-anchor="middle">Participante</text>
+<g stroke="#1e3a8a" stroke-width="2" fill="#eff6ff">
+      <circle cx="95" cy="725" r="11"/>
+      <line x1="95" y1="736" x2="95" y2="761"/>
+      <line x1="79" y1="746" x2="111" y2="746"/>
+      <line x1="95" y1="761" x2="82" y2="779"/>
+      <line x1="95" y1="761" x2="108" y2="779"/>
+    </g>
+<text x="95" y="797" font-size="13" font-weight="700" fill="#0f172a" text-anchor="middle">Administrador</text>
+<line x1="95" y1="162" x2="95" y2="380" stroke="#1e3a8a" stroke-width="1.7" marker-end="url(#gen)"/>
+<rect x="75.6" y="261" width="38.8" height="18" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text x="95" y="274" font-size="11" font-style="italic" fill="#334155" text-anchor="middle">é um</text>
+<line x1="95" y1="704" x2="95" y2="482" stroke="#1e3a8a" stroke-width="1.7" marker-end="url(#gen)"/>
+<rect x="75.6" y="586" width="38.8" height="18" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text x="95" y="599" font-size="11" font-style="italic" fill="#334155" text-anchor="middle">é um</text>
+<ellipse cx="415" cy="100" rx="122" ry="27" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="415" y="104" font-size="12.5" font-weight="600" fill="#0f172a" text-anchor="middle">UC04 Transmitir a tela</text>
+<ellipse cx="415" cy="195" rx="130" ry="27" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="415" y="199" font-size="12.5" font-weight="600" fill="#0f172a" text-anchor="middle">UC03 Participar da chamada</text>
+<ellipse cx="820" cy="195" rx="148" ry="30" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="820" y="191" font-size="12.5" font-weight="600" fill="#0f172a" text-anchor="middle">UC05 Assistir em janela</text>
+<text x="820" y="207" font-size="12.5" font-weight="600" fill="#0f172a" text-anchor="middle">flutuante (PiP)</text>
+<ellipse cx="415" cy="280" rx="132" ry="27" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="415" y="284" font-size="12.5" font-weight="600" fill="#0f172a" text-anchor="middle">UC01 Conectar a um servidor</text>
+<ellipse cx="415" cy="355" rx="125" ry="27" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="415" y="359" font-size="12.5" font-weight="600" fill="#0f172a" text-anchor="middle">UC02 Entrar em uma sala</text>
+<ellipse cx="820" cy="355" rx="125" ry="27" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="820" y="359" font-size="12.5" font-weight="600" fill="#0f172a" text-anchor="middle">UC02b Informar senha</text>
+<ellipse cx="415" cy="430" rx="145" ry="27" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="415" y="426" font-size="12.5" font-weight="600" fill="#0f172a" text-anchor="middle">UC09 Personalizar perfil</text>
+<text x="415" y="442" font-size="12.5" font-weight="600" fill="#0f172a" text-anchor="middle">e aparência</text>
+<ellipse cx="415" cy="500" rx="118" ry="26" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="415" y="504" font-size="12.5" font-weight="600" fill="#0f172a" text-anchor="middle">UC10 Consultar o guia</text>
+<ellipse cx="415" cy="575" rx="132" ry="28" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="415" y="571" font-size="12.5" font-weight="600" fill="#0f172a" text-anchor="middle">UC06 Conversar no chat</text>
+<text x="415" y="587" font-size="12.5" font-weight="600" fill="#0f172a" text-anchor="middle">da chamada</text>
+<ellipse cx="415" cy="650" rx="132" ry="28" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="415" y="646" font-size="12.5" font-weight="600" fill="#0f172a" text-anchor="middle">UC07 Conversar nos canais</text>
+<text x="415" y="662" font-size="12.5" font-weight="600" fill="#0f172a" text-anchor="middle">de texto</text>
+<ellipse cx="820" cy="612" rx="136" ry="30" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="820" y="608" font-size="12.5" font-weight="600" fill="#0f172a" text-anchor="middle">UC08 Enviar imagem, GIF</text>
+<text x="820" y="624" font-size="12.5" font-weight="600" fill="#0f172a" text-anchor="middle">ou vídeo</text>
+<ellipse cx="415" cy="725" rx="122" ry="26" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="415" y="729" font-size="12.5" font-weight="600" fill="#0f172a" text-anchor="middle">UC11 Gerenciar salas</text>
+<ellipse cx="415" cy="792" rx="135" ry="27" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="415" y="788" font-size="12.5" font-weight="600" fill="#0f172a" text-anchor="middle">UC12 Gerenciar canais</text>
+<text x="415" y="804" font-size="12.5" font-weight="600" fill="#0f172a" text-anchor="middle">de texto</text>
+<ellipse cx="820" cy="758" rx="140" ry="30" fill="#eff6ff" stroke="#2563eb" stroke-width="1.6"/>
+<text x="820" y="754" font-size="12.5" font-weight="600" fill="#0f172a" text-anchor="middle">UC13 Validar chave de</text>
+<text x="820" y="770" font-size="12.5" font-weight="600" fill="#0f172a" text-anchor="middle">administrador</text>
+<line x1="120" y1="100" x2="293" y2="100" stroke="#334155" stroke-width="1.5"/>
+<line x1="120" y1="420" x2="188" y2="420" stroke="#334155" stroke-width="1.5"/>
+<line x1="188" y1="195" x2="188" y2="650" stroke="#334155" stroke-width="1.5"/>
+<line x1="188" y1="195" x2="285" y2="195" stroke="#334155" stroke-width="1.5"/>
+<line x1="188" y1="280" x2="283" y2="280" stroke="#334155" stroke-width="1.5"/>
+<line x1="188" y1="355" x2="290" y2="355" stroke="#334155" stroke-width="1.5"/>
+<line x1="188" y1="430" x2="270" y2="430" stroke="#334155" stroke-width="1.5"/>
+<line x1="188" y1="500" x2="297" y2="500" stroke="#334155" stroke-width="1.5"/>
+<line x1="188" y1="575" x2="283" y2="575" stroke="#334155" stroke-width="1.5"/>
+<line x1="188" y1="650" x2="283" y2="650" stroke="#334155" stroke-width="1.5"/>
+<line x1="120" y1="745" x2="188" y2="745" stroke="#334155" stroke-width="1.5"/>
+<line x1="188" y1="725" x2="188" y2="792" stroke="#334155" stroke-width="1.5"/>
+<line x1="188" y1="725" x2="293" y2="725" stroke="#334155" stroke-width="1.5"/>
+<line x1="188" y1="792" x2="280" y2="792" stroke="#334155" stroke-width="1.5"/>
+<g stroke="#334155" stroke-width="1.4" stroke-dasharray="6 4" fill="none">
+<line x1="415" y1="127" x2="415" y2="168" marker-end="url(#arrow)"/>
+<line x1="672" y1="195" x2="545" y2="195" marker-end="url(#arrow)"/>
+<line x1="695" y1="355" x2="540" y2="355" marker-end="url(#arrow)"/>
+<path d="M 684 606 L 625 606 L 547 575" marker-end="url(#arrow)"/>
+<path d="M 684 618 L 625 618 L 547 650" marker-end="url(#arrow)"/>
+<line x1="537" y1="725" x2="682" y2="748" marker-end="url(#arrow)"/>
+<line x1="550" y1="792" x2="682" y2="768" marker-end="url(#arrow)"/>
+</g>
+<rect x="327.4" y="139" width="175.20000000000002" height="18" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text x="415" y="152" font-size="11" font-style="italic" fill="#334155" text-anchor="middle">«extend» durante a chamada</text>
+<rect x="511.1" y="169" width="193.8" height="18" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text x="608" y="182" font-size="11" font-style="italic" fill="#334155" text-anchor="middle">«extend» há vídeo em destaque</text>
+<rect x="539.7" y="329" width="156.6" height="18" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text x="618" y="342" font-size="11" font-style="italic" fill="#334155" text-anchor="middle">«extend» sala com senha</text>
+<rect x="542.6" y="603" width="162.8" height="18" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text x="624" y="616" font-size="11" font-style="italic" fill="#334155" text-anchor="middle">«extend» ao anexar mídia</text>
+<rect x="577.1" y="719" width="69.80000000000001" height="18" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text x="612" y="732" font-size="11" font-style="italic" fill="#334155" text-anchor="middle">«include»</text>
+<rect x="583.1" y="783" width="69.80000000000001" height="18" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+<text x="618" y="796" font-size="11" font-style="italic" fill="#334155" text-anchor="middle">«include»</text>
+</svg>
