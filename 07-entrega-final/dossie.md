@@ -39,7 +39,7 @@
 
 **[4.4 Design e arquitetura](#44-design-e-arquitetura)**
 17. [Visão arquitetural](#17-visão-arquitetural)
-18. [Princípios de projeto](#18-princípios-de-projeto)
+18. [Princípios de design](#18-princípios-de-design)
 19. [Coesão e acoplamento](#19-coesão-e-acoplamento)
 20. [Refinamento de uma funcionalidade](#20-refinamento-de-uma-funcionalidade)
 21. [Refatoração futura proposta](#21-refatoração-futura-proposta)
@@ -52,7 +52,7 @@
 
 **[4.6 Qualidade, verificação e validação](#46-qualidade-verificação-e-validação)**
 26. [Atributos de qualidade](#26-atributos-de-qualidade)
-27. [Casos de teste](#27-casos-de-teste)
+27. [Casos de Teste](#27-casos-de-teste)
 28. [Verificação e validação](#28-verificação-e-validação)
 29. [Matriz de rastreabilidade](#29-matriz-de-rastreabilidade)
 
@@ -74,7 +74,7 @@
 
 ## 1. Introdução
 
-Jay-C nasceu para ser um aplicativo direto ao ponto de call de voz, vídeo e transmissão de tela para grupos pequenos. Ele roda de forma descentralizada em dois lados que conversam: um app para Windows e Android, e um servidor que os próprios usuários podem subir num PC ou numa VPS com Docker. No Jay-C não existem contas nem anúncios; basta ter o endereço do servidor, digitar um nome qualquer e entrar na sala. Todo o código do projeto está aberto na licença MIT.
+O Jay-C foi criado para ser um app de chamada de voz, vídeo e compartilhamento de tela simples e direto para pequenos grupos. Ele funciona de forma descentralizada em dois lados que se comunicam: um app para Windows e Android, e um servidor que os próprios usuários podem rodar num PC ou numa VPS com Docker. No Jay-C não existem contas nem anúncios; basta ter o endereço do servidor, digitar um nome qualquer e entrar na sala. Todo o código do projeto está aberto na licença MIT.
 
 No presente documento, fazemos uma revisão do Jay-C com base nas coisas que aprendemos durante a disciplina. Começamos com a dor inicial que o projeto quer solucionar, os seus requisitos, até chegarmos em modelagem, arquitetura, processo, testes e planos de manutenção.
 
@@ -160,60 +160,60 @@ Prioridade: Alta (obrigatório para a primeira versão sair), Média (faz difere
 | RF009 | Enviar e receber mensagens de texto durante as chamadas | Usuário | Crítico | Mandar texto no chat da call, cai para todo mundo da sala junto com nome do autor e horário. |
 | RF010 | Enviar imagens, GIFs e vídeos nos chats das chamadas e nos canais de texto | Usuário | Crítico | Arquivo PNG, JPEG, WebP, GIF, MP4 ou WebM dentro do peso permitido aparece no chat para o pessoal ver; se tentar mandar outro formato, é barrado com aviso. |
 | RF011 | Enviar mensagens nos canais de texto dos servidores e consultar o histórico de conversas | Usuário | Crítico | Mensagem enviada num canal permanece lá mesmo depois de fechar e abrir o servidor novamente, e puxar a barra para cima carrega as mais antigas. |
-| RF012 | Responder a mensagens anteriores nos canais de texto | Usuário | Alto | A resposta sai com um pedaço da mensagem original em cima, e clicar ali rola diretamente para ela. |
-| RF013 | Personalizar seu perfil por meio de uma imagem ou cor de identificação | Usuário | Alto | A foto ou cor que a pessoa escolheu aparece para o resto do grupo tanto no card da call quanto nas mensagens. |
-| RF014 | Criar, editar e excluir salas de comunicação | Administrador | Crítico | Com a chave certa, criar, renomear ou apagar uma sala já atualiza a lista na tela de todo mundo que está conectado. |
-| RF015 | Criar, editar e excluir canais de texto | Administrador | Crítico | Com a chave certa, criar, renomear ou apagar um canal já atualiza a lista na tela de todo mundo conectado. |
-| RF016 | Configurar salas protegidas por senha e salas ocultas | Administrador | Crítico | Marcar senha, a sala passa a exigir ela na entrada; marcar como oculta, some da lista pública e só entra digitando nome e senha. |
-| RF017 | Ver uma transmissão de vídeo em uma janela flutuante usando o recurso Picture-in-Picture | Usuário | Alto | Ligar o PiP, a live continua numa janelinha solta por cima dos outros programas no Windows ou por cima do sistema no Android. |
-| RF018 | Personalizar as configurações visuais do aplicativo, incluindo a seleção de temas | Usuário | Baixo | Trocar tema (claro/escuro) ou estilo (Calmo, Neon, Suave), a cara do app muda na hora e continua assim quando abre novamente. |
-| RF019 | Consultar um guia de instruções para configurar e utilizar o aplicativo e seu servidor | Usuário, Administrador | Alto | Na primeira vez que abre já sobe o tour de boas-vindas, e é possível abrir novamente em Configurações › Ajuda junto do guia para subir servidor. |
-| RF020 | Sair de uma sala ou encerrar sua participação em uma chamada | Usuário | Crítico | Clicar em "sair", fecha a chamada, corta mic e câmera na hora e em até 2 segundos você já some da sala para os outros. |
+| RF012 | Responder a mensagens anteriores em canais de texto | Usuário | Alto | O conteúdo da resposta aparece junto com uma parte da mensagem original acima, e clicando nessa parte o usuário é levado diretamente para a mensagem original. |
+| RF013 | Personalizar o perfil usando uma imagem ou cor de identificação | Usuário | Alto | A foto ou cor escolhida pelo usuário é exibida para os demais membros do grupo tanto na foto do card da chamada quanto nas mensagens. |
+| RF014 | Criar, editar e excluir salas de comunicação | Administrador | Crítico | Se a chave estiver correta, a criação, edição ou exclusão de uma sala atualizará imediatamente a lista de salas na tela de todos os usuários conectados. |
+| RF015 | Criar, editar e excluir canais de texto | Administrador | Crítico | Se a chave estiver correta, a criação, edição ou exclusão de um canal atualizará imediatamente a lista de canais na tela de todos os usuários conectados. |
+| RF016 | Configurar salas protegidas por senha e salas ocultas | Administrador | Crítico | Se uma senha for definida, a sala passa a exigir essa senha para entrar; se for marcada como oculta, ela é removida da lista pública de salas e o usuário só pode entrar nela digitando seu nome e senha. |
+| RF017 | Ver uma transmissão de vídeo em uma janela flutuante usando o recurso Picture-in-Picture | Usuário | Alto | Ativar o PiP permite ver a transmissão de vídeo numa janelinha flutuante sobre outros programas no Windows ou sobre o sistema operacional no Android. |
+| RF018 | Personalizar as configurações visuais do aplicativo, incluindo a seleção de temas | Usuário | Baixo | Trocar de tema (claro/escuro) ou estilo (Calmo, Neon, Suave) altera imediatamente a aparência do aplicativo, que continua assim quando aberto novamente. |
+| RF019 | Consultar um guia de instruções para configurar e utilizar o aplicativo e seu servidor | Usuário, Administrador | Alto | Quando o aplicativo é aberto pela primeira vez, ele exibe um guia de boas-vindas; este guia pode ser aberto novamente indo em Configurações › Ajuda junto com o guia para subir o servidor. |
+| RF020 | Sair de uma sala ou encerrar sua participação em uma chamada | Usuário | Crítico | Clicar em "sair" fecha a chamada, corta o microfone e a câmera imediatamente e o usuário some da sala em até 2 segundos para os outros usuários. |
 
 ## 10. Requisitos não funcionais
 
 | ID | Categoria | Descrição | Importância | Condição de Aceite |
 | :--- | :--- | :--- | :--- | :--- |
-| RNF001 | Desempenho | Suportar chamadas com até 16 participantes simultâneos em uma mesma sala. | Crítico | Colocar 16 participantes conectados juntos na mesma sala (gente real ou bots simulados) e todos conseguirem se ouvir e se ver. |
-| RNF002 | Segurança | Limitar o acesso às funções administrativas por meio de uma chave de administrador. | Crítico | Mandar comando de admin sem chave ou com chave errada, o servidor devolve `not-admin`; acertar a chave, passa. |
-| RNF003 | Segurança | Proteger o acesso aos arquivos compartilhados, permitindo sua visualização somente aos participantes autorizados da chamada ou da sessão do servidor. | Crítico | Tentar puxar um arquivo sem o token da sessão, ou usando token de outra sala/sessão, retorna erro no lugar do arquivo. |
-| RNF004 | Segurança | Validar os tipos e tamanhos dos arquivos enviados, impedindo o recebimento de formatos não permitidos. | Crítico | Arquivo válido passa; tipo proibido retorna HTTP 415; passou do peso máximo retorna HTTP 413. |
-| RNF005 | Privacidade | Remover informações de localização e metadados de fotos (JPEG, PNG, WebP) e vídeos MP4 antes do envio. | Alto | Subir uma foto JPEG com GPS no EXIF e um MP4 com tag de localização e verificar num leitor de metadados que chegaram no servidor zerados disso. |
-| RNF006 | Disponibilidade | O servidor deve fornecer um mecanismo de verificação de funcionamento por meio de um endpoint de saúde. | Alto | Bater em `GET /health` e retornar HTTP 200 enquanto o servidor está de pé. |
-| RNF007 | Confiabilidade | O aplicativo deve tentar restabelecer automaticamente a conexão com o servidor em caso de interrupção. | Crítico | Derrubar e ligar o servidor novamente no meio da call: o app mostra "reconectando", vai tentando (1, 2, 4, 8 e depois de 10 em 10 s) e cai de volta na sala sozinho. |
-| RNF008 | Compatibilidade | O aplicativo deve funcionar no Windows 10 e 11 (64 bits) e no Android 7.0 ou superior, respeitando as limitações de cada sistema. | Crítico | Tanto o instalador quanto o APK instalam e entram numa call nos dois sistemas, com as diferenças (tipo áudio da live só no Windows) bem explicadas na doc. |
-| RNF009 | Usabilidade | A interface deve manter contraste legível entre texto e fundo em todos os temas e estilos visuais disponíveis. | Baixo | Rodar o teste automático nos 6 combos de tema e estilo e bater contraste mínimo de 4,5:1 em todo texto. |
-| RNF010 | Desempenho | Transmissões de tela com resolução configurável, chegando a pelo menos 1080p a 60 quadros por segundo. | Alto | Com 1080p60 marcado e conteúdo se mexendo na tela, as estatísticas da transmissão marcam 1920×1080 e batem perto dos 60 qps. |
+| RNF001 | Desempenho | O aplicativo deve suportar chamadas com até 16 participantes simultâneos em uma mesma sala. | Crítico | Se 16 participantes reais ou simulados forem colocados juntos numa mesma sala, todos conseguem se ouvir e se ver. |
+| RNF002 | Segurança | O acesso às funções administrativas deve ser restrito através de uma chave de administrador. | Crítico | Se um comando de administrador for enviado sem a chave correta ou com a chave errada, o servidor responderá com `not-admin`; se a chave for correta, o comando será executado. |
+| RNF003 | Segurança | Os arquivos compartilhados devem ser protegidos, permitindo sua visualização somente pelos participantes autorizados da chamada ou da sessão do servidor. | Crítico | Se um usuário tentar baixar um arquivo sem o token da sessão ou com o token de outra sala/sessão, ele receberá um erro ao invés do arquivo. |
+| RNF004 | Segurança | Os tipos e tamanhos dos arquivos enviados devem ser validados, evitando o recebimento de formatos não permitidos. | Crítico | Arquivos válidos são aceitos; arquivos com tipo proibido recebem HTTP 415; arquivos com tamanho acima do limite recebem HTTP 413. |
+| RNF005 | Privacidade | Informações de localização e metadados devem ser removidos de fotos (JPEG, PNG, WebP) e vídeos MP4 antes do envio. | Alto | Se uma foto JPEG com GPS no EXIF e um MP4 com tag de localização forem enviados, eles chegarão ao servidor sem essas informações, como verificado num leitor de metadados. |
+| RNF006 | Disponibilidade | O servidor deve fornecer um mecanismo para verificar se está funcionando corretamente através de um endpoint de saúde. | Alto | O endpoint `GET /health` deve retornar HTTP 200 enquanto o servidor estiver funcionando. |
+| RNF007 | Confiabilidade | O aplicativo deve tentar restabelecer automaticamente a conexão com o servidor em caso de interrupção. | Crítico | Se o servidor for desligado e ligado novamente durante uma chamada, o aplicativo mostrará "reconectando" e tentará se reconectar (em intervalos de 1, 2, 4, 8 segundos e depois de 10 em 10 segundos), voltando para a sala sozinho. |
+| RNF008 | Compatibilidade | O aplicativo deve funcionar no Windows 10 e 11 (64 bits) e no Android 7.0 ou superior, respeitando as limitações de cada sistema. | Crítico | Tanto o instalador quanto o APK devem ser instalados e entrar numa chamada em ambos os sistemas, com as diferenças (como o áudio da live sendo disponível apenas no Windows) claramente explicadas na documentação. |
+| RNF009 | Usabilidade | A interface deve manter um contraste legível entre o texto e o fundo em todos os temas e estilos visuais disponíveis. | Baixo | Um teste automático deve ser executado nos 6 temas/estilos e o contraste mínimo deve ser de pelo menos 4.5:1 em todo o texto. |
+| RNF010 | Desempenho | As transmissões de tela devem ter resolução configurável, chegando a pelo menos 1080p a 60 quadros por segundo. | Alto | Se a resolução estiver definida como 1080p60 e houver conteúdo se movendo na tela, as estatísticas da transmissão devem mostrar 1920×1080 e os quadros por segundo devem ficar perto de 60 qps. |
 
 ## 11. Regras de negócio
 
 | ID | Descrição | Requisitos Relacionados |
 | :--- | :--- | :--- |
-| RN001 | Cada sala aguenta no máximo 16 pessoas juntas ao mesmo tempo; quem tentar entrar por 17º leva aviso de sala cheia. | RF003, RF005, RNF001 |
-| RN002 | Sala trancada com senha só abre se informar a senha certa. | RF004, RF016 |
-| RN003 | Sala oculta não entra na lista pública de salas e obrigatoriamente tem que ter senha. | RF002, RF016 |
-| RN004 | Só quem passou a chave válida de administrador consegue criar, editar ou apagar salas e canais. | RF014, RF015, RF016, RNF002 |
-| RN005 | Se a mensagem tiver texto, o limite é 500 caracteres (e se for sem anexo, não pode ir vazia — fica entre 1 e 500). | RF009, RF010, RF011 |
-| RN006 | Cada canal de texto segura no máximo as últimas 500 mensagens enviadas. | RF011 |
-| RN007 | Cada vez que puxa o histórico de um canal volta no máximo um bloco de 50 mensagens. | RF011 |
-| RN008 | Imagens e GIFs podem ter até 8 MB e vídeos até 50 MB (dando para trocar via `MAX_IMAGE_MB` e `MAX_VIDEO_MB`). | RF010, RNF004 |
-| RN009 | Arquivo compartilhado só abre para quem faz parte daquela chamada ou da sessão do servidor onde ele subiu. | RF010, RNF003 |
-| RN010 | Sala fixa não pode trocar de nome enquanto tiver gente conectada dentro dela. | RF014 |
-| RN011 | Foto de perfil tem que ser PNG, JPEG ou WebP e não pode passar de 32 000 caracteres na string mandada para o servidor (em base64 / data URL). | RF013 |
-| RN012 | Resposta só pode citar uma mensagem que pertença ao mesmo canal de texto. | RF012 |
+| RN001 | Cada sala pode conter no máximo 16 pessoas simultaneamente; se alguém tentar entrar como 17º, ele receberá um aviso de sala cheia. | RF003, RF005, RNF001 |
+| RN002 | Uma sala trancada com senha só abrirá se o usuário fornecer a senha correta. | RF004, RF016 |
+| RN003 | Uma sala oculta não aparecerá na lista pública de salas e obrigatoriamente terá uma senha. | RF002, RF016 |
+| RN004 | Somente quem tiver a chave válida de administrador poderá criar, editar ou apagar salas e canais. | RF014, RF015, RF016, RNF002 |
+| RN005 | Se a mensagem contiver texto, o limite é de 500 caracteres (e se ela não tiver nenhum anexo, ela não pode ser vazia, ficando entre 1 e 500 caracteres). | RF009, RF010, RF011 |
+| RN006 | Cada canal de texto pode manter no máximo as últimas 500 mensagens enviadas. | RF011 |
+| RN007 | Cada vez que o usuário solicitar o histórico de um canal, ele receberá no máximo um bloco de 50 mensagens. | RF011 |
+| RN008 | Imagens e GIFs podem ter no máximo 8 MB de tamanho, enquanto vídeos podem ter no máximo 50 MB de tamanho (sendo possível alterar esses limites via `MAX_IMAGE_MB` e `MAX_VIDEO_MB`). | RF010, RNF004 |
+| RN009 | Um arquivo compartilhado só pode ser aberto por quem faz parte da chamada ou da sessão do servidor onde ele foi enviado. | RF010, RNF003 |
+| RN010 | Uma sala fixa não pode ter seu nome alterado enquanto houver pessoas conectadas nela. | RF014 |
+| RN011 | A foto de perfil deve ser no formato PNG, JPEG ou WebP e não pode ter mais de 32.000 caracteres na string enviada para o servidor (em base64 / data URL). | RF013 |
+| RN012 | Uma resposta só pode citar uma mensagem que pertença ao mesmo canal de texto. | RF012 |
 
 ## 12. Conflitos, ambiguidades e restrições
 
 | # | Tipo | Situação | Como foi resolvido |
 | :--- | :--- | :--- | :--- |
-| C1 | Conflito | Quem hospeda (S3) quer segurar quem entra, mas a galera (S1) não quer saber de criar conta nem senha pessoal. | Sem conta mesmo — a tranca fica por senha na sala, sala oculta e chave de admin (`RN002`–`RN004`). |
-| C2 | Conflito | Quem transmite (S2) quer mandar live em 1080p60, só que isso não pode fritar o PC nem derrubar quem está na internet ruim. | Encoding na GPU, qualidade configurável (`RF008`) e queda automática de resolução/FPS conforme a rede de cada um que assiste. |
-| C3 | Conflito | Usuário (S1) queria histórico para sempre, enquanto S3 muitas vezes roda o servidor num PC ou VPS simples. | Corte de 500 mensagens por canal (`RN006`) e teto de tamanho nos arquivos (`RN008`), tudo ajustável pelo admin. |
-| A1 | Ambiguidade | "Aguentar 16 pessoas" (`RNF001`): todo mundo com câmera aberta ao mesmo tempo? | Fechamos como 16 pessoas na sala podendo ligar câmera; o servidor escolhe a camada de vídeo certa para rede de cada espectador. |
-| A2 | Ambiguidade | "Plataformas previstas" (`RNF008`) estava vago demais no começo. | Travado em Windows 10/11 64 bits e Android 7.0+. |
-| A3 | Ambiguidade | No rascunho antigo, `RNF005` falava só "metadados de determinados arquivos" sem listar quais. | Fechou em localização e metadados de fotos (EXIF/XMP/blocos de texto em JPEG, PNG e WebP) mais localização em vídeos MP4. |
-| R1 | Restrição | Capturar áudio só de um aplicativo depende de uma API própria do Windows. | Ficou assumido e documentado como recurso exclusivo do Windows (`RNF008`). |
-| R2 | Restrição | O servidor precisa de duas portas abertas na rede (`3000/TCP` e `40000 UDP/TCP`). | Explicado no guia de instalação (`RF019`): quem hospeda abre as portas no roteador/firewall ou passa por VPN/túnel. |
+| C1 | Conflito | Quem hospeda (S3) quer controlar quem entra, mas os usuários (S1) não querem ter que criar conta nem senha pessoal. | Não há conta mesmo — o controle fica por senha na sala, sala oculta e chave de administrador (`RN002`–`RN004`). |
+| C2 | Conflito | Quem transmite (S2) quer fazer live em 1080p60, mas isso não pode causar o PC do usuário a fritar ou fazer com que quem está usando uma conexão de internet ruim caia. | O encoding é feito na GPU, a qualidade é configurável (`RF008`) e a resolução/FPS diminui automaticamente de acordo com a conexão de cada espectador. |
+| C3 | Conflito | O usuário (S1) queria ter o histórico para sempre, enquanto S3 muitas vezes hospeda o servidor num PC ou VPS simples. | As mensagens são cortadas em 500 por canal (`RN006`) e os arquivos têm um tamanho máximo (`RN008`), sendo todos ajustáveis pelo administrador. |
+| A1 | Ambiguidade | "Aguentar 16 pessoas" (`RNF001`): todo mundo com a câmera ligada ao mesmo tempo? | Definimos que 16 pessoas podem estar na sala podendo ligar a câmera; o servidor seleciona a camada de vídeo adequada para a conexão de cada espectador. |
+| A2 | Ambiguidade | "Plataformas previstas" (`RNF008`) era um termo muito vago no início. | Ficou limitado a Windows 10/11 64 bits e Android 7.0+. |
+| A3 | Ambiguidade | No rascunho anterior, o `RNF005` mencionava apenas "metadados de certos arquivos" sem especificar quais. | Ficou definido que seriam removidos os dados de localização e metadados de fotos (EXIF/XMP/blocos de texto em JPEG, PNG e WebP) e os dados de localização em vídeos MP4. |
+| R1 | Restrição | Capturar o áudio apenas de um aplicativo depende de uma API específica do Windows. | Ficou assumido e documentado que essa funcionalidade é exclusiva do Windows (`RNF008`). |
+| R2 | Restrição | O servidor precisa ter duas portas abertas na rede (`3000/TCP` e `40000 UDP/TCP`). | Foi explicado no guia de instalação (`RF019`): quem hospeda deve abrir essas portas no roteador/firewall ou usar um VPN/túnel. |
 
 ---
 
@@ -235,14 +235,14 @@ O ator principal é o Participante. Transmissor e Administrador são especializa
 | [UC02 Entrar em uma sala](#uc02--entrar-em-uma-sala) | RF002, RF003, RF004 |
 | UC02b Informar senha | RF004 |
 | UC03 Participar da chamada | RF005, RF006, RF020 |
-| [UC04 Transmitir a tela](#uc04--transmitir-a-tela) | RF007, RF008, RNF010 |
+| [UC04 Transmitir a tela](#uc04--compartilhar-a-tela) | RF007, RF008, RNF010 |
 | UC05 Assistir em PiP | RF017 |
 | UC06 Conversar no chat da chamada | RF009 |
 | UC07 Conversar nos canais de texto | RF011, RF012 |
 | UC08 Enviar imagem, GIF ou vídeo | RF010, RNF004, RNF005 |
 | UC09 Personalizar perfil e aparência | RF013, RF018, RNF009 |
 | UC10 Consultar o guia | RF019 |
-| [UC11 Gerenciar salas](#uc11--gerenciar-salas) | RF014, RF016 |
+| [UC11 Gerenciar salas](#uc11--administrar-salas) | RF014, RF016 |
 | UC12 Gerenciar canais de texto | RF015 |
 | UC13 Validar chave de administrador | RNF002 |
 
@@ -257,53 +257,53 @@ O ator principal é o Participante. Transmissor e Administrador são especializa
 | Requisitos e regras | RF002, RF003, RF004, RN001, RN002, RN003 |
 | Pré-condições | O aplicativo já está conectado em um servidor (`UC01`) e a pessoa definiu um nome. |
 | Fluxo principal | 1. O participante olha a lista de salas com quem está em cada uma e 2. clica em uma delas. 3. O aplicativo envia o pedido para o servidor, 4. que checa se tem menos de 16 pessoas ali dentro (`RN001`). 5. Estando liberado, o servidor aceita e avisa todo mundo, e 6. o aplicativo abre a tela da chamada deixando microfone e câmera do jeito que estavam na última vez. |
-| Fluxo alternativo A — sala com senha | Se a sala tiver cadeado no passo 2, o aplicativo abre pedindo a senha (`UC02b`) e o servidor confere ela (`RN002`) — se bater errado, mostra aviso e joga de volta para a lista. |
-| Fluxo alternativo B — sala oculta | Como a sala oculta nem aparece na lista (`RN003`), o participante digita o nome dela junto da senha lá no campo de entrada direta e segue para o passo 3. |
-| Fluxo alternativo C — sala cheia | Bateu 16 pessoas no passo 4, o servidor barra com aviso de sala cheia e quem clicou fica de fora mesmo. |
-| Fluxo alternativo D — sem conexão | Se o servidor cair ou não responder no passo 3, o aplicativo avisa que falhou e deixa tentar de novo. |
-| Pós-condições | O participante cai dentro da sala e aparece na lista/chamada para o resto do pessoal (se der erro, não muda nada na sala). |
+| Alternativa A — sala com senha | Se a sala possui cadeado no passo 2, o aplicativo abre uma janela para inserir a senha (`UC02b`) e o servidor a valida (`RN002`) — se for incorreta, exibe uma mensagem de erro e retorna para a lista. |
+| Alternativa B — sala oculta | Como a sala oculta não é exibida na lista (`RN003`), o participante insere o nome da sala junto com a senha no campo de entrada direta e segue para o passo 3. |
+| Alternativa C — sala cheia | No passo 4, se houver 16 participantes, o servidor impede a entrada exibindo uma mensagem de sala cheia e o usuário que tentou entrar fica de fora. |
+| Alternativa D — sem conexão | No passo 3, se o servidor estiver indisponível ou não responder, o aplicativo exibe uma mensagem de erro e oferece a opção de tentar novamente. |
+| Pós-condições | O participante entra na sala e aparece na lista/chamada para os demais participantes (se houver algum erro, a sala permanece inalterada). |
 
-### UC04 — Transmitir a tela
+### UC04 — Compartilhar a tela
 
 | Campo | Descrição |
 |---|---|
-| Objetivo | Mostrar para o resto da sala a tela inteira ou uma janela específica, levando o som junto. |
-| Ator | Transmissor |
+| Objetivo | Exibir para os demais participantes toda a tela ou uma janela específica, incluindo o áudio. |
+| Ator | Compartilhador |
 | Requisitos e regras | RF007, RF008, RNF010 |
-| Pré-condições | Quem vai transmitir já tá numa chamada (`UC03`). |
-| Fluxo principal | 1. A pessoa clica em "Transmitir", 2. o aplicativo abre o painel para escolher resolução, FPS e modo de otimização (detalhe, movimento ou equilíbrio), e 3. no seletor do sistema ela aponta a tela inteira ou uma janela só. 4. O aplicativo começa a enviar o vídeo e (no Windows) o áudio daquele programa, 5. os outros veem que subiu uma live e clicam para assistir, até 6. o transmissor clicar em "Parar". |
-| Fluxo alternativo A — cancelamento | Fechou o seletor do sistema sem escolher nada no passo 3? Não sobe transmissão nenhuma e a chamada segue igual. |
-| Fluxo alternativo B — rede fraca | Quando a internet de quem assiste não aguenta o bitrate escolhido no passo 4, a transmissão reduz resolução ou FPS conforme o modo selecionado para não cair. |
-| Fluxo alternativo C — mudar a qualidade | Dá para mexer nas opções do painel com a live já rodando — os valores novos entram na hora sem precisar reiniciar a transmissão. |
-| Pós-condições | Enquanto tá no ar, a transmissão aparece no card de quem transmite; na hora que para, some da tela de todo mundo. |
+| Pré-condições | O compartilhador já deve estar em uma chamada (`UC03`). |
+| Fluxo principal | 1. O usuário clica em "Compartilhar", 2. o aplicativo abre o painel para selecionar a resolução, FPS e modo de otimização (detalhe, movimento ou equilíbrio), e 3. no seletor do sistema, ele escolhe toda a tela ou uma janela específica. 4. O aplicativo começa a transmitir o vídeo e (no Windows) o áudio do programa, 5. os demais participantes veem que uma transmissão foi iniciada e clicam para assistir, até 6. o compartilhador clicar em "Parar". |
+| Alternativa A — cancelamento | Se o usuário fechar o seletor do sistema sem escolher nada no passo 3, não há transmissão e a chamada continua normalmente. |
+| Alternativa B — conexão lenta | Se a internet de quem está assistindo não suportar o bitrate escolhido no passo 4, a transmissão reduz a resolução ou FPS de acordo com o modo selecionado para evitar interrupções. |
+| Alternativa C — alterar a qualidade | É possível modificar as opções do painel durante a transmissão — as alterações entram em vigor imediatamente sem necessidade de reiniciar a transmissão. |
+| Pós-condições | Durante a transmissão, ela é exibida no card do compartilhador; ao parar, ela desaparece da tela de todos os participantes. |
 
-### UC11 — Gerenciar salas
+### UC11 — Administrar salas
 
 | Campo | Descrição |
 |---|---|
-| Objetivo | Criar, renomear e apagar as salas fixas do servidor, botando senha e escolhendo se fica oculta. |
+| Objetivo | Criar, renomear e excluir as salas permanentes do servidor, definindo uma senha e escolhendo se ela é oculta. |
 | Ator | Administrador |
 | Requisitos e regras | RF014, RF016, RNF002, RN002, RN003, RN004, RN010 |
-| Pré-condições | O aplicativo tá conectado no servidor e o admin já destravou com a chave nas configurações. |
-| Fluxo principal | 1. O admin abre as configurações do servidor, 2. escolhe criar uma sala e digita o nome, 3. podendo marcar uma senha e esconder a sala se quiser. 4. O aplicativo manda o pedido autenticado pela chave, 5. o servidor confere a permissão (`UC13`, `RN004`) junto dos dados e 6. salva em disco, atualizando a lista na tela de todo mundo. |
-| Fluxo alternativo A — chave inválida | Se a chave não bater no passo 5, o servidor barra na hora e avisa que aquela chave não é do admin. |
-| Fluxo alternativo B — sala oculta sem senha | Tentou marcar sala oculta sem colocar senha junto? O servidor recusa por causa da `RN003`. |
-| Fluxo alternativo C — nome repetido | Se já existir outra sala com aquele nome, não deixa duplicar e mostra erro. |
-| Fluxo alternativo D — renomear sala ocupada | Se tiver gente em chamada dentro da sala na hora de renomear, o servidor barra até a sala esvaziar (`RN010`). |
-| Fluxo alternativo E — excluir | Quando o admin apaga uma sala, ela sai da lista de todo mundo conectado. |
-| Pós-condições | A lista atualizada fica gravada em disco e continua lá igualzinha mesmo se reiniciar o servidor. |
+| Pré-condições | O aplicativo está conectado ao servidor e o administrador já realizou a autenticação com a chave nas configurações. |
+| Fluxo principal | 1. O administrador acessa as configurações do servidor, 2. seleciona a opção de criar uma sala e insere o nome, 3. podendo definir uma senha e ocultar a sala se desejar. 4. O aplicativo envia a solicitação autenticada pela chave, 5. o servidor valida a permissão (`UC13`, `RN004`) junto com os dados e 6. salva os dados no disco, atualizando a lista na tela de todos os participantes. |
+| Alternativa A — chave inválida | Se a chave não for válida no passo 5, o servidor impede a ação imediatamente e informa que a chave não pertence ao administrador. |
+| Alternativa B — sala oculta sem senha | Se o usuário tentar ocultar uma sala sem definir uma senha, o servidor rejeita a ação devido à `RN003`. |
+| Alternativa C — nome duplicado | Se já existir uma sala com o mesmo nome, o servidor impede a criação e exibe uma mensagem de erro. |
+| Alternativa D — renomear sala ocupada | Se houver participantes em chamada dentro da sala no momento em que ela é renomeada, o servidor impede a ação até que a sala seja esvaziada (`RN010`). |
+| Alternativa E — excluir sala | Quando o administrador exclui uma sala, ela é removida da lista de todos os participantes conectados. |
+| Pós-condições | A lista atualizada é salva no disco e permanece idêntica mesmo se o servidor for reiniciado. |
 
 ## 15. Diagrama de classes de domínio
 
-**Figura 2 — Classes de domínio do Jay-C.** Mostra os conceitos do problema, não as classes do código. Os números nas pontas são as multiplicidades; losango cheio (`*--`) é composição, losango vazio (`o--`) é agregação e a seta aberta (`<|--`) marca herança.
+**Figura 2 — Classes de domínio do Jay-C.** Representa os conceitos do problema, não as classes do código. Os valores nas extremidades são as multiplicidades; losango cheio (`*--`) indica composição, losango vazio (`o--`) indica agregação e a seta aberta (`<|--`) indica herança.
 
 ![Figura 2 — Classes de domínio do Jay-C](../02-modelagem/diagrama-classes-dominio.svg)
 
-Tem algumas decisões nesse diagrama que vale explicar direto para não parecer erro. Não tem classe Usuário nem Conta porque o sistema não tem cadastro, então o participante só existe enquanto tá conectado no servidor, e é exatamente por isso que `Mensagem` guarda `nomeDoAutor` e `corDoAutor` direto nela em vez de apontar para o `Participante` — senão o histórico dos canais ia perder o autor toda vez que a pessoa saísse da sala.
+Algumas escolhas feitas neste diagrama merecem explicação para evitar possíveis equívocos. Não existem as classes Usuário ou Conta, pois o sistema não possui cadastro, logo o participante existe apenas enquanto está conectado ao servidor, e é justamente por isso que a classe `Mensagem` armazena `nomeDoAutor` e `corDoAutor` diretamente em si, ao invés de fazer referência ao `Participante` — caso contrário, o histórico dos canais perderia o autor sempre que a pessoa saísse da sala.
 
-O Administrador também não virou uma classe separada. Administrar aqui é só ter a chave do servidor, e quem confere ela é `Servidor.validarChave()`, então aquele ator dos casos de uso vira uma operação no servidor em vez de existir como objeto próprio.
+O Administrador também não se tornou uma classe separada. Administrar neste sistema consiste apenas em possuir a chave do servidor, e quem a valida é `Servidor.validarChave()`, então aquele ator dos casos de uso se transforma em uma operação no servidor, ao invés de existir como objeto próprio.
 
-A gente separou `Mensagem` em duas subclasses porque o comportamento delas muda bastante: a da chamada morre quando a sala esvazia ou a chamada acaba (por isso composição com `Sala`), enquanto a do canal fica salva no histórico (composição com `CanalDeTexto`) e pode citar outra mensagem do mesmo canal (`respondeA`). Cada mensagem leva no máximo 1 anexo (`0..1`), e o `texto` pode ir vazio se tiver mídia junto (sem anexo, precisa ter de 1 a 500 caracteres). Já a agregação (losango vazio) ficou só entre `Sala` e `Participante`, porque se o usuário sair de uma chamada ele continua conectado ao servidor mexendo nos canais de texto. Para fechar, `Arquivo.tipo` pode ser imagem, GIF ou vídeo, e `formato` aceita PNG, JPEG, WebP, GIF, MP4 ou WebM.
+Nós dividimos `Mensagem` em duas subclasses devido ao fato de seu comportamento variar bastante: a da chamada é eliminada quando a sala fica vazia ou a chamada chega ao fim (portanto composição com `Sala`), enquanto a do canal permanece gravada no histórico (composição com `CanalDeTexto`) e pode fazer referência a outra mensagem do mesmo canal (`respondeA`). Cada mensagem pode conter no máximo 1 anexo (`0..1`), e o `texto` pode ser vazio caso haja mídia anexada (sem anexo, deve conter de 1 a 500 caracteres). Por sua vez, a agregação (losango vazio) ficou restrita apenas entre `Sala` e `Participante`, pois se o usuário sair de uma chamada ele continuará conectado ao servidor utilizando os canais de texto. Para finalizar, `Arquivo.tipo` pode ser imagem, GIF ou vídeo, e `formato` aceita PNG, JPEG, WebP, GIF, MP4 ou WebM.
 
 ## 16. Como os modelos representam os requisitos e as regras
 
@@ -312,16 +312,16 @@ A gente separou `Mensagem` em duas subclasses porque o comportamento delas muda 
 | Multiplicidade `0..16` entre Sala e Participante; `Sala.limite` e `estaCheia()`; fluxo alternativo C do [UC02](#uc02--entrar-em-uma-sala) | RN001, RNF001 |
 | `Sala.senhaHash [0..1]` e `entrar(participante, senha)`; UC02b `<<extend>>` | RF004, RN002 |
 | `Sala.oculta` e `Servidor.listarSalasVisiveis()`; fluxo alternativo B do [UC02](#uc02--entrar-em-uma-sala) | RF016, RN003 |
-| `Servidor.validarChave()`; UC13 incluído por [UC11](#uc11--gerenciar-salas) e UC12 | RF014, RF015, RNF002, RN004 |
+| `Servidor.validarChave()`; UC13 incluído por [UC11](#uc11--administrar-salas) e UC12 | RF014, RF015, RNF002, RN004 |
 | Atributo `texto [0..500 caracteres]` | RN005 |
 | Composição `CanalDeTexto "1" *-- "0..500" MensagemDeCanal` | RF011, RN006 |
 | `historico(antesDe)` devolvendo `MensagemDeCanal[0..50]` | RN007 |
 | Auto-associação `respondeA`, só entre mensagens de canal | RF012, RN012 |
 | Classe Arquivo com `tipo`, `tamanho` e `removerLocalizacao()`; UC08 | RF010, RNF004, RNF005, RN008 |
 | Arquivo ligado a uma mensagem, que pertence a uma sala ou a um canal | RN009, RNF003 (o arquivo só é visível nesse escopo) |
-| Associação Participante–Transmissão e seus atributos de qualidade; [UC04](#uc04--transmitir-a-tela) | RF007, RF008, RNF010 |
+| Associação Participante–Transmissão e seus atributos de qualidade; [UC04](#uc04--compartilhar-a-tela) | RF007, RF008, RNF010 |
 | Atributos `cor` e `foto` do Participante; UC09 | RF013, RN011 |
-| Fluxo alternativo D do [UC11](#uc11--gerenciar-salas) (renomear sala ocupada) | RN010 |
+| Fluxo alternativo D do [UC11](#uc11--administrar-salas) (renomear sala ocupada) | RN010 |
 
 ---
 
@@ -329,30 +329,30 @@ A gente separou `Mensagem` em duas subclasses porque o comportamento delas muda 
 
 ## 17. Visão arquitetural
 
-O Jay-C funciona no modelo cliente-servidor, com o aplicativo rodando no PC ou celular de cada participante e o servidor rodando na máquina do grupo dentro de um container Docker. A mídia não vai direto de um participante pro outro: tudo passa por um **SFU** (*Selective Forwarding Unit*) no servidor, que recebe cada vídeo uma vez só e repassa pra quem tá assistindo sem precisar decodificar.
+O Jay-C funciona no modelo cliente-servidor, onde o aplicativo é executado no PC ou celular de cada participante e o servidor é executado na máquina do grupo dentro de um container Docker. A mídia não é enviada diretamente de um participante para outro: tudo passa por um **SFU** (*Selective Forwarding Unit*) no servidor, que recebe cada vídeo apenas uma vez e o redistribui para quem o está assistindo sem necessidade de decodificação.
 
-**Figura 3 — Componentes, camadas e interfaces.** Setas simples mostram dependência interna, setas duplas (`<-->`) são protocolo/HTTP na porta 3000 ou comandos/eventos entre JS e Rust (`I4`), setas grossas (`<==>`) são mídia WebRTC cifrada na porta 40000 (`I3`, tanto vindo do JS quanto da camada nativa), a seta tracejada indica busca de atualização externa e o cilindro representa os arquivos gravados em disco no servidor.
+**Figura 3 — Componentes, camadas e interfaces.** Setas simples representam dependência interna, setas duplas (`<-->`) representam protocolo/HTTP na porta 3000 ou comandos/eventos entre JS e Rust (`I4`), setas grossas (`<==>`) representam mídia WebRTC cifrada na porta 40000 (`I3`, tanto vindo do JS quanto da camada nativa), a seta tracejada representa a busca de atualização externa e o cilindro representa os arquivos gravados no disco no servidor.
 
 ![Figura 3 — Componentes, camadas e interfaces](../03-arquitetura/visao-arquitetural.svg)
 
 | Componente | Responsabilidade |
 |---|---|
-| Apresentação ([`frontend/src/ui`](../frontend/src/ui)) | Cuida só de desenhar as telas (lista de salas e canais, chat, call, configurações) e repassar o clique do usuário pra lógica, sem falar direto com servidor nenhum. |
-| Lógica do cliente ([`frontend/src/core`](../frontend/src/core), [`store`](../frontend/src/store)) | Aqui mora a classe `Call` coordenando a chamada, o `signaling` falando o protocolo e reconectando quando cai, `attachments` preparando arquivos e `settings` guardando preferências. |
-| Camada nativa ([`src-tauri`](../frontend/src-tauri), [`plugins`](../plugins)) | Faz em Rust o que o navegador não dá conta direito: mic com cancelamento de eco sem abafar os jogos, captura de áudio por programa, live da tela codificando na placa de vídeo, janela de PiP e auto-update. |
-| Sinalização ([`signaling-server/src/server.js`](../signaling-server/src/server.js)) | Recebe as mensagens JSON, confere se quem pediu pode fazer aquilo e avisa o resto dos participantes. |
-| Domínio do servidor ([`rooms`](../signaling-server/src/rooms.js), [`directory`](../signaling-server/src/directory.js), [`channels`](../signaling-server/src/channels.js), [`media`](../signaling-server/src/media.js), [`avatars`](../signaling-server/src/avatars.js), [`rate-limit`](../signaling-server/src/rate-limit.js)) | Onde ficam as regras de negócio de verdade: lotação da sala, senhas, salas ocultas, histórico dos canais e checagem de arquivos. |
-| SFU ([`sfu.js`](../signaling-server/src/sfu.js), [`sfu-room.js`](../signaling-server/src/sfu-room.js)) | Recebe áudio e vídeo de todo mundo e repassa escolhendo a camada certa de qualidade conforme a internet de quem tá assistindo. |
-| Dados (`DATA_DIR`) | Salva salas, canais, histórico, fotos e arquivos direto em JSON e arquivos no disco, sem precisar subir banco de dados. |
+| Apresentação ([`frontend/src/ui`](../frontend/src/ui)) | Responsável apenas por desenhar as telas (lista de salas e canais, chat, chamada, configurações) e repassar o clique do usuário para a lógica, sem se comunicar diretamente com nenhum servidor. |
+| Lógica do cliente ([`frontend/src/core`](../frontend/src/core), [`store`](../frontend/src/store)) | Aqui se encontra a classe `Call` gerenciando a chamada, o `signaling` falando o protocolo e restabelecendo a conexão em caso de queda, `attachments` preparando os arquivos e `settings` guardando as preferências. |
+| Camada nativa ([`src-tauri`](../frontend/src-tauri), [`plugins`](../plugins)) | Realiza em Rust aquilo que o navegador não consegue fazer adequadamente: microfone com cancelamento de eco sem abafar os jogos, captura de áudio por programa, transmissão da tela codificando na placa de vídeo, janela de PiP e auto-update. |
+| Sinalização ([`signaling-server/src/server.js`](../signaling-server/src/server.js)) | Recebe as mensagens JSON, verifica se quem realizou o pedido tem permissão para fazê-lo e notifica o restante dos participantes. |
+| Domínio do servidor ([`rooms`](../signaling-server/src/rooms.js), [`directory`](../signaling-server/src/directory.js), [`channels`](../signaling-server/src/channels.js), [`media`](../signaling-server/src/media.js), [`avatars`](../signaling-server/src/avatars.js), [`rate-limit`](../signaling-server/src/rate-limit.js)) | Onde se encontram as regras de negócio reais: capacidade da sala, senhas, salas ocultas, histórico dos canais e verificação de arquivos. |
+| SFU ([`sfu.js`](../signaling-server/src/sfu.js), [`sfu-room.js`](../signaling-server/src/sfu-room.js)) | Recebe áudio e vídeo de todos os participantes e o repassa selecionando a camada adequada de qualidade conforme a internet de quem está assistindo. |
+| Dados (`DATA_DIR`) | Salva salas, canais, histórico, fotos e arquivos diretamente em JSON e arquivos no disco, sem necessidade de levantar banco de dados. |
 
-| Interface | O que passa por ela |
+| Interface | O que transita por ela |
 |---|---|
-| I1 Protocolo JSON sobre WebSocket | `join`, `leave`, `chat`, `channel-send`, `channel-history`, `admin`, `profile` junto das respostas e avisos do servidor — se alguma coisa falhar, volta código de erro (`room-full`, `wrong-password`, `not-admin`…). |
-| I2 HTTP | Upload e download dos arquivos do chat (`/media`) sempre com token da sessão, alem da rota `/health`. |
-| I3 WebRTC (SRTP) | Todo o tráfego de voz e vídeo já cifrado entre o app e o servidor numa porta só. |
-| I4 Tauri (comandos e canais) | O JavaScript chama funções lá no Rust e recebe eventos de volta, tipo o nível do microfone e as estatísticas da live. |
+| I1 Protocolo JSON sobre WebSocket | `join`, `leave`, `chat`, `channel-send`, `channel-history`, `admin`, `profile` junto com as respostas e notificações do servidor — caso alguma coisa falhe, retorna código de erro (`room-full`, `wrong-password`, `not-admin`…). |
+| I2 HTTP | Upload e download dos arquivos do chat (`/media`) sempre com token da sessão, além da rota `/health`. |
+| I3 WebRTC (SRTP) | Todo o tráfego de voz e vídeo já cifrado entre o app e o servidor em uma única porta. |
+| I4 Tauri (comandos e canais) | O JavaScript executa funções no Rust e recebe eventos de volta, como o nível do microfone e as estatísticas da transmissão. |
 
-**Figura 4 — Fluxo principal: enviar uma imagem num canal de texto** (RF010, RF011). Setas cheias são chamadas ou envios; setas tracejadas são respostas. O bloco `alt/else` separa quando o arquivo é recusado de quando passa.
+**Figura 4 — Fluxo principal: enviar uma imagem em um canal de texto** (RF010, RF011). Setas cheias representam chamadas ou envios; setas tracejadas representam respostas. O bloco `alt/else` separa quando o arquivo é recusado de quando é aceito.
 
 ```mermaid
 sequenceDiagram
@@ -380,19 +380,19 @@ sequenceDiagram
   end
 ```
 
-Esse fluxo mostra por que o upload sobe primeiro por HTTP: antes de enviar qualquer coisa, o cliente já limpa os metadados de localização e manda o arquivo junto do token da sessão, e só depois que o servidor confere os primeiros bytes e devolve o ID é que a mensagem de texto vai pelo WebSocket ligando aquele arquivo ao canal e distribuindo pro resto do pessoal conectado.
+Este fluxo exemplifica por que o upload ocorre primeiramente por HTTP: antes de enviar qualquer coisa, o cliente já remove os metadados de localização e envia o arquivo junto com o token da sessão, e somente após o servidor validar os primeiros bytes e retornar o ID é que a mensagem de texto é enviada pelo WebSocket associando aquele arquivo ao canal e distribuindo para o restante dos participantes conectados.
 
-## 18. Princípios de projeto
+## 18. Princípios de design
 
-Quem mexe nas telas (`ui/`) não precisa saber nada de WebRTC nem de rede por baixo dos panos. A interface só chama uns métodos diretos — `call.join()`, `call.toggleMic()`, `call.startScreenShare()`, `call.sendChat()` — e toda aquela encrenca de negociar mídia, abrir transporte ou decidir se a live tá saindo pelo navegador ou pela camada em Rust fica trancada lá dentro da classe `Call` (abstração).
+A pessoa que trabalha na UI não precisa ter conhecimento nenhum sobre WebRTC nem sobre rede. A UI só faz chamadas aos métodos diretos — `call.join()`, `call.toggleMic()`, `call.startScreenShare()`, `call.sendChat()` — e toda aquela loucura de negociar mídia, abrir transporte ou decidir se a live tá saindo pelo navegador ou pela camada em Rust fica escondida lá dentro da classe `Call` (abstração).
 
-Já olhando pro servidor, a modularidade salta na cara só de abrir a pasta `src/`: cada assunto virou um arquivo separado com seus próprios testes em [`signaling-server/test/`](../signaling-server/test/). Tem o [`rooms.js`](../signaling-server/src/rooms.js) segurando quantas pessoas cabem na sala, [`directory.js`](../signaling-server/src/directory.js) pras salas fixas e senhas, [`channels.js`](../signaling-server/src/channels.js) pro histórico de texto e [`media.js`](../signaling-server/src/media.js) na conferência de arquivos — enquanto o que é específico de sistema operacional (mic nativo e áudio por janela no Windows) ficou apartado em plugins próprios.
+Quando você olha pro servidor, a modularidade salta na sua cara só de abrir a pasta `src/`: cada assunto virou um arquivo separado com seus próprios testes em [`signaling-server/test/`](../signaling-server/test/). Tem o [`rooms.js`](../signaling-server/src/rooms.js) segurando quantas pessoas cabem na sala, [`directory.js`](../signaling-server/src/directory.js) pras salas fixas e senhas, [`channels.js`](../signaling-server/src/channels.js) pro histórico de texto e [`media.js`](../signaling-server/src/media.js) na conferência de arquivos — enquanto o que é específico de sistema operacional (mic nativo e áudio por janela no Windows) ficou separado em plugins próprios.
 
-A separação de interesses aparece nas camadas também: UI, lógica do cliente e código nativo em Rust moram cada um no seu canto, e no servidor a sinalização anda separada do SFU, que só repassa pacotes de áudio e vídeo sem abrir nem decodificar nada. E pro estado interno não virar bagunça com qualquer arquivo mexendo onde não deve, entram campos privados do JS (`#closeTransports()` na `Call`, `#reconnectTimer` no `SignalingClient`), senha salva só em *hash* com *salt* e leitura/escrita do histórico passando apenas por `post()`, `history()` e `quote()` nos canais (encapsulamento).
+A separação de interesses também aparece nas camadas: UI, lógica do cliente e código nativo em Rust ficam cada um no seu canto, e no servidor a sinalização anda separada do SFU, que só repassa pacotes de áudio e vídeo sem abrir nem decodificar nada. E pro estado interno não virar bagunça com qualquer arquivo mexendo onde não deve, entram campos privados do JS (`#closeTransports()` na `Call`, `#reconnectTimer` no `SignalingClient`), senha salva só em *hash* com *salt* e leitura/escrita do histórico passando apenas por `post()`, `history()` e `quote()` nos canais (encapsulamento).
 
 ## 19. Coesão e acoplamento
 
-Puxando primeiro pela coesão — que é basicamente quanto as partes dum mesmo módulo conversam entre si — um bom acerto foi o [`frontend/src/core/attachments.js`](../frontend/src/core/attachments.js). Tudo ali mexe com um problema só: descobrir o tipo verdadeiro dum arquivo pelos bytes e arrancar localização antes de subir, recebendo bytes e devolvendo bytes sem encostar em tela nem em rede (o que deixou [`frontend/test/attachments.test.js`](../frontend/test/attachments.test.js) bem direto de testar). Outro módulo bem focado é [`signaling-server/src/channels.js`](../signaling-server/src/channels.js), onde moram juntos a lista de canais, o teto de 500 mensagens, paginação de 50, citações e gravação em disco — mudou regra de histórico (`RN006`, `RN007`), é praticamente só ali que se mexe.
+Se a gente puxar primeiro pela coesão — que é basicamente quanto as partes dum mesmo módulo conversam entre si — um bom acerto foi o [`frontend/src/core/attachments.js`](../frontend/src/core/attachments.js). Tudo ali mexe com um problema só: descobrir o tipo verdadeiro dum arquivo pelos bytes e arrancar localização antes de subir, recebendo bytes e devolvendo bytes sem encostar em tela nem em rede (o que deixou [`frontend/test/attachments.test.js`](../frontend/test/attachments.test.js) bem direto de testar). Outro módulo bem focado é [`signaling-server/src/channels.js`](../signaling-server/src/channels.js), onde moram juntos a lista de canais, o teto de 500 mensagens, paginação de 50, citações e gravação em disco — mudou regra de histórico (`RN006`, `RN007`), é praticamente só ali que se mexe.
 
 Do outro lado, um exemplo claro de coesão baixa tá em [`frontend/src/core/call.js`](../frontend/src/core/call.js). A `Call` já beira 1 100 linhas misturando entrada/saída de sala, microfone, câmera, transmissão, chat, estatísticas e reconexão de mídia — tudo tem a ver com a call, óbvio, só que já passou da hora de quebrar em peças menores como sugere a [seção 21](#21-refatoração-futura-proposta).
 
@@ -466,7 +466,7 @@ flowchart LR
   B -- "sim" --> D["Tela 2: Servidor<br/>salas e canais"]
   D -- "clica num canal" --> D
   D -- "clica numa sala" --> E{"Sala com senha?"}
-  E -- "sim" --> F["Pede a senha"] --> G
+  E -- "sim" --> F["Solicita a senha"] --> G
   E -- "não" --> G["Tela 3: Chamada"]
   G -- "abre um canal" --> D
   G -- "sair" --> D
@@ -617,7 +617,7 @@ Estão destacados quatro atributos do FURPS que realmente fazem diferença para 
 | Usabilidade | Interface direta tanto no computador quanto no celular, sem ficar caçando botões e mantendo o texto bem legível em qualquer tema ou estilo. | Realizar a auditoria automática de contraste WCAG ≥ 4,5:1 no [`contrast-audit.js`](../scripts/contrast-audit.js) via `npm test` cobrindo os 6 combos (`RNF009`) junto com os testes com pessoas reais. |
 | Suportabilidade (Manutenibilidade) | Código dividido por assunto, fácil de testar separadamente e de modificar sem quebrar outra parte do sistema. | Esteira no CI (`.github/workflows/ci.yml`) rodando `npm test` (aplicativo e servidor) e `cargo test` constantemente, sobre módulos menores como [`rooms.js`](../signaling-server/src/rooms.js), [`channels.js`](../signaling-server/src/channels.js) e [`attachments.js`](../frontend/src/core/attachments.js). |
 
-## 27. Casos de teste
+## 27. Casos de Teste
 
 Os casos de teste que cobrem os fluxos principais, regras e limites:
 
@@ -654,7 +654,7 @@ Casos complementares que cobrem o resto dos RNFs e fluxos importantes:
 
 ## 28. Verificação e validação
 
-Segundo Pressman (2011), verificação e validação respondem coisas bem distintas e confundir as duas apenas dificulta saber o que realmente está pronto:
+De acordo com Pressman (2011), verificação e validação respondem coisas bem distintas e confundir as duas apenas dificulta saber o que realmente está pronto:
 
 - **Verificação** (*"Estamos construindo o produto de maneira correta?"*): é analisar minuciosamente se o código está conforme o que foi definido nos requisitos, regras e arquitetura. No Jay-C isso ocorre tanto na análise do código quanto na suíte automática do CI — verificar se o servidor bloqueia o 17º na sala (`RN001`), rejeita sala oculta sem senha (`RN003`), recorta mensagem com mais de 500 caracteres (`RN005`), devolve 415/413 quando o arquivo viola a regra (`RNF004`) e garante contraste ≥ 4,5:1 nos temas (`RNF009`).
 - **Validação** (*"Estamos construindo o produto certo?"*): é colocar nas mãos de quem vai usar para ver se realmente resolve o problema. Aqui nós fizemos isso em chamadas reais com testers jogando e compartilhando tela — e foi exatamente daí que surgiu o pedido de responder mensagens nos canais (`RF012`) e onde aconteceram erros reais, como pessoas entrando em uma sala já em progresso que às vezes não ouviam quem estava falando lá dentro.
@@ -683,16 +683,16 @@ Analisando tudo junto, o `npm test` com o `cargo test` proporcionam uma grande s
 | RF004 — Salas Protegidas por Senha | RN002 | [UC02](#uc02--entrar-em-uma-sala), UC02b / [`ui/lobby.js`](../frontend/src/ui/lobby.js), [`directory.js`](../signaling-server/src/directory.js) | CT04, CT10 |
 | RF005 — Chamadas de voz e vídeo | RN001 | UC03 / [`core/call.js`](../frontend/src/core/call.js), [`sfu-room.js`](../signaling-server/src/sfu-room.js) | CT02 |
 | RF006 — Microfone e câmera | — | UC03 / [`core/call.js`](../frontend/src/core/call.js), [`ui/control-bar.js`](../frontend/src/ui/control-bar.js) | CT17 |
-| RF007 — Transmissão de tela | — | [UC04](#uc04--transmitir-a-tela) / [`core/call.js`](../frontend/src/core/call.js), [`native_live`](../frontend/src-tauri/src/native_live/), [`system-audio`](../plugins/tauri-plugin-system-audio/) | CT13 |
-| RF008 — Qualidade da transmissão | — | [UC04](#uc04--transmitir-a-tela) / [`ui/share-panel.js`](../frontend/src/ui/share-panel.js), [`core/media.js`](../frontend/src/core/media.js) | CT13 (`native-live.test.js`) |
+| RF007 — Transmissão de tela | — | [UC04](#uc04--compartilhar-a-tela) / [`core/call.js`](../frontend/src/core/call.js), [`native_live`](../frontend/src-tauri/src/native_live/), [`system-audio`](../plugins/tauri-plugin-system-audio/) | CT13 |
+| RF008 — Qualidade da transmissão | — | [UC04](#uc04--compartilhar-a-tela) / [`ui/share-panel.js`](../frontend/src/ui/share-panel.js), [`core/media.js`](../frontend/src/core/media.js) | CT13 (`native-live.test.js`) |
 | RF009 — Mensagens de Chat | RN005 | UC06 / [`ui/chat-panel.js`](../frontend/src/ui/chat-panel.js), [`server.js`](../signaling-server/src/server.js) | CT05, CT06 |
 | RF010 — Envio de Mídia | RN005, RN008, RN009 | UC08 / [`ui/attach.js`](../frontend/src/ui/attach.js), [`core/attachments.js`](../frontend/src/core/attachments.js), [`media.js`](../signaling-server/src/media.js) | CT07, CT12, CT19 |
 | RF011 — Canais com histórico | RN005, RN006, RN007 | UC07 / [`ui/text-channel.js`](../frontend/src/ui/text-channel.js), [`channels.js`](../signaling-server/src/channels.js) | CT14 (`channels.test.js`) |
 | RF012 — Responder mensagens | RN012 | UC07 / [`ui/text-channel.js`](../frontend/src/ui/text-channel.js), [`channels.js`](../signaling-server/src/channels.js) | CT14 (`server.test.js`) |
 | RF013 — Perfil | RN011 | UC09 / [`ui/avatar-editor.js`](../frontend/src/ui/avatar-editor.js), [`avatars.js`](../signaling-server/src/avatars.js) | CT20 (`avatar.test.js`, `profile-color.test.js`, `server.test.js`) |
-| RF014 — Gestão Administrativa de salas | RN004, RN010 | [UC11](#uc11--gerenciar-salas) / [`ui/server-settings-modal.js`](../frontend/src/ui/server-settings-modal.js), [`directory.js`](../signaling-server/src/directory.js) | CT08 (`directory.test.js`, `server.test.js`) |
+| RF014 — Gestão Administrativa de salas | RN004, RN010 | [UC11](#uc11--administrar-salas) / [`ui/server-settings-modal.js`](../frontend/src/ui/server-settings-modal.js), [`directory.js`](../signaling-server/src/directory.js) | CT08 (`directory.test.js`, `server.test.js`) |
 | RF015 — Gestão de canais | RN004 | UC12 / [`ui/server-settings-modal.js`](../frontend/src/ui/server-settings-modal.js), [`channels.js`](../signaling-server/src/channels.js) | CT18 |
-| RF016 — Senha e sala oculta | RN002, RN003, RN004 | [UC11](#uc11--gerenciar-salas) / [`directory.js`](../signaling-server/src/directory.js) | CT10 |
+| RF016 — Senha e sala oculta | RN002, RN003, RN004 | [UC11](#uc11--administrar-salas) / [`directory.js`](../signaling-server/src/directory.js) | CT10 |
 | RF017 — PiP | — | UC05 / [`core/pip.js`](../frontend/src/core/pip.js), plugin [`pip`](../plugins/tauri-plugin-pip/) | CT21 (`pip.test.js` + manual) |
 | RF018 — Temas | — | UC09 / [`core/style.js`](../frontend/src/core/style.js), [`ui/theme.js`](../frontend/src/ui/theme.js) | CT15 |
 | RF019 — Guia | — | UC10 / [`ui/setup-guide-modal.js`](../frontend/src/ui/setup-guide-modal.js), [`ui/welcome-modal.js`](../frontend/src/ui/welcome-modal.js) | CT22 (`welcome.test.js` + manual) |
@@ -706,7 +706,7 @@ Analisando tudo junto, o `npm test` com o `cargo test` proporcionam uma grande s
 | RNF007 — Reconexão | — | UC01 / [`core/signaling.js`](../frontend/src/core/signaling.js), [`core/call.js`](../frontend/src/core/call.js) | CT09 |
 | RNF008 — Plataformas | — | Build Windows (instalador) e Android (APK) | CT23 (`installer.test.js` + manual) |
 | RNF009 — Temas legíveis | — | UC09 / [`styles/theme.css`](../frontend/src/styles/theme.css) | CT15 |
-| RNF010 — Pelo menos 1080p60 | — | [UC04](#uc04--transmitir-a-tela) / [`core/media.js`](../frontend/src/core/media.js), [`native_live`](../frontend/src-tauri/src/native_live/) | CT13 |
+| RNF010 — Pelo menos 1080p60 | — | [UC04](#uc04--compartilhar-a-tela) / [`core/media.js`](../frontend/src/core/media.js), [`native_live`](../frontend/src-tauri/src/native_live/) | CT13 |
 
 Cada regra de negócio (`RN001` a `RN012`) é mostrada na coluna ao lado dos requisitos que ela limita: dessa forma, mudar qualquer regra já indica imediatamente quais módulos e testes devem ser revisados.
 
