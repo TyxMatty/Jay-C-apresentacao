@@ -39,4 +39,4 @@ O código do Jay-C está nas outras pastas; a descrição do app, como instalar 
 Fundamentos de Engenharia de Software — Universidade Estadual de Ponta Grossa (UEPG), 1º Ano A
 
 ## Entrega
-19/11/2026 — dossiê técnico em PDF, um por grupo
+[Dossiê técnico](07-entrega-final/dossie.pdf)
