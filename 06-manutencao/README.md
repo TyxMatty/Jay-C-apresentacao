@@ -1,6 +1,6 @@
 # 06 — Manutenção
 
-As mudanças futuras (corretiva, adaptativa, perfectiva e preventiva), a análise de impacto e os riscos ficam no dossiê, seção 4.7: [`07-entrega-final/dossie.md`](../07-entrega-final/dossie.md#47-manutenção-e-evolução). Base escrita por Henrique Augusto.
+As mudanças futuras (corretiva, adaptativa, perfectiva e preventiva), a análise de impacto e os riscos ficam no dossiê, seção 4.7: [`07-entrega-final/dossie.md`](../07-entrega-final/dossie.md#47-manutenção-e-evolução). Base escrita por Henrique Augusto; o documento original dele está em [`manutencao-do-sistema-henrique-augusto.pdf`](manutencao-do-sistema-henrique-augusto.pdf) (a versão revisada é a do dossiê).
 
 - **Estado atual, como instalar num PC novo e próximos passos:** [`docs/CONTINUAR.md`](../docs/CONTINUAR.md)
 - **Roteiro:** [`ROADMAP.md`](../ROADMAP.md)

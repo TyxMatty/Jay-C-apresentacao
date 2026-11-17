@@ -1,6 +1,6 @@
 # 05 — Testes
 
-Os 23 casos de teste do dossiê (CT01 a CT23) ficam na seção 4.6: [`07-entrega-final/dossie.md`](../07-entrega-final/dossie.md#27-casos-de-teste). Base de CT01 a CT08 escrita por Henrique Augusto.
+Os 23 casos de teste do dossiê (CT01 a CT23) ficam na seção 4.6: [`07-entrega-final/dossie.md`](../07-entrega-final/dossie.md#27-casos-de-teste). Base de CT01 a CT08 escrita por Henrique Augusto; o documento original dele está em [`testes-do-sistema-henrique-augusto.pdf`](testes-do-sistema-henrique-augusto.pdf) (a versão revisada é a do dossiê).
 
 Os testes automatizados ficam junto do código (47 arquivos JS rodando com `node --test`, alem dos testes em Rust):
 - `signaling-server/test/`: servidor (salas, canais, arquivos, permissões de admin).
@@ -13,4 +13,4 @@ npm install
 npm test
 ```
 
-O CI (`.github/workflows/ci.yml`) roda `npm test` e `cargo test` a cada envio para o GitHub.
+O CI do repositório do Jay-C (`.github/workflows/ci.yml`) roda `npm test` e `cargo test` a cada envio. Na execução de 17/11, no commit da versão 0.5.5, os 186 testes JavaScript passaram.
