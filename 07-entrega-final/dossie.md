@@ -57,7 +57,7 @@
 29. [Matriz de rastreabilidade](#29-matriz-de-rastreabilidade)
 
 **[4.7 Manutenção e evolução](#47-manutenção-e-evolução)**
-30. [Mudanças futuras por tipo de manutenção](#30-mudanças-futuras-por-tipo-de-manutenção)
+30. [Futuras alterações por tipo de manutenção](#30-futuras-alterações-por-tipo-de-manutenção)
 31. [Impacto](#31-impacto)
 32. [Riscos técnicos e mitigação](#32-riscos-técnicos-e-mitigação)
 
@@ -74,13 +74,13 @@
 
 ## 1. Introdução
 
-O Jay-C foi criado para ser um app de chamada de voz, vídeo e compartilhamento de tela simples e direto para pequenos grupos. Ele funciona de forma descentralizada em dois lados que se comunicam: um app para Windows e Android, e um servidor que os próprios usuários podem rodar num PC ou numa VPS com Docker. No Jay-C não existem contas nem anúncios; basta ter o endereço do servidor, digitar um nome qualquer e entrar na sala. Todo o código do projeto está aberto na licença MIT.
+O Jay-C nasceu para ser um aplicativo de chamada de voz, vídeo e transmissão de tela fácil e direto para grupos pequenos. Ele funciona de forma distribuída entre duas partes que se comunicam: um aplicativo para Windows e Android, e um servidor que os próprios usuários podem rodar em um PC ou em uma VPS usando Docker. No Jay-C não existem contas e nem propagandas; é só ter o endereço do servidor, digitar um nome qualquer e entrar na sala. O código inteiro do projeto está disponível na licença MIT.
 
 No presente documento, fazemos uma revisão do Jay-C com base nas coisas que aprendemos durante a disciplina. Começamos com a dor inicial que o projeto quer solucionar, os seus requisitos, até chegarmos em modelagem, arquitetura, processo, testes e planos de manutenção.
 
 ## 2. Problema
 
-Todos os grupos de amigos, turmas de faculdade ou equipes pequenas que querem apenas conversar em call e mostrar a tela, acabam presos nas mesmas plataformas gigantes de sempre. É um problema porque todo mundo precisa se cadastrar com e-mail ou telefone antes de dizer "oi", além dos planos pagos, anúncios, conversas e arquivos hospedados em servidores de terceiros, e o limite que trava a qualidade da live ou o tamanho dos envios se ninguém assinar nada.
+Todas as turmas de amigos, grupos de faculdade ou equipes pequenas que querem apenas conversar em call e mostrar a tela, acabam presos nas mesmas plataformas gigantes de sempre. É um problema porque todo mundo precisa se cadastrar com e-mail ou telefone antes de dizer "oi", além dos planos pagos, propagandas, conversas e arquivos hospedados em servidores de terceiros, e o limite que trava a qualidade da live ou o tamanho dos envios se ninguém assinar nada.
 
 Falta justamente um caminho mais leve, gratuito e local — onde o próprio grupo instala o servidor, decide quem pode entrar e não entrega os próprios dados a nenhuma empresa.
 
@@ -90,7 +90,7 @@ Quem usa um sistema como este no dia a dia geralmente se identifica com quatro p
 
 ## 4. Objetivos
 
-Sem inventar moda, o Jay-C busca resolver o básico bem feito: chamada de voz e vídeo, live de tela e chat para grupos pequenos em um servidor que o próprio grupo controla, sem conta, sem anúncio e sem cobrar licença.
+Sem inventar moda, o Jay-C busca resolver o básico bem feito: chamada de voz e vídeo, live de tela e chat para grupos pequenos em um servidor que o próprio grupo controla, sem conta, sem propaganda e sem cobrar licença.
 
 Na prática mesmo, o sistema precisa suportar estas seis coisas:
 
@@ -131,17 +131,17 @@ Com Jay-C, conversa, arquivo e controle de entrada não saem da máquina do grup
 
 ## 8. Levantamento de requisitos
 
-Para descobrir o que era realmente importante construir, pensamos em três abordagens diferentes executadas em ciclos curtos: conversar em entrevistas com quem já usa bastante call e live (`S1`, `S2` e `S4`) e com quem toparia hospedar (`S3`), lançar um formulário rápido online para ter uma ideia de quantas pessoas entram juntas e observar pessoas reais usando as builds de teste. Essa última abordagem, aliás, já foi usada na prática há bastante tempo — várias coisas que os testers pediram foram incluídas diretamente nos requisitos, como o chat da call ao lado do vídeo e poder responder mensagens nos canais.
+Para entendermos o que era realmente prioritário no produto, criamos três estratégias diferentes em intervalos curtos: conversar com pessoas que usam muito chamada e live (`S1`, `S2` e `S4`) e pessoas que estivessem interessadas em hospedar (`S3`), enviar um pequeno questionário na internet para sabermos quantas pessoas usam simultaneamente e ver pessoas usando as versões de testes. A última estratégia já foi utilizada há muito tempo - muitos itens sugeridos pelos testadores foram adicionados aos requisitos, por exemplo, o chat da chamada ao lado da câmera e poder responder às mensagens nos canais.
 
-Nas entrevistas, as perguntas seriam mais ou menos nesta linha:
+Nas conversas, as perguntas serão mais ou menos assim:
 
-1. Quantas pessoas costumam ficar juntas na call de vocês, e qual foi o maior problema que já ocorreu numa sala?
-2. Qual app vocês usam atualmente para chamada e live, e o que mais incomoda nele (precisar criar conta, anúncio, limitar bitrate, privacidade)?
-3. Quando alguém abre live, costuma mostrar o monitor inteiro, uma janela ou um jogo? E o som desse app faz falta junto?
-4. É necessário guardar histórico de mensagem e arquivo nos canais, ou pode ir sumindo? Quem deveria poder ver isso?
-5. Alguém do grupo conseguiria deixar um PC ou VPS ligado para o servidor, e quanto essa pessoa sabe de rede e Docker?
-6. Pelo celular, o que não pode parar se você sair do app — apenas ouvir a call ou assistir à transmissão também?
-7. Há necessidade de sala fechada com senha, ou até sala que nem aparece na lista pública?
+1. Quantas pessoas geralmente ficam juntas na chamada de vocês, e qual o pior problema que já aconteceu em uma sala?
+2. Que app vocês usam agora para chamada e live, e o que mais chateia nele (precisar de conta, propaganda, bitrate reduzido, privacidade)?
+3. Quando alguém faz live, geralmente é o monitor todo, uma janela ou um jogo? E o som desse app é muito importante junto?
+4. É preciso salvar o histórico de mensagem e arquivo nos canais, ou pode ir embora? Quem deve ver isso?
+5. Alguém do grupo consegue deixar um computador ou VPS ligado para o servidor, e quanto essa pessoa conhece de rede e Docker?
+6. Pelo telefone, o que não pode parar se você sair do app - só ouvir a chamada ou assistir à live também?
+7. Precisa de sala trancada com senha, ou até sala que nem aparece na lista pública?
 
 ## 9. Requisitos funcionais
 
@@ -380,21 +380,21 @@ sequenceDiagram
   end
 ```
 
-Este fluxo exemplifica por que o upload ocorre primeiramente por HTTP: antes de enviar qualquer coisa, o cliente já remove os metadados de localização e envia o arquivo junto com o token da sessão, e somente após o servidor validar os primeiros bytes e retornar o ID é que a mensagem de texto é enviada pelo WebSocket associando aquele arquivo ao canal e distribuindo para o restante dos participantes conectados.
+Este fluxo exemplifica por que o upload ocorre primeiramente por HTTP: antes de enviar qualquer coisa, o cliente já remove os metadados de localização e envia o arquivo junto com o token da sessão. Após o servidor validar os primeiros bytes e responder o ID, a mensagem de texto passa pelo WebSocket associando tal arquivo ao canal e distribuindo para os demais participantes ativos.
 
 ## 18. Princípios de design
 
-A pessoa que trabalha na UI não precisa ter conhecimento nenhum sobre WebRTC nem sobre rede. A UI só faz chamadas aos métodos diretos — `call.join()`, `call.toggleMic()`, `call.startScreenShare()`, `call.sendChat()` — e toda aquela loucura de negociar mídia, abrir transporte ou decidir se a live tá saindo pelo navegador ou pela camada em Rust fica escondida lá dentro da classe `Call` (abstração).
+A pessoa que desenvolve a UI não precisa saber de nada sobre WebRTC nem sobre rede. A UI apenas invoca os métodos direto — `call.join()`, `call.toggleMic()`, `call.startScreenShare()`, `call.sendChat()` — e toda aquela bagunça de negociar mídia, abrir transporte ou decidir se a live vai pelo navegador ou pela camada em Rust fica escondida lá dentro da classe `Call` (abstração).
 
-Quando você olha pro servidor, a modularidade salta na sua cara só de abrir a pasta `src/`: cada assunto virou um arquivo separado com seus próprios testes em [`signaling-server/test/`](../signaling-server/test/). Tem o [`rooms.js`](../signaling-server/src/rooms.js) segurando quantas pessoas cabem na sala, [`directory.js`](../signaling-server/src/directory.js) pras salas fixas e senhas, [`channels.js`](../signaling-server/src/channels.js) pro histórico de texto e [`media.js`](../signaling-server/src/media.js) na conferência de arquivos — enquanto o que é específico de sistema operacional (mic nativo e áudio por janela no Windows) ficou separado em plugins próprios.
+Quando você olha pro servidor, a modularidade salta aos olhos só de abrir a pasta `src/`: cada tópico virou um arquivo separado com seus próprios testes em [`signaling-server/test/`](../signaling-server/test/). Tem o [`rooms.js`](../signaling-server/src/rooms.js) segurando quantas pessoas cabem na sala, [`directory.js`](../signaling-server/src/directory.js) pras salas fixas e senhas, [`channels.js`](../signaling-server/src/channels.js) pro histórico de texto e [`media.js`](../signaling-server/src/media.js) na conferência de arquivos — enquanto o que é específico do sistema operacional (mic nativo e áudio por janela no Windows) ficou separado em plugins próprios.
 
-A separação de interesses também aparece nas camadas: UI, lógica do cliente e código nativo em Rust ficam cada um no seu canto, e no servidor a sinalização anda separada do SFU, que só repassa pacotes de áudio e vídeo sem abrir nem decodificar nada. E pro estado interno não virar bagunça com qualquer arquivo mexendo onde não deve, entram campos privados do JS (`#closeTransports()` na `Call`, `#reconnectTimer` no `SignalingClient`), senha salva só em *hash* com *salt* e leitura/escrita do histórico passando apenas por `post()`, `history()` e `quote()` nos canais (encapsulamento).
+A separação de interesses também aparece nas camadas: UI, lógica do cliente e código nativo em Rust estão cada um no seu canto, e no servidor a sinalização anda separada do SFU, que só repassa pacotes de áudio e vídeo sem abrir nem decodificar nada. E pro estado interno não virar bagunça com qualquer arquivo mexendo onde não deve, entram campos privados do JS (`#closeTransports()` na `Call`, `#reconnectTimer` no `SignalingClient`), senha salva só em *hash* com *salt* e leitura/escrita do histórico passando apenas por `post()`, `history()` e `quote()` nos canais (encapsulamento).
 
 ## 19. Coesão e acoplamento
 
-Se a gente puxar primeiro pela coesão — que é basicamente quanto as partes dum mesmo módulo conversam entre si — um bom acerto foi o [`frontend/src/core/attachments.js`](../frontend/src/core/attachments.js). Tudo ali mexe com um problema só: descobrir o tipo verdadeiro dum arquivo pelos bytes e arrancar localização antes de subir, recebendo bytes e devolvendo bytes sem encostar em tela nem em rede (o que deixou [`frontend/test/attachments.test.js`](../frontend/test/attachments.test.js) bem direto de testar). Outro módulo bem focado é [`signaling-server/src/channels.js`](../signaling-server/src/channels.js), onde moram juntos a lista de canais, o teto de 500 mensagens, paginação de 50, citações e gravação em disco — mudou regra de histórico (`RN006`, `RN007`), é praticamente só ali que se mexe.
+Se puxarmos primeiro pela coesão — que é basicamente quanto as partes dum mesmo módulo se relacionam — um bom acerto foi o [`frontend/src/core/attachments.js`](../frontend/src/core/attachments.js). Tudo ali mexe com um problema só: descobrir o tipo verdadeiro dum arquivo pelos bytes e arrancar localização antes de subir, recebendo bytes e devolvendo bytes sem tocar em tela nem em rede (o que deixou [`frontend/test/attachments.test.js`](../frontend/test/attachments.test.js) bem fácil de testar). Outro módulo bem focado é [`signaling-server/src/channels.js`](../signaling-server/src/channels.js), onde estão juntos a lista de canais, o teto de 500 mensagens, paginação de 50, citações e gravação em disco — mudou regra de histórico (`RN006`, `RN007`), é praticamente só ali que se mexe.
 
-Do outro lado, um exemplo claro de coesão baixa tá em [`frontend/src/core/call.js`](../frontend/src/core/call.js). A `Call` já beira 1 100 linhas misturando entrada/saída de sala, microfone, câmera, transmissão, chat, estatísticas e reconexão de mídia — tudo tem a ver com a call, óbvio, só que já passou da hora de quebrar em peças menores como sugere a [seção 21](#21-refatoração-futura-proposta).
+Do outro lado, um exemplo claro de coesão baixa tá em [`frontend/src/core/call.js`](../frontend/src/core/call.js). A `Call` já beira 1 100 linhas misturando entrada/saída de sala, microfone, câmera, transmissão, chat, estatísticas e reconexão de mídia — tudo tem a ver com a call, claro, só que já passou da hora de quebrar em peças menores como sugere a [seção 21](#21-refatoração-futura-proposta).
 
 No lado do acoplamento, a melhor coisa que a gente fez foi manter o app e o servidor sem compartilhar uma linha de código sequer, conversando só pelo contrato das mensagens JSON (`I1`). Como o servidor avisa na entrada quais recursos sabe fazer (`features`), um app mais novo consegue até rodar num servidor um pouco atrás — só trava se chegar uma mensagem nova tipo `profile`, que um servidor velho recusa e aí pede pra atualizar ele junto. Outro ponto bom fica entre o domínio do servidor e as variáveis de ambiente: `Rooms` recebe o limite no construtor (`new Rooms({ maxPeersPerRoom })`) em vez de sair lendo `process.env` direto lá dentro, deixando os testes testarem sala de 2 ou 16 lugares sem mexer no ambiente global.
 
@@ -708,17 +708,17 @@ Analisando tudo junto, o `npm test` com o `cargo test` proporcionam uma grande s
 | RNF009 — Temas legíveis | — | UC09 / [`styles/theme.css`](../frontend/src/styles/theme.css) | CT15 |
 | RNF010 — Pelo menos 1080p60 | — | [UC04](#uc04--compartilhar-a-tela) / [`core/media.js`](../frontend/src/core/media.js), [`native_live`](../frontend/src-tauri/src/native_live/) | CT13 |
 
-Cada regra de negócio (`RN001` a `RN012`) é mostrada na coluna ao lado dos requisitos que ela limita: dessa forma, mudar qualquer regra já indica imediatamente quais módulos e testes devem ser revisados.
+Cada regra de negócio (`RN001` a `RN012`) aparece na coluna ao lado dos requisitos que ela restringe: desta forma, alterar qualquer regra já indica imediatamente quais os módulos e os testes que precisam ser revistos.
 
 ---
 
 # 4.7 Manutenção e evolução
 
-## 30. Mudanças futuras por tipo de manutenção
+## 30. Futuras alterações por tipo de manutenção
 
-O bug mais problemático que ainda está pendente aqui ocorre quando alguém entra em uma chamada que já está em andamento e, de repente, fica sem escutar as pessoas que já estavam conversando lá dentro. Como nenhum aviso é exibido na tela, a pessoa pensa que tudo está silencioso, enquanto o `RF005` falhou em silêncio — por isso mesmo, encontrar e arrumar essa sincronia logo no início é o primeiro item da lista na **Manutenção Corretiva**.
+O maior problema que ainda está em aberto aqui acontece quando uma pessoa entra em uma chamada que já está em andamento e, de repente, fica sem conseguir ouvir as pessoas que já estavam conversando lá dentro. Como nenhum aviso é exibido na tela, a pessoa acha que tudo está em silêncio, enquanto o `RF005` falhou em silêncio — por isso mesmo, encontrar e corrigir essa sincronização logo no início é o primeiro item da lista na **Manutenção Corretiva**.
 
-Na **Manutenção Adaptativa** não há nenhum segredo: o Jay-C é baseado no Tauri, no WebView2, no Android SDK e no `mediasoup`, e cada vez que há uma atualização pesada do Windows ou do Android, alguma dessas partes precisa de um ajuste para que possa ser compilada corretamente e continuar funcionando no `RNF008` (mesmo sem alterar nada do que o app faz para o usuário).
+Na **Manutenção Adaptativa** não há nenhum mistério: o Jay-C é baseado no Tauri, no WebView2, no Android SDK e no `mediasoup`, e cada vez que há uma atualização pesada do Windows ou do Android, alguma dessas partes precisa de um ajuste para que possa ser compilada corretamente e continuar funcionando no `RNF008` (mesmo sem alterar nada do que o app faz para o usuário).
 
 Hoje em dia o app só emite um som e exibe uma notificação quando alguém te responde ou te marca com `@`. O que nós queremos trazer na **Manutenção Perfectiva** é dar um controle canal por canal — há um canal mais movimentado onde só menção já é suficiente, canal de aviso onde você quer um som para qualquer coisa que aparecer lá, e outros que é melhor deixar quietos de uma vez por todas (e até podendo escolher um toque diferente). Isso dá uma nova vida para o uso diário dos canais sem precisar criar um servidor central de *push*, que continuaria de fora mesmo, pois exigiria ficar acordado recebendo mensagem com o app fechado.
 
@@ -747,13 +747,13 @@ Se colocarmos esses Alertas Personalizáveis por Canal mesmo, o impacto vai pra 
 
 ## 33. Conclusão
 
-Voltando ao problema que nós começamos lá na [seção 2](#2-problema), podemos ver que o Jay-C resolveu a maioria com poucas apostas bem diretas que foram se consolidando ao longo do semestre. Cortar conta e deixar o servidor na mão do próprio grupo já eliminou de imediato a dependência de plataforma centralizada - quem entra ou não entra depende apenas por senha na sala, sala oculta e chave de administrador. Em vez de fazer todo mundo enviar vídeo para todo mundo (que ia fritar o upload de quem hospeda), entrou o SFU no meio para cada pessoa enviar seu vídeo uma vez só e segurar 16 pessoas ou live de pelo menos 1080p60. E onde o navegador travou - tipo o mic reduzindo o volume do resto do PC ou tentar obter som de uma janela só - nós descemos pro Rust e fomos testando cada ideia arriscada com protótipo rápido antes de construir o resto em cima.
+A partir do problema com o qual iniciamos na [seção 2](#2-problema), percebemos que o Jay-C resolveu a maior parte dele usando poucas apostas diretas, que se foram consolidando durante o semestre. Reduzir as contas e passar o controle do servidor para o grupo, por exemplo, já eliminou de imediato a dependência de plataformas centralizadas - quem entra ou deixa de entrar é definido somente pela senha da sala, sala escondida e chave de administrador. Em vez de todos enviarem seus vídeos para todos (o que iria ferir o upload do hospedador), foi adicionado o SFU no meio, para que cada usuário envie o vídeo apenas uma vez e suporte até 16 pessoas ou uma live de pelo menos 1080p60. E onde o navegador travou - como o mic reduzindo o volume do restante do PC ou tentar conseguir o som de uma janela só - fomos para o Rust e fomos testando cada ideia arriscada com protótipo rápido antes de fazer o restante.
 
-Deu bastante trabalho fora do roteiro também. Em vários notebooks o microfone do navegador jogava o Windows pro "modo chamada" e derrubava o som dos outros programas em uns 65 dB, aí não teve jeito a não ser escrever um mic nativo com cancelamento de eco próprio ([`docs/spikes/09-som-abafado.md`](../docs/spikes/09-som-abafado.md)). Obter o som de um programa só esbarrava numa API do Windows quase sem documentação que nós só fomos entender na marra testando e medindo ([`docs/spikes/06-transmissoes.md`](../docs/spikes/06-transmissoes.md)). Já na live nativa deu pra ver logo que deixar quadro-chave grande demais estourava a conexão de quem tava numa internet pior, então teve que limitar o codificador na mão e deixar a qualidade cair sozinha quando a rede aperta ([`docs/spikes/10-live-nativa.md`](../docs/spikes/10-live-nativa.md)). Também apareceu bucha que só estoura fora do PC de quem desenvolve, tipo notebook com duas GPUs falhando na live nativa e um enrosco de proxy segurando uma release antes de publicar.
+Também foi muito trabalho fora do roteiro. Em vários notebooks, o microfone do navegador jogou o Windows para o "modo chamada" e derrubou o som dos outros programas em uns 65 dB, então não houve outra escolha senão escrever um mic nativo com cancelamento de eco próprio ([`docs/spikes/09-som-abafado.md`](../docs/spikes/09-som-abafado.md)). Pegar o som de um programa só encontrou uma API do Windows quase sem documentação, que nós só fomos entender testando e medindo na marra ([`docs/spikes/06-transmissoes.md`](../docs/spikes/06-transmissoes.md)). Já na live nativa, ficou claro logo que deixar o quadro-chave grande demais estourava a conexão de quem estava com uma internet pior, então teve que limitar o codificador na mão e deixar a qualidade cair sozinha quando a rede aperta ([`docs/spikes/10-live-nativa.md`](../docs/spikes/10-live-nativa.md)). Também apareceram problemas que só estouram fora do PC de quem desenvolve, como notebook com duas GPUs falhando na live nativa e um enrosco de proxy segurando uma release antes de publicar.
 
-Se tem uma lição que ficou marcada foi medir antes de bater o martelo. Um monte de coisa que parecia óbvia no papel - achar que o áudio tava saindo limpo ou que o codificador ia respeitar o teto - caiu por terra na hora que nós fomos olhar os números de verdade. Também ficou claro como rodar spike cedo poupa dor de cabeça lá na frente na arquitetura, que usuário real acha coisa que teste automático nenhum sonha em pegar (o `RF012` e o bug do áudio pra quem chega atrasado saíram direto deles) e que amarrar requisito, modelo e teste por ID evita sair mexendo às cegas quando muda alguma regra.
+Se há uma lição que ficou marcada, é medir antes de bater o martelo. Uma monte de coisa que parecia óbvia no papel - achar que o áudio tava saindo limpo ou que o codificador ia respeitar o teto - caiu por terra quando nós fomos ver os números de verdade. Também ficou claro como rodar spike cedo poupa dor de cabeça lá na frente na arquitetura, que usuário real acha coisa que teste automático nenhum sonha em pegar (o `RF012` e o bug do áudio pra quem chega atrasado saíram direto deles) e que amarrar requisito, modelo e teste por ID evita sair mexendo às cegas quando muda alguma regra.
 
-Mesmo rodando redondo no geral, o sistema tem limites bem claros. Não tem criptografia de ponta a ponta, então todo mundo na call precisa confiar em quem tá hospedando o servidor. Ainda não roda em iOS, macOS nem Linux, e pegar som por janela na live continua sendo coisa só do Windows. O instalador do Windows não leva certificado pago de assinatura de código, por isso o SmartScreen dá aviso na primeira vez que abre, e quem hospeda precisa de upload decente porque uma live em 1080p60 pra 15 pessoas pede uns 90 Mbps saindo do servidor - fora o defeito aberto da [seção 30](#30-mudanças-futuras-por-tipo-de-manutenção) e testes tipo o `CT02` com 16 pessoas ou o `CT23` nas duas plataformas, que ainda pedem gente testando na mão em várias máquinas.
+Ainda assim, mesmo rodando redondo no geral, o sistema tem limites bem claros. Não tem criptografia de ponta a ponta, então todos na call precisam confiar em quem tá hospedando o servidor. Ainda não roda em iOS, macOS nem Linux, e pegar som por janela na live continua sendo coisa só do Windows. O instalador do Windows não leva certificado pago de assinatura de código, por isso o SmartScreen dá aviso na primeira vez que abre, e quem hospeda precisa de upload decente porque uma live em 1080p60 pra 15 pessoas pede uns 90 Mbps saindo do servidor - fora o defeito aberto da [seção 30](#30-futuras-alterações-por-tipo-de-manutenção) e testes tipo o `CT02` com 16 pessoas ou o `CT23` nas duas plataformas, que ainda pedem gente testando na mão em várias máquinas.
 
 ## 34. Referências
 
