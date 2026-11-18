@@ -79,7 +79,7 @@
         <h2 id="sumario-title" class="section-title">Sumário</h2>
         <ol class="toc">
           <li><a href="#c41"><span class="toc-num">4.1</span><b>Identificação e contextualização</b><small>Problema, objetivos e limites</small></a></li>
-          <li><a href="#c42"><span class="toc-num">4.2</span><b>Stakeholders e levantamento de requisitos</b><small>Os RFs, RNFs e RNs essenciais</small></a></li>
+          <li><a href="#c42"><span class="toc-num">4.2</span><b>Stakeholders e levantamento de requisitos</b><small>Stakeholders e os RFs, RNFs e RNs essenciais</small></a></li>
           <li><a href="#c43"><span class="toc-num">4.3</span><b>Modelagem de análise</b><small>Casos de uso</small></a></li>
           <li><a href="#c44"><span class="toc-num">4.4</span><b>Design e arquitetura</b><small>Visão arquitetural, SFU, chamada, live, microfone</small></a></li>
           <li><a href="#c45"><span class="toc-num">4.5</span><b>Processo e organização do desenvolvimento</b><small>Incremental, com protótipos de risco</small></a></li>
@@ -136,7 +136,18 @@
           <span class="chapter-num">4.2</span>
           <h2 id="c42-title" class="chapter-title">Stakeholders e levantamento de requisitos</h2>
         </header>
-        <p class="section-lead">O dossiê tem <b>20 requisitos funcionais</b>, <b>10 não funcionais</b> e <b>12 regras de negócio</b>, levantados com entrevistas, um questionário e as versões de teste. Aqui estão os essenciais: sem eles, o Jay-C não seria o Jay-C.</p>
+        <h3 class="section-title">7. Stakeholders</h3>
+        <p class="section-lead">Quem é afetado pelo Jay-C e o que cada um espera dele.</p>
+        <ul class="stakeholders">
+          <li><span class="app-icon" data-icon="users"></span><div><p class="req-head"><span class="req-id">S1</span></p><h4>Participante</h4><p>Entrar rápido sem cadastro, ouvir todo mundo limpo sem travar e usar um app leve e gratuito.</p></div></li>
+          <li><span class="app-icon" data-icon="monitor"></span><div><p class="req-head"><span class="req-id">S2</span></p><h4>Transmissor</h4><p>Mostrar o jogo ou a janela com o som junto, em boa qualidade, sem derreter a máquina nem vazar o som de outro programa.</p></div></li>
+          <li><span class="app-icon" data-icon="key"></span><div><p class="req-head"><span class="req-id">S3</span></p><h4>Administrador do servidor</h4><p>Instalar e cuidar do servidor sem sofrer, trancar ou esconder salas, controlar quem entra e não deixar os arquivos estourarem o disco.</p></div></li>
+          <li><span class="app-icon" data-icon="phone"></span><div><p class="req-head"><span class="req-id">S4</span></p><h4>Usuário de celular</h4><p>Participar pelo Android, seguir assistindo à live na janelinha (PiP) e não gastar muita bateria nem internet móvel.</p></div></li>
+          <li><span class="app-icon" data-icon="code"></span><div><p class="req-head"><span class="req-id">S5</span></p><h4>Equipe e mantenedores</h4><p>Código dividido e testável, release segura, atualização automática funcionando e facilidade para rastrear bugs depois.</p></div></li>
+        </ul>
+
+        <h3 class="section-title">8. Levantamento de requisitos</h3>
+        <p class="section-lead">Três estratégias, em ciclos curtos: conversas com quem usa muito chamada e live (S1, S2, S4) e com quem toparia hospedar (S3), um questionário rápido e a observação das versões de teste. Muitos pedidos dos testers viraram requisito, como o chat ao lado da câmera e responder mensagens nos canais. O resultado: <b>20 requisitos funcionais</b>, <b>10 não funcionais</b> e <b>12 regras de negócio</b>. Abaixo, os essenciais: sem eles, o Jay-C não seria o Jay-C.</p>
 
         <h3 class="section-title">9. Requisitos funcionais</h3>
         <div class="req-grid">
