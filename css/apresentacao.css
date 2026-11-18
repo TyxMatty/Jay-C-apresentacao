@@ -692,41 +692,63 @@ code {
   font-size: 15px;
 }
 
-/* ---------- 4.2 Stakeholders ---------- */
+/* ---------- 4.2 Stakeholders: one row each, like the dossier's table ---------- */
 
 .stakeholders {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-  gap: 12px;
   margin: 0;
   padding: 0;
   list-style: none;
-}
-
-.stakeholders li {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 18px 18px 20px;
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   background: var(--surface);
+  overflow: hidden;
 }
 
-.stakeholders .req-head {
-  margin-bottom: 6px;
+.stakeholders li {
+  display: grid;
+  grid-template-columns: auto minmax(180px, 15em) minmax(0, 1fr);
+  align-items: center;
+  gap: 18px;
+  padding: 16px 22px;
 }
 
-.stakeholders h4 {
-  margin: 0 0 6px;
+.stakeholders li + li {
+  border-top: 1px solid var(--border);
+}
+
+.stakeholder-name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.stakeholder-name h4 {
+  margin: 0;
   font-size: 17px;
   font-weight: 750;
+  line-height: 1.3;
 }
 
-.stakeholders p:not(.req-head) {
+.stakeholders p {
   margin: 0;
-  font-size: 15px;
   color: var(--text-muted);
+}
+
+@media (max-width: 700px) {
+  .stakeholders li {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 6px 14px;
+    padding: 16px 18px;
+  }
+
+  .stakeholders li .app-icon {
+    grid-row: span 2;
+    align-self: start;
+  }
+
+  .stakeholders p {
+    font-size: 15px;
+  }
 }
 
 /* ---------- 4.3 Diagrama de casos de uso ---------- */
