@@ -692,6 +692,43 @@ code {
   font-size: 15px;
 }
 
+/* ---------- 4.2 Stakeholders ---------- */
+
+.stakeholders {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stakeholders li {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px 18px 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+
+.stakeholders .req-head {
+  margin-bottom: 6px;
+}
+
+.stakeholders h4 {
+  margin: 0 0 6px;
+  font-size: 17px;
+  font-weight: 750;
+}
+
+.stakeholders p:not(.req-head) {
+  margin: 0;
+  font-size: 15px;
+  color: var(--text-muted);
+}
+
 /* ---------- 4.3 Diagrama de casos de uso ---------- */
 
 .uml {
