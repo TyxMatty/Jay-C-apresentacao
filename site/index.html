@@ -4,14 +4,14 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Jay-C — como funciona por dentro</title>
-    <meta name="description" content="Projeto Integrador de Fundamentos de Engenharia de Software (UEPG): a arquitetura do Jay-C, um app open-source de chamadas, transmissão de tela e chat num servidor do próprio grupo." />
+    <meta name="description" content="Projeto Integrador de Fundamentos de Engenharia de Software (UEPG): o Jay-C, um app open-source de chamadas, transmissão de tela e chat num servidor do próprio grupo, do problema aos requisitos, à modelagem, à arquitetura e aos testes." />
     <link rel="icon" href="assets/brand/favicon.png" sizes="32x32" />
     <link rel="icon" href="assets/brand/icon-256.png" sizes="256x256" />
     <link rel="apple-touch-icon" href="assets/brand/icon-256.png" />
     <meta name="theme-color" content="#ff9068" />
     <meta property="og:type" content="website" />
     <meta property="og:title" content="Jay-C — como funciona por dentro" />
-    <meta property="og:description" content="A arquitetura do Jay-C: app em Tauri e Rust, servidor de sinalização e SFU mediasoup em Docker, chamadas de até 16 pessoas e lives em 1080p60." />
+    <meta property="og:description" content="O Jay-C seguindo o dossiê do Projeto Integrador: contexto, requisitos, modelagem, arquitetura (Tauri, Rust, SFU mediasoup em Docker), processo, qualidade e evolução." />
     <meta property="og:locale" content="pt_BR" />
     <!-- Before first paint: the saved style and theme (the same keys site.js writes). -->
     <script>
@@ -30,19 +30,20 @@
     <script type="module" src="js/site.js"></script>
   </head>
   <body>
-    <a class="skip-link" href="#ideia">Pular para o conteúdo</a>
+    <a class="skip-link" href="#sumario">Pular para o conteúdo</a>
 
     <header class="topbar">
       <a class="brand" href="#top" aria-label="Jay-C, início">
         <span class="brand-mark wolf-mark" aria-hidden="true"></span>
         <span class="brand-name">Jay-C</span>
       </a>
-      <nav class="topnav" aria-label="Seções">
-        <a href="#arquitetura">Arquitetura</a>
-        <a href="#chamada">Uma chamada</a>
-        <a href="#live">Live</a>
-        <a href="#engenharia">Engenharia</a>
-        <a href="#equipe">Equipe</a>
+      <nav class="topnav" aria-label="Capítulos">
+        <a href="#c41">Contexto</a>
+        <a href="#c42">Requisitos</a>
+        <a href="#c43">Modelagem</a>
+        <a href="#c44">Arquitetura</a>
+        <a href="#c46">Qualidade</a>
+        <a href="#c48">Conclusão</a>
       </nav>
       <div class="style-switch" role="radiogroup" aria-label="Estilo">
         <button type="button" role="radio" data-style-value="calm" aria-label="Calmo"><span data-style-preview="calm"></span></button>
@@ -58,9 +59,9 @@
         <div class="hero-text">
           <p class="eyebrow">Projeto Integrador · Fundamentos de Engenharia de Software · UEPG</p>
           <h1>Jay-C: chamadas, lives e chat num servidor do seu grupo</h1>
-          <p class="hero-lead">Um app open-source de voz, vídeo e transmissão de tela, sem contas e sem anúncios. Aqui mostramos como ele funciona por dentro: do clique em "entrar na sala" até o vídeo chegar em 16 pessoas.</p>
+          <p class="hero-lead">Um app open-source de voz, vídeo e transmissão de tela, sem contas e sem anúncios. Esta página segue o dossiê do trabalho: do problema aos requisitos, à modelagem, à arquitetura e aos testes.</p>
           <div class="hero-actions">
-            <a class="btn" href="#arquitetura"><span class="btn-icon" data-icon="layers"></span>Ver a arquitetura</a>
+            <a class="btn" href="#sumario"><span class="btn-icon" data-icon="layers"></span>Ver o sumário</a>
             <a class="btn btn-secondary" href="https://github.com/TyxMatty/Jay-C-apresentacao/releases/latest"><span class="btn-icon" data-icon="document"></span>Dossiê em PDF</a>
             <a class="btn btn-secondary" href="https://github.com/TyxMatty/Jay-C"><span class="btn-icon" data-icon="github"></span>Código</a>
           </div>
@@ -73,9 +74,29 @@
         </div>
       </section>
 
-      <!-- ===================== A ideia ===================== -->
-      <section id="ideia" class="block" aria-labelledby="ideia-title">
-        <h2 id="ideia-title" class="section-title">O problema e a ideia</h2>
+      <!-- ===================== Sumário ===================== -->
+      <section id="sumario" class="block" aria-labelledby="sumario-title">
+        <h2 id="sumario-title" class="section-title">Sumário</h2>
+        <ol class="toc">
+          <li><a href="#c41"><span class="toc-num">4.1</span><b>Identificação e contextualização</b><small>Problema, objetivos e limites</small></a></li>
+          <li><a href="#c42"><span class="toc-num">4.2</span><b>Stakeholders e levantamento de requisitos</b><small>Os RFs, RNFs e RNs essenciais</small></a></li>
+          <li><a href="#c43"><span class="toc-num">4.3</span><b>Modelagem de análise</b><small>Casos de uso</small></a></li>
+          <li><a href="#c44"><span class="toc-num">4.4</span><b>Design e arquitetura</b><small>Visão arquitetural, SFU, chamada, live, microfone</small></a></li>
+          <li><a href="#c45"><span class="toc-num">4.5</span><b>Processo e organização do desenvolvimento</b><small>Incremental, com protótipos de risco</small></a></li>
+          <li><a href="#c46"><span class="toc-num">4.6</span><b>Qualidade, verificação e validação</b><small>Testes, medições e V&amp;V</small></a></li>
+          <li><a href="#c47"><span class="toc-num">4.7</span><b>Manutenção e evolução</b><small>Os quatro tipos de manutenção</small></a></li>
+          <li><a href="#c48"><span class="toc-num">4.8</span><b>Conclusão e referências</b><small>O que ficou, e a equipe</small></a></li>
+        </ol>
+      </section>
+
+      <!-- ===================== 4.1 ===================== -->
+      <section id="c41" class="block" aria-labelledby="c41-title">
+        <header class="chapter">
+          <span class="chapter-num">4.1</span>
+          <h2 id="c41-title" class="chapter-title">Identificação e contextualização</h2>
+        </header>
+
+        <h3 id="ideia" class="section-title">2. Problema e a ideia</h3>
         <div class="two-col">
           <div class="prose">
             <p>Quem quer fazer chamada, se ver e mostrar a tela com os amigos, a turma ou a equipe quase sempre depende de uma plataforma grande: precisa criar conta, vê anúncio, as conversas ficam no servidor de outra empresa e os recursos melhores (mais qualidade na live, arquivos maiores) são pagos.</p>
@@ -87,15 +108,175 @@
             <li><span class="app-icon" data-icon="code"></span><div><h3>Aberto</h3><p>App e servidor sob a licença MIT, com o código no GitHub.</p></div></li>
           </ul>
         </div>
+
+        <h3 class="section-title">4. Objetivos</h3>
+        <ol class="goals">
+          <li>Chamada de voz e vídeo com até <b>16 pessoas</b> na mesma sala.</li>
+          <li>Live da tela inteira ou de uma janela, com o som do app (Windows), em pelo menos <b>1080p60</b>.</li>
+          <li>Servidor organizado em <b>salas</b> (abertas, com senha ou ocultas) e <b>canais de texto</b> com histórico.</li>
+          <li>Imagens, GIFs e vídeos nos chats, <b>sem a localização</b> dos arquivos.</li>
+          <li>Administração de salas e canais com uma <b>chave de admin</b>.</li>
+          <li>Instalação direta no <b>Windows e no Android</b>.</li>
+        </ol>
+
+        <div class="note">
+          <h3>5. Limites do sistema</h3>
+          <p>Não há contas, senhas pessoais nem mensagens privadas fora das salas. Não há criptografia de ponta a ponta: o SFU precisa receber a mídia para repassá-la, então <strong>o servidor tem que ser de confiança do grupo</strong>. A equipe não hospeda um servidor central, e nesta entrega não há iOS, macOS nem Linux. São cortes conscientes, registrados no dossiê.</p>
+        </div>
+
         <figure class="shot">
           <img src="assets/shots/server-soft.webp" width="1266" height="793" loading="lazy" alt="Um canal de texto de um servidor do Jay-C: as salas e os canais à esquerda, as mensagens com uma imagem e um GIF no meio e quem está em chamada à direita" />
           <figcaption>Um servidor do Jay-C: salas de chamada e canais de texto à esquerda, o canal aberto no meio e quem está em cada sala à direita.</figcaption>
         </figure>
       </section>
 
-      <!-- ===================== Arquitetura ===================== -->
-      <section id="arquitetura" class="block" aria-labelledby="arq-title">
-        <h2 id="arq-title" class="section-title">A arquitetura em uma imagem</h2>
+      <!-- ===================== 4.2 ===================== -->
+      <section id="c42" class="block" aria-labelledby="c42-title">
+        <header class="chapter">
+          <span class="chapter-num">4.2</span>
+          <h2 id="c42-title" class="chapter-title">Stakeholders e levantamento de requisitos</h2>
+        </header>
+        <p class="section-lead">O dossiê tem <b>20 requisitos funcionais</b>, <b>10 não funcionais</b> e <b>12 regras de negócio</b>, levantados com entrevistas, um questionário e as versões de teste. Aqui estão os essenciais: sem eles, o Jay-C não seria o Jay-C.</p>
+
+        <h3 class="section-title">9. Requisitos funcionais</h3>
+        <div class="req-grid">
+          <article class="req">
+            <p class="req-head"><span class="req-id">RF003</span><span class="req-tag">Crítico</span></p>
+            <h4>Entrar numa sala só com o nome</h4>
+            <p>O participante digita um nome e clica na sala: já está na chamada, sem cadastro.</p>
+            <p class="req-accept"><b>Aceite:</b> em até 2 segundos o nome aparece para o resto da sala; sem nome, o app nem deixa tentar.</p>
+          </article>
+          <article class="req">
+            <p class="req-head"><span class="req-id">RF007</span><span class="req-tag">Crítico</span></p>
+            <h4>Compartilhar a tela ou uma janela</h4>
+            <p>Quem transmite escolhe o monitor inteiro ou a janela de um programa.</p>
+            <p class="req-accept"><b>Aceite:</b> a sala assiste à live com o som do que está sendo transmitido (no Windows).</p>
+          </article>
+          <article class="req">
+            <p class="req-head"><span class="req-id">RF011</span><span class="req-tag">Crítico</span></p>
+            <h4>Canais de texto com histórico</h4>
+            <p>Mensagens nos canais do servidor ficam guardadas e podem ser lidas depois.</p>
+            <p class="req-accept"><b>Aceite:</b> a mensagem continua lá depois de fechar e abrir o servidor, e rolar para cima carrega as mais antigas.</p>
+          </article>
+        </div>
+
+        <h3 class="section-title">10. Requisitos não funcionais</h3>
+        <div class="req-grid">
+          <article class="req">
+            <p class="req-head"><span class="req-id">RNF001</span><span class="req-tag">Desempenho</span></p>
+            <h4>16 pessoas na mesma sala</h4>
+            <p>A chamada aguenta até 16 participantes ao mesmo tempo.</p>
+            <p class="req-accept"><b>Aceite:</b> com 16 participantes, reais ou simulados, todos se ouvem e se veem.</p>
+          </article>
+          <article class="req">
+            <p class="req-head"><span class="req-id">RNF005</span><span class="req-tag">Privacidade</span></p>
+            <h4>Localização removida dos arquivos</h4>
+            <p>Fotos (JPEG, PNG, WebP) e vídeos MP4 perdem os dados de GPS e os metadados antes de subir.</p>
+            <p class="req-accept"><b>Aceite:</b> uma foto com GPS no EXIF chega ao servidor sem ele, conferido num leitor de metadados.</p>
+          </article>
+          <article class="req">
+            <p class="req-head"><span class="req-id">RNF007</span><span class="req-tag">Confiabilidade</span></p>
+            <h4>Reconexão automática</h4>
+            <p>Se a conexão cair, o app tenta voltar sozinho para a sala.</p>
+            <p class="req-accept"><b>Aceite:</b> com o servidor reiniciado no meio da chamada, o app mostra "reconectando", tenta em 1, 2, 4, 8 e depois a cada 10 s, e volta.</p>
+          </article>
+        </div>
+
+        <h3 class="section-title">11. Regras de negócio</h3>
+        <div class="req-grid">
+          <article class="req req-rule">
+            <p class="req-head"><span class="req-id">RN003</span><span class="req-links">RF002 · RF016</span></p>
+            <h4>Sala oculta exige senha</h4>
+            <p>Uma sala oculta não aparece na lista pública e obrigatoriamente tem senha: entra quem sabe o nome e a senha.</p>
+          </article>
+          <article class="req req-rule">
+            <p class="req-head"><span class="req-id">RN004</span><span class="req-links">RF014 · RF015 · RNF002</span></p>
+            <h4>Só a chave de admin muda o servidor</h4>
+            <p>Criar, editar ou apagar salas e canais exige a chave de administrador; sem ela, o servidor responde <code>not-admin</code>.</p>
+          </article>
+          <article class="req req-rule">
+            <p class="req-head"><span class="req-id">RN009</span><span class="req-links">RF010 · RNF003</span></p>
+            <h4>Arquivo só para quem está ali</h4>
+            <p>Um arquivo só abre para quem está na chamada ou na sessão do servidor onde ele foi enviado. Para os outros, é como se não existisse (404).</p>
+          </article>
+        </div>
+      </section>
+
+      <!-- ===================== 4.3 ===================== -->
+      <section id="c43" class="block" aria-labelledby="c43-title">
+        <header class="chapter">
+          <span class="chapter-num">4.3</span>
+          <h2 id="c43-title" class="chapter-title">Modelagem de análise</h2>
+        </header>
+
+        <h3 class="section-title">13. Diagrama de casos de uso</h3>
+        <p class="section-lead">O ator principal é o Participante. Quem transmite e quem administra são especializações dele: qualquer pessoa na sala pode abrir uma live, e quem tem a chave pode administrar. Não existe conta.</p>
+        <figure class="uml">
+          <svg viewBox="0 0 960 470" role="img" aria-labelledby="uml-title uml-desc">
+            <title id="uml-title">Casos de uso do Jay-C (simplificado)</title>
+            <desc id="uml-desc">Participante liga-se a conectar a um servidor, entrar em uma sala, participar da chamada e conversar nos canais. Entrar em uma sala é estendido por informar senha. Transmissor e Administrador são especializações do Participante. Transmissor liga-se a transmitir a tela. Administrador liga-se a gerenciar salas e canais, que inclui validar a chave de administrador.</desc>
+            <defs>
+              <marker id="uml-open" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+                <path d="M0 0 10 5 0 10" class="uml-arrow" />
+              </marker>
+              <marker id="uml-tri" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="13" markerHeight="13" orient="auto-start-reverse">
+                <path d="M0 0 12 6 0 12z" class="uml-tri" />
+              </marker>
+            </defs>
+
+            <rect x="300" y="14" width="646" height="442" rx="18" class="uml-system" />
+            <text x="320" y="44" class="uml-system-label">Jay-C</text>
+
+            <!-- Actors -->
+            <g class="uml-actor" transform="translate(110 92)">
+              <circle cx="0" cy="0" r="13" /><path d="M0 13v34M-22 26h44M0 47l-17 28M0 47l17 28" />
+              <text y="100">Participante</text>
+            </g>
+            <g class="uml-actor" transform="translate(200 268)">
+              <circle cx="0" cy="0" r="13" /><path d="M0 13v34M-22 26h44M0 47l-17 28M0 47l17 28" />
+              <text y="100">Transmissor</text>
+            </g>
+            <g class="uml-actor" transform="translate(78 346)">
+              <circle cx="0" cy="0" r="13" /><path d="M0 13v34M-22 26h44M0 47l-17 28M0 47l17 28" />
+              <text y="100">Administrador</text>
+            </g>
+            <!-- Specialization ("é um") -->
+            <path d="M193 253 128 206" class="uml-gen" marker-end="url(#uml-tri)" />
+            <path d="M80 330 100 206" class="uml-gen" marker-end="url(#uml-tri)" />
+
+            <!-- Use cases -->
+            <g class="uml-uc"><ellipse cx="470" cy="70" rx="138" ry="28" /><text x="470" y="75">Conectar a um servidor</text></g>
+            <g class="uml-uc"><ellipse cx="470" cy="142" rx="138" ry="28" /><text x="470" y="147">Entrar em uma sala</text></g>
+            <g class="uml-uc"><ellipse cx="800" cy="142" rx="118" ry="28" /><text x="800" y="147">Informar senha</text></g>
+            <g class="uml-uc"><ellipse cx="470" cy="214" rx="138" ry="28" /><text x="470" y="219">Participar da chamada</text></g>
+            <g class="uml-uc"><ellipse cx="470" cy="286" rx="138" ry="28" /><text x="470" y="291">Conversar nos canais</text></g>
+            <g class="uml-uc uml-uc-accent"><ellipse cx="470" cy="358" rx="138" ry="28" /><text x="470" y="363">Transmitir a tela</text></g>
+            <g class="uml-uc uml-uc-accent"><ellipse cx="470" cy="420" rx="138" ry="26" /><text x="470" y="425">Gerenciar salas e canais</text></g>
+            <g class="uml-uc"><ellipse cx="800" cy="420" rx="118" ry="26" /><text x="800" y="425">Validar chave de admin</text></g>
+
+            <!-- Associations -->
+            <path d="M134 98 332 72M134 104 332 142M134 110 332 210M134 116 332 282" class="uml-assoc" />
+            <path d="M222 294 332 350" class="uml-assoc" />
+            <path d="M100 372 332 414" class="uml-assoc" />
+
+            <!-- extend / include -->
+            <path d="M682 142 608 142" class="uml-dep" marker-end="url(#uml-open)" />
+            <text x="645" y="131" class="uml-stereo">«extend»</text>
+            <path d="M608 420 682 420" class="uml-dep" marker-end="url(#uml-open)" />
+            <text x="645" y="409" class="uml-stereo">«include»</text>
+          </svg>
+          <figcaption><b>Figura 1 — Casos de uso do Jay-C, simplificado.</b> A senha só é pedida quando a sala tem cadeado («extend»); gerenciar salas e canais sempre passa pela validação da chave («include»). O diagrama completo, com os 13 casos de uso, está no dossiê.</figcaption>
+        </figure>
+      </section>
+
+      <!-- ===================== 4.4 ===================== -->
+      <section id="c44" class="block" aria-labelledby="c44-title">
+        <header class="chapter">
+          <span class="chapter-num">4.4</span>
+          <h2 id="c44-title" class="chapter-title">Design e arquitetura</h2>
+        </header>
+
+        <h3 id="arquitetura" class="section-title">17. Visão arquitetural</h3>
         <p class="section-lead">É um sistema cliente-servidor. O app roda no computador ou no celular de cada pessoa; o servidor roda na máquina do grupo. Por ele passam duas coisas bem diferentes: as <em>mensagens de controle</em> (quem entrou, quem saiu, o chat) e a <em>mídia</em> (áudio e vídeo).</p>
 
         <div class="arch" role="img" aria-label="Diagrama: o aplicativo, com as camadas de apresentação, lógica e nativa, conversa com o servidor por quatro interfaces; o servidor tem sinalização, domínio, SFU e dados">
@@ -130,15 +311,12 @@
             <p>A sinalização (porta 3000) e o SFU (porta 40000, UDP e TCP) rodam no mesmo contêiner. Quem hospeda libera duas portas no firewall e pronto; numa rede local ou numa VPN como o Radmin, os apps chegam direto no servidor.</p>
           </article>
         </div>
-      </section>
 
-      <!-- ===================== SFU ===================== -->
-      <section id="sfu" class="block" aria-labelledby="sfu-title">
-        <h2 id="sfu-title" class="section-title">Por que um SFU, e não todo mundo com todo mundo</h2>
+        <h3 id="sfu" class="section-title">Por que um SFU, e não todo mundo com todo mundo</h3>
         <div class="two-col">
           <div class="prose">
             <p>No modelo <strong>mesh</strong>, cada pessoa manda uma cópia do seu vídeo para cada outra pessoa. Com um <strong>SFU</strong> (<em>Selective Forwarding Unit</em>), cada um manda o vídeo <strong>uma vez só</strong> para o servidor, que repassa para quem está assistindo, sem decodificar nada.</p>
-            <p>O Jay-C começou com mesh e limite de 4 pessoas. Com o SFU o limite subiu para 16. O custo passa para quem hospeda: o servidor reenvia o vídeo para cada espectador, então o upload da máquina do servidor é que precisa aguentar.</p>
+            <p>O Jay-C começou com mesh e limite de 4 pessoas. Com o SFU o limite subiu para 16 (<b>RNF001</b>). O custo passa para quem hospeda: o servidor reenvia o vídeo para cada espectador, então o upload da máquina do servidor é que precisa aguentar.</p>
             <p>As câmeras ainda usam <strong>simulcast</strong>: cada uma é enviada em três qualidades (≈150, 500 e 1 500 kbps) e o servidor escolhe qual repassar conforme o tamanho do quadrinho na tela de quem assiste.</p>
           </div>
           <form class="calc" id="calc" aria-labelledby="calc-title" onsubmit="return false">
@@ -158,30 +336,24 @@
             <p class="hint">Conta aproximada, para uma pessoa enviando e as outras assistindo. Com 16 pessoas e uma live em 1080p60, o mesh pediria ≈90 Mbps de upload de quem transmite; no SFU são ≈6 Mbps, e os ≈90 Mbps ficam com o servidor.</p>
           </form>
         </div>
-      </section>
 
-      <!-- ===================== Uma chamada ===================== -->
-      <section id="chamada" class="block" aria-labelledby="chamada-title">
-        <h2 id="chamada-title" class="section-title">Uma chamada, passo a passo</h2>
-        <p class="section-lead">O que acontece entre clicar numa sala e ouvir a outra pessoa.</p>
+        <h3 id="chamada" class="section-title">20. Refinamento: uma chamada, passo a passo</h3>
+        <p class="section-lead">O que acontece entre clicar numa sala (<b>RF003</b>) e ouvir a outra pessoa.</p>
         <ol class="timeline">
           <li><h3>Conecta no servidor</h3><p>O app abre um WebSocket na porta 3000 e manda <code>join</code> com o nome da sala, o seu nome e, se a sala tiver cadeado, a senha.</p></li>
           <li><h3>O servidor confere as regras</h3><p>A sala tem menos de 16 pessoas? A senha bate com o <em>hash</em> guardado? Se algo falha, volta um erro com código (<code>room-full</code>, <code>wrong-password</code>) e o app mostra o aviso.</p></li>
           <li><h3>Recebe as capacidades do SFU</h3><p>A resposta <code>joined</code> traz quem já está na sala e os codecs que o servidor aceita, que configuram o cliente do mediasoup.</p></li>
           <li><h3>Abre dois transportes</h3><p>Um de envio e um de recebimento, cada um uma conexão WebRTC com o servidor, ambas na porta 40000. A mídia vai cifrada (DTLS-SRTP).</p></li>
           <li><h3>Publica e consome</h3><p>O app publica o microfone e a câmera (<em>producers</em>) e consome os de cada pessoa (<em>consumers</em>). Quando alguém novo liga a câmera, chega um <code>new-producer</code> e o app passa a consumir também.</p></li>
-          <li><h3>Se a rede cair</h3><p>O app mostra "reconectando", tenta de novo depois de 1, 2, 4, 8 e então a cada 10 segundos e, quando volta, refaz os transportes sozinho. Num teste com o servidor reiniciado, a volta levou cerca de 1 segundo.</p></li>
+          <li><h3>Se a rede cair</h3><p>O app mostra "reconectando", tenta de novo depois de 1, 2, 4, 8 e então a cada 10 segundos e, quando volta, refaz os transportes sozinho (<b>RNF007</b>). Num teste com o servidor reiniciado, a volta levou cerca de 1 segundo.</p></li>
         </ol>
         <figure class="shot">
           <img src="assets/shots/call.webp" width="1266" height="793" loading="lazy" alt="Uma chamada no Jay-C: a live de uma pessoa em destaque, os cards de quem está na sala e a barra de controles" />
           <figcaption>Uma chamada com uma live em destaque. A sala continua tocando mesmo quando a pessoa abre um canal de texto.</figcaption>
         </figure>
-      </section>
 
-      <!-- ===================== Live ===================== -->
-      <section id="live" class="block" aria-labelledby="live-title">
-        <h2 id="live-title" class="section-title">A live da tela</h2>
-        <p class="section-lead">No Windows, transmitir a tela inteira não passa pelo navegador: o Rust captura, codifica e envia, e o som vai junto.</p>
+        <h3 id="live" class="section-title">A live da tela</h3>
+        <p class="section-lead">No Windows, transmitir a tela inteira (<b>RF007</b>) não passa pelo navegador: o Rust captura, codifica e envia, e o som vai junto.</p>
         <div class="pipeline" role="img" aria-label="Fluxo da live: captura da tela pelo Windows Graphics Capture, codificação H.264 na placa de vídeo, envio por WebRTC, SFU no servidor e quem assiste; o som do programa é capturado à parte e vai como Opus estéreo">
           <div class="step"><span class="btn-icon" data-icon="monitor"></span><b>Captura</b><small>Windows Graphics Capture</small></div>
           <div class="step"><span class="btn-icon" data-icon="chip"></span><b>Codifica</b><small>H.264 na placa de vídeo</small></div>
@@ -203,11 +375,8 @@
             <p>A imagem espera o som: quem transmite segura alguns milissegundos e quem assiste ajusta o próprio buffer, para a boca não mexer antes da voz chegar.</p>
           </article>
         </div>
-      </section>
 
-      <!-- ===================== Microfone ===================== -->
-      <section id="microfone" class="block" aria-labelledby="mic-title">
-        <h2 id="mic-title" class="section-title">O microfone que não abafa os outros apps</h2>
+        <h3 id="microfone" class="section-title">O microfone que não abafa os outros apps</h3>
         <div class="two-col">
           <div class="prose">
             <p>Durante o desenvolvimento apareceu um problema sério: em alguns notebooks, o microfone do navegador colocava o Windows em "modo chamada" e <strong>abaixava o som dos outros programas em cerca de 65 dB</strong>. Na prática, o jogo ficava mudo enquanto a chamada estava aberta.</p>
@@ -220,15 +389,12 @@
             <div class="step"><span class="btn-icon" data-icon="send"></span><b>Opus</b><small>com DTX no silêncio</small></div>
           </div>
         </div>
-      </section>
 
-      <!-- ===================== Servidores ===================== -->
-      <section id="servidores" class="block" aria-labelledby="serv-title">
-        <h2 id="serv-title" class="section-title">Servidores, salas e canais</h2>
+        <h3 id="servidores" class="section-title">Servidores, salas e canais</h3>
         <div class="feature-grid">
-          <article><span class="app-icon" data-icon="lock"></span><h3>Salas com senha ou ocultas</h3><p>Uma sala pode ter cadeado. Uma sala oculta não aparece na lista e, por regra, precisa de senha: entra quem sabe o nome e a senha.</p></article>
-          <article><span class="app-icon" data-icon="key"></span><h3>Chave de administrador</h3><p>Criar, renomear e excluir salas e canais exige a chave do servidor. Uma sala com gente dentro não pode ser renomeada.</p></article>
-          <article><span class="app-icon" data-icon="chat"></span><h3>Canais com histórico</h3><p>Cada canal guarda as 500 mensagens mais recentes e entrega 50 por vez ao rolar. Dá para responder uma mensagem; a citação vem do histórico do servidor, então ninguém a forja.</p></article>
+          <article><span class="app-icon" data-icon="lock"></span><h3>Salas com senha ou ocultas</h3><p>Uma sala pode ter cadeado. Uma sala oculta não aparece na lista e, por regra (<b>RN003</b>), precisa de senha: entra quem sabe o nome e a senha.</p></article>
+          <article><span class="app-icon" data-icon="key"></span><h3>Chave de administrador</h3><p>Criar, renomear e excluir salas e canais exige a chave do servidor (<b>RN004</b>). Uma sala com gente dentro não pode ser renomeada.</p></article>
+          <article><span class="app-icon" data-icon="chat"></span><h3>Canais com histórico</h3><p>Cada canal guarda as 500 mensagens mais recentes e entrega 50 por vez ao rolar (<b>RF011</b>). Dá para responder uma mensagem; a citação vem do histórico do servidor, então ninguém a forja.</p></article>
           <article><span class="app-icon" data-icon="image"></span><h3>Imagens, GIFs e vídeos</h3><p>Até 8 MB por imagem e 50 MB por vídeo. O servidor confere o tipo pelos primeiros bytes do arquivo, não pelo nome.</p></article>
         </div>
         <figure class="shot shot-pair">
@@ -236,65 +402,94 @@
           <img src="assets/shots/phone.webp" width="792" height="832" loading="lazy" alt="O Jay-C no celular: uma chamada com a live de uma pessoa e as câmeras, e a gaveta com as salas e os canais" />
           <figcaption>Respostas num canal e o mesmo servidor no Android.</figcaption>
         </figure>
+
+        <h3 id="seguranca" class="section-title">Segurança e privacidade, sem exagero</h3>
+        <ul class="check-list">
+          <li><b>Senhas com hash.</b> As senhas das salas ficam no servidor como <em>hash</em> com <em>salt</em>, nunca em texto.</li>
+          <li><b>Arquivo só para quem pode ver.</b> Cada sessão recebe um token; pedir um arquivo de outra sala devolve 404, igual a um arquivo que não existe (<b>RN009</b>).</li>
+          <li><b>Localização removida.</b> Antes de enviar uma foto ou um vídeo de celular, o app tira os dados de GPS e de data (<b>RNF005</b>).</li>
+          <li><b>Mídia cifrada no caminho.</b> O WebRTC cifra áudio e vídeo entre o app e o servidor.</li>
+        </ul>
       </section>
 
-      <!-- ===================== Segurança ===================== -->
-      <section id="seguranca" class="block" aria-labelledby="seg-title">
-        <h2 id="seg-title" class="section-title">Segurança e privacidade, sem exagero</h2>
-        <div class="two-col">
-          <ul class="check-list">
-            <li><b>Senhas com hash.</b> As senhas das salas ficam no servidor como <em>hash</em> com <em>salt</em>, nunca em texto.</li>
-            <li><b>Arquivo só para quem pode ver.</b> Cada sessão recebe um token; pedir um arquivo de outra sala devolve 404, igual a um arquivo que não existe.</li>
-            <li><b>Localização removida.</b> Antes de enviar uma foto ou um vídeo de celular, o app tira os dados de GPS e de data (EXIF e blocos de texto do PNG).</li>
-            <li><b>Mídia cifrada no caminho.</b> O WebRTC cifra áudio e vídeo entre o app e o servidor.</li>
-          </ul>
-          <div class="note">
-            <h3>O que o Jay-C não faz</h3>
-            <p>Não há criptografia de ponta a ponta: o SFU precisa receber a mídia para repassá-la, então <strong>o servidor tem que ser de confiança do grupo</strong>. Também não há contas, mensagens privadas fora das salas, nem versões para iOS, macOS e Linux nesta versão. São limites escolhidos e registrados no dossiê.</p>
-          </div>
-        </div>
-      </section>
-
-      <!-- ===================== Engenharia ===================== -->
-      <section id="engenharia" class="block" aria-labelledby="eng-title">
-        <h2 id="eng-title" class="section-title">A engenharia de software por trás</h2>
-        <p class="section-lead">O trabalho da disciplina aplicou ao Jay-C o caminho problema → requisitos → modelagem → projeto → código → testes. Os detalhes estão no dossiê; aqui vai o resumo.</p>
-        <dl class="stats stats-wide">
-          <div><dt>Requisitos funcionais</dt><dd>20</dd></div>
-          <div><dt>Não funcionais</dt><dd>10</dd></div>
-          <div><dt>Regras de negócio</dt><dd>12</dd></div>
-          <div><dt>Casos de uso</dt><dd>13</dd></div>
-          <div><dt>Testes JavaScript aprovados</dt><dd>186</dd></div>
-          <div><dt>Testes em Rust</dt><dd>48</dd></div>
-        </dl>
+      <!-- ===================== 4.5 ===================== -->
+      <section id="c45" class="block" aria-labelledby="c45-title">
+        <header class="chapter">
+          <span class="chapter-num">4.5</span>
+          <h2 id="c45-title" class="chapter-title">Processo e organização do desenvolvimento</h2>
+        </header>
         <div class="explain-grid">
           <article>
-            <h3>Processo incremental, com protótipos de risco</h3>
-            <p>O app cresceu em etapas curtas, cada uma terminando em algo testável. As partes incertas (o som de um único programa, o vídeo para 16 pessoas) viraram protótipos feitos cedo, para o plano mudar antes de muito código depender delas.</p>
+            <h3>23. Incremental, com protótipos de risco</h3>
+            <p>O app cresceu em etapas curtas, cada uma terminando em algo testável: planejar, projetar, implementar, verificar no CI, validar com os testers e entregar uma versão. As partes incertas (o som de um único programa, o vídeo para 16 pessoas) viraram protótipos feitos cedo, para o plano mudar antes de muito código depender delas.</p>
           </article>
           <article>
-            <h3>Medir antes de afirmar</h3>
-            <p>O som abafado de 65 dB, os quadros-chave que travavam quem assistia e o notebook com duas placas de vídeo só foram entendidos medindo. Cada decisão importante tem a medição registrada no repositório.</p>
-          </article>
-          <article>
-            <h3>Rastreabilidade</h3>
-            <p>Cada requisito, regra, caso de uso e caso de teste tem um ID. A matriz liga requisito → componente → teste, e o exemplo real: os testers pediram responder mensagens, isso virou o RF012 e a RN012 e saiu na versão 0.5.2.</p>
+            <h3>25. Versões, mudanças e rastreabilidade</h3>
+            <p>Cada requisito, regra, caso de uso e caso de teste tem um ID. Um caso real: os testers da 0.5.1 pediram para responder mensagens; o pedido virou o RF012 e a RN012, ganhou teste e saiu na versão 0.5.2. Cada versão leva uma tag e segue o versionamento semântico.</p>
           </article>
           <article>
             <h3>Integração contínua</h3>
             <p>A cada envio para o GitHub, o CI roda os testes de JavaScript, os de Rust no Windows e sobe a imagem Docker do servidor para conferir se o <code>/health</code> responde.</p>
           </article>
         </div>
-        <div class="hero-actions">
-          <a class="btn" href="https://github.com/TyxMatty/Jay-C-apresentacao/releases/latest"><span class="btn-icon" data-icon="document"></span>Baixar o dossiê</a>
-          <a class="btn btn-secondary" href="https://github.com/TyxMatty/Jay-C-apresentacao"><span class="btn-icon" data-icon="github"></span>Repositório do trabalho</a>
-          <a class="btn btn-secondary" href="https://github.com/TyxMatty/Jay-C/releases/latest"><span class="btn-icon" data-icon="download"></span>Baixar o Jay-C</a>
+      </section>
+
+      <!-- ===================== 4.6 ===================== -->
+      <section id="c46" class="block" aria-labelledby="c46-title">
+        <header class="chapter">
+          <span class="chapter-num">4.6</span>
+          <h2 id="c46-title" class="chapter-title">Qualidade, verificação e validação</h2>
+        </header>
+        <dl class="stats stats-wide">
+          <div><dt>Requisitos funcionais</dt><dd>20</dd></div>
+          <div><dt>Não funcionais</dt><dd>10</dd></div>
+          <div><dt>Regras de negócio</dt><dd>12</dd></div>
+          <div><dt>Casos de teste</dt><dd>23</dd></div>
+          <div><dt>Testes JavaScript aprovados</dt><dd>186</dd></div>
+          <div><dt>Testes em Rust</dt><dd>48</dd></div>
+        </dl>
+        <div class="explain-grid">
+          <article>
+            <h3>Verificação</h3>
+            <p><em>Estamos construindo o produto do jeito certo?</em> A suíte automática confere as regras no código: o 17º participante é barrado (RN001), a sala oculta sem senha é recusada (RN003), o arquivo de tipo errado volta 415 e o grande demais, 413.</p>
+          </article>
+          <article>
+            <h3>Validação</h3>
+            <p><em>Estamos construindo o produto certo?</em> Chamadas reais com testers jogando e mostrando a tela. Foi daí que veio o pedido de responder mensagens e onde apareceu o defeito de quem entra numa chamada em andamento.</p>
+          </article>
+          <article>
+            <h3>Medir antes de afirmar</h3>
+            <p>O som abafado de 65 dB, os quadros-chave que travavam quem assistia e o notebook com duas placas de vídeo só foram entendidos medindo. Cada decisão importante tem a medição registrada no repositório.</p>
+          </article>
         </div>
       </section>
 
-      <!-- ===================== Equipe ===================== -->
-      <section id="equipe" class="block" aria-labelledby="equipe-title">
-        <h2 id="equipe-title" class="section-title">Equipe</h2>
+      <!-- ===================== 4.7 ===================== -->
+      <section id="c47" class="block" aria-labelledby="c47-title">
+        <header class="chapter">
+          <span class="chapter-num">4.7</span>
+          <h2 id="c47-title" class="chapter-title">Manutenção e evolução</h2>
+        </header>
+        <div class="feature-grid">
+          <article><span class="app-icon" data-icon="shield"></span><h3>Corretiva</h3><p>Quem entra numa chamada em andamento às vezes não ouve quem já estava lá, sem nenhum aviso. É o primeiro item da lista.</p></article>
+          <article><span class="app-icon" data-icon="layers"></span><h3>Adaptativa</h3><p>Acompanhar Tauri, WebView2, Android SDK e mediasoup a cada atualização grande do Windows ou do Android.</p></article>
+          <article><span class="app-icon" data-icon="chat"></span><h3>Perfectiva</h3><p>Alertas por canal: só menções, tudo ou nada, com som próprio, guardados só no aparelho de quem usa.</p></article>
+          <article><span class="app-icon" data-icon="code"></span><h3>Preventiva</h3><p>Dividir a classe <code>Call</code>, que passou de 1 000 linhas, e trocar o <code>if/else</code> do servidor por um mapa de handlers.</p></article>
+        </div>
+      </section>
+
+      <!-- ===================== 4.8 ===================== -->
+      <section id="c48" class="block" aria-labelledby="c48-title">
+        <header class="chapter">
+          <span class="chapter-num">4.8</span>
+          <h2 id="c48-title" class="chapter-title">Conclusão e referências</h2>
+        </header>
+        <div class="prose conclusion">
+          <p>Tirar as contas e passar o servidor para o grupo resolveu a dependência das plataformas grandes; o SFU levou a sala a 16 pessoas e a live a 1080p60; e onde o navegador travou, o Rust entrou, sempre depois de um protótipo. A lição que ficou: <strong>medir antes de bater o martelo</strong>, e ligar requisito, modelo e teste por ID para mudar sem andar às cegas.</p>
+          <p>Os limites continuam claros: sem criptografia de ponta a ponta, sem iOS, macOS e Linux, e quem hospeda precisa de upload (uma live 1080p60 para 15 pessoas pede uns 90 Mbps do servidor).</p>
+        </div>
+
+        <h3 id="equipe" class="section-title">35. Quadro de contribuição individual</h3>
         <ul class="team">
           <li><span class="avatar">AA</span><div><h3>Augusto do Amarante</h3><p>Verificação e validação</p><a href="https://github.com/gusg543">@gusg543</a></div></li>
           <li><span class="avatar">CO</span><div><h3>Cristofer Dvorecky Oliveira</h3><p>Tabela de requisitos</p><a href="https://github.com/CristoferDOliveira">@CristoferDOliveira</a></div></li>
@@ -302,6 +497,11 @@
           <li><span class="avatar">HA</span><div><h3>Henrique Augusto</h3><p>Testes e manutenção</p><a href="https://github.com/henriqueaugustodesouzadutra08-ops">@henriqueaugustodesouzadutra08-ops</a></div></li>
           <li><span class="avatar">MV</span><div><h3>Mateus Valenga</h3><p>O aplicativo e a verificação final</p><a href="https://github.com/TyxMatty">@TyxMatty</a></div></li>
         </ul>
+        <div class="hero-actions">
+          <a class="btn" href="https://github.com/TyxMatty/Jay-C-apresentacao/releases/latest"><span class="btn-icon" data-icon="document"></span>Baixar o dossiê</a>
+          <a class="btn btn-secondary" href="https://github.com/TyxMatty/Jay-C-apresentacao"><span class="btn-icon" data-icon="github"></span>Repositório do trabalho</a>
+          <a class="btn btn-secondary" href="https://github.com/TyxMatty/Jay-C/releases/latest"><span class="btn-icon" data-icon="download"></span>Baixar o Jay-C</a>
+        </div>
       </section>
     </main>
 
